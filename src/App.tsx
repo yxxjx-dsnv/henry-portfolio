@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Home } from './pages/Home';
+import { Projects } from './pages/Projects';
 import { Essays } from './pages/Essays';
 import { ExtraCurricular } from './pages/ExtraCurricular';
 import { Education } from './pages/Education';
@@ -9,6 +10,7 @@ import { useDarkMode } from './hooks/useDarkMode';
 
 const HASH_ROUTES: Record<string, string> = {
   '#home': '/',
+  '#projects': '/projects',
   '#essays': '/essays',
   '#extra-curricular': '/extra-curricular',
   '#education': '/education',
@@ -46,6 +48,7 @@ export default function App() {
         <div className="content-wrapper">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/essays" element={<Essays />} />
             <Route path="/extra-curricular" element={<ExtraCurricular />} />
             <Route path="/education" element={<Education />} />

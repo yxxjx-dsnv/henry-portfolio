@@ -35,6 +35,11 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           </NavLink>
         </li>
         <li>
+          <NavLink to="/projects" className={navClass}>
+            Projects
+          </NavLink>
+        </li>
+        <li>
           <NavLink to="/essays" className={navClass}>
             Essays
           </NavLink>

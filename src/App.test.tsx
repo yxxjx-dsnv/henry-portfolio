@@ -16,6 +16,11 @@ test('renders Home at /', () => {
   expect(screen.getByRole('heading', { name: 'Henry Kim' })).toBeInTheDocument();
 });
 
+test('renders Projects at /projects', () => {
+  renderAt('/projects');
+  expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument();
+});
+
 test('renders Essays at /essays', () => {
   renderAt('/essays');
   expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
