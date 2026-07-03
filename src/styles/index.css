@@ -55,7 +55,7 @@ a {
 .sidebar .social-list a {
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
 }
 .social-list a i {
     width: 15px;
