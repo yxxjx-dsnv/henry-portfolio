@@ -1,12 +1,10 @@
 import { Fragment } from 'react';
-import { useCenterInView } from '../hooks/useCenterInView';
 import type { ResumeLine } from '../types';
 
 export function ActivityItem({ item }: { item: ResumeLine }) {
   const { prefix, link, suffix, date, detail } = item;
-  const { ref, inView } = useCenterInView<HTMLDivElement>();
   return (
-    <div ref={ref} className={`activity-item${inView ? ' in-view' : ''}`} tabIndex={detail && detail.length > 0 ? 0 : undefined}>
+    <div className="activity-item" tabIndex={detail && detail.length > 0 ? 0 : undefined}>
       <p>
         {prefix}
         {link &&

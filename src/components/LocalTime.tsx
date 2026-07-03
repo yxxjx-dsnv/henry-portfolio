@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
-const fmt = new Intl.DateTimeFormat('en-CA', {
+const fmt = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/Toronto',
-  hour: '2-digit',
+  hour: 'numeric',
   minute: '2-digit',
-  hour12: false,
+  hour12: true, // "2:32 PM"
 });
 
 // A quiet "Toronto — 14:32" line that ticks once a minute, aligned to the

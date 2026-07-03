@@ -35,7 +35,7 @@ test('clicking Email copies the address and shows a quiet Copied swap', async ()
 
 test('sidebar shows the Toronto clock and a colophon link', () => {
   renderSidebar();
-  expect(screen.getByText(/^Toronto — \d{2}:\d{2}$/)).toBeInTheDocument();
+  expect(screen.getByText(/^Toronto — \d{1,2}:\d{2} (AM|PM)$/)).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Colophon' })).toHaveAttribute('href', '/colophon');
 });
 
