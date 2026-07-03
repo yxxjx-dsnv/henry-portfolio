@@ -70,9 +70,11 @@ test('the traveling nav dot exists in the sidebar', () => {
   expect(document.querySelector('.nav-dot')).toBeTruthy();
 });
 
-test('Home greets by time of day', () => {
+test('Home always serves a quote with an author', () => {
   renderAt('/');
-  expect(screen.getByText(/Good (morning|afternoon|evening)\.|Up late\?/)).toBeInTheDocument();
+  const quote = document.querySelector('.hero-quote');
+  expect(quote).toBeTruthy();
+  expect(quote!.querySelector('.hero-quote-author')!.textContent).toMatch(/^— /);
 });
 
 test('404 hosts the lost dot', () => {

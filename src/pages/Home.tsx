@@ -1,7 +1,7 @@
 import { Hero } from '../components/Hero';
 import { KoreaTrigger } from '../components/KoreaEasterEgg';
 import { DotField } from '../components/DotField';
-import { Greeting } from '../components/Greeting';
+import { DailyQuote } from '../components/DailyQuote';
 import { profile } from '../data/profile';
 
 export function Home() {
@@ -9,7 +9,7 @@ export function Home() {
     <section className="section">
       <Hero title="Henry Kim" playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
       <DotField />
-      <Greeting />
+      <DailyQuote />
       <section className="about-section">
         <div className="text">
           <p>Some things about me:</p>

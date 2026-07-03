@@ -736,16 +736,6 @@ body.dark-mode .nav-dot { background: #dad9e2; }
 .logo:active { transform: scale(0.95) !important; }
 .end-mark:active { transform: scale(0.8); }
 
-/* time-aware greeting under the Home hero */
-.hero-greeting {
-    padding: 0 40px;
-    margin: -12px 0 6px;
-    max-width: 600px;
-    font-size: 13px;
-    font-style: italic;
-    color: #787878;
-}
-
 /* the 404 resident */
 .lost-dot { margin-top: 26px; }
 .lost-dot canvas {
@@ -866,18 +856,27 @@ body.dark-mode .cursor-satellite { background: #c6c4c4; }
     }
 }
 
-/* the day's line, when it visits — author off to the right */
+/* a line worth keeping — click it for another */
 .hero-quote {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 18px;
     padding: 0 40px;
-    margin: -2px 0 10px;
+    margin: -10px 0 10px;
     max-width: 600px;
+    width: 100%;
+    border: 0;
+    background: none;
+    font-family: inherit;
     font-size: 12.5px;
+    text-align: left;
     color: #787878;
+    cursor: pointer;
+    transition: color var(--t);
 }
+.hero-quote:hover { color: #4d4d4d; }
+body.dark-mode .hero-quote:hover { color: #c6c4c4; }
 .hero-quote em { font-style: italic; }
 .hero-quote-author {
     white-space: nowrap;
