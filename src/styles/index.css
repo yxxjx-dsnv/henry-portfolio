@@ -732,7 +732,6 @@ body.dark-mode .nav-dot { background: #dad9e2; }
 
 /* Toss-style press: things give slightly under your finger */
 .sidebar a { display: inline-block; transition: color var(--t), transform 100ms ease; }
-.sidebar a:active { transform: translateY(1px); }
 .cmdk-row:active { transform: scale(0.99); }
 .logo:active { transform: scale(0.95) !important; }
 .end-mark:active { transform: scale(0.8); }
