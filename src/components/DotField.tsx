@@ -29,8 +29,10 @@ export function DotField({ height = 132 }: { height?: number }) {
     let width = 0;
     let raf = 0;
     let running = false;
-    const mouse = { x: -9999, y: -9999, inside: false };
+    const mouse = { x: -9999, y: -9999, inside: false, px: -9999, py: -9999, dragging: false };
     let ripples: Ripple[] = [];
+    // per-dot stir displacement (index = grid cell), spring back to rest
+    let stir = new Map<number, { ox: number; oy: number; vx: number; vy: number }>();
 
     const colors = () => {
       const dark = document.body.classList.contains('dark-mode');
@@ -54,6 +56,15 @@ export function DotField({ height = 132 }: { height?: number }) {
       const { stroke, fill } = colors();
       ctx.clearRect(0, 0, width, height);
       ripples = ripples.filter((r) => now - r.born < RIPPLE_LIFE);
+
+      // integrate stir springs; drop settled dots
+      for (const [k, d] of stir) {
+        d.vx = (d.vx - d.ox * 0.06) * 0.86;
+        d.vy = (d.vy - d.oy * 0.06) * 0.86;
+        d.ox += d.vx;
+        d.oy += d.vy;
+        if (Math.hypot(d.ox, d.oy) < 0.15 && Math.hypot(d.vx, d.vy) < 0.05) stir.delete(k);
+      }
 
       const cols = Math.floor((width - SPACING) / SPACING);
       const rows = Math.floor((height - SPACING / 2) / SPACING);
@@ -81,6 +92,11 @@ export function DotField({ height = 132 }: { height?: number }) {
           // dots lean slightly toward the cursor, like they noticed
           let x = gx;
           let y = gy;
+          const st = stir.get(i * 1000 + j);
+          if (st) {
+            x += st.ox;
+            y += st.oy;
+          }
           if (mouse.inside && dm > 0.001 && dm < REACH) {
             const pull = 3.5 * (1 - dm / REACH);
             x += ((mouse.x - gx) / dm) * pull;
@@ -105,7 +121,7 @@ export function DotField({ height = 132 }: { height?: number }) {
 
     const loop = (now: number) => {
       draw(now);
-      if (mouse.inside || ripples.length > 0) {
+      if (mouse.inside || ripples.length > 0 || stir.size > 0) {
         raf = requestAnimationFrame(loop);
       } else {
         running = false;
@@ -121,8 +137,34 @@ export function DotField({ height = 132 }: { height?: number }) {
 
     const onMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
+      const nx = e.clientX - rect.left;
+      const ny = e.clientY - rect.top;
+      // dragging stirs the field: fling nearby dots along the stroke
+      if (mouse.dragging && mouse.px > -999) {
+        const mvx = nx - mouse.px;
+        const mvy = ny - mouse.py;
+        const cols = Math.floor((width - SPACING) / SPACING);
+        const rows = Math.floor((height - SPACING / 2) / SPACING);
+        const offX = (width - (cols - 1) * SPACING) / 2;
+        const offY = (height - (rows - 1) * SPACING) / 2;
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            const d = Math.hypot(offX + i * SPACING - nx, offY + j * SPACING - ny);
+            if (d < 70) {
+              const k = i * 1000 + j;
+              const st = stir.get(k) ?? { ox: 0, oy: 0, vx: 0, vy: 0 };
+              const w = (1 - d / 70) * 0.35;
+              st.vx += mvx * w;
+              st.vy += mvy * w;
+              stir.set(k, st);
+            }
+          }
+        }
+      }
+      mouse.px = nx;
+      mouse.py = ny;
+      mouse.x = nx;
+      mouse.y = ny;
       mouse.inside = true;
       wake();
     };
@@ -134,14 +176,19 @@ export function DotField({ height = 132 }: { height?: number }) {
     };
     const onClick = (e: PointerEvent) => {
       if (reduced) return;
+      mouse.dragging = true;
       const rect = canvas.getBoundingClientRect();
       ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, born: performance.now() });
       wake();
+    };
+    const onUp = () => {
+      mouse.dragging = false;
     };
 
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('pointerdown', onClick);
+    window.addEventListener('pointerup', onUp);
 
     // repaint when the theme flips (the sweep repaints the page; we follow)
     const observer = new MutationObserver(() => draw(performance.now()));
@@ -156,6 +203,7 @@ export function DotField({ height = 132 }: { height?: number }) {
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('pointerdown', onClick);
+      window.removeEventListener('pointerup', onUp);
       observer.disconnect();
       ro?.disconnect();
     };

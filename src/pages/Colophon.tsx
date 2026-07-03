@@ -19,7 +19,7 @@ export function Colophon() {
             Built by hand with React, TypeScript, and Vite. Plain CSS, no UI libraries. Hosted on
             GitHub Pages at henrykim.ca.
           </p>
-          <p className="colophon-line">Pages answer to the keys 1–5.</p>
+          <p className="colophon-line">Pages answer to the keys 1–5. ⌘K opens the switchboard.</p>
           <p className="colophon-mark">
             build {__BUILD_DATE__} · {__COMMIT_HASH__}
           </p>

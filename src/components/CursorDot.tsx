@@ -30,15 +30,18 @@ export function CursorDot() {
     let down = false;
     let visible = false;
     let raf = 0;
+    let lastMove = performance.now();
 
     const loop = () => {
       x += (tx - x) * 0.16;
       y += (ty - y) * 0.16;
       ring.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${down ? 0.7 : 1})`;
+      ring.classList.toggle('is-idle', visible && performance.now() - lastMove > 15000);
       raf = requestAnimationFrame(loop);
     };
 
     const onMove = (e: PointerEvent) => {
+      lastMove = performance.now();
       tx = e.clientX;
       ty = e.clientY;
       core.style.transform = `translate(${tx}px, ${ty}px) translate(-50%, -50%)`;

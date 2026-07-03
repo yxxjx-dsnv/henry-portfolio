@@ -56,6 +56,30 @@ test('colophon page renders with the printer mark', () => {
   expect(document.title).toBe('Colophon — Henry Kim');
 });
 
+test('cmd+K opens the switchboard and Enter jumps to a filtered page', async () => {
+  renderAt('/');
+  fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+  const input = await screen.findByPlaceholderText('Type a page or action…');
+  await userEvent.type(input, 'essa');
+  fireEvent.keyDown(input, { key: 'Enter' });
+  expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
+});
+
+test('the traveling nav dot exists in the sidebar', () => {
+  renderAt('/');
+  expect(document.querySelector('.nav-dot')).toBeTruthy();
+});
+
+test('Home greets by time of day', () => {
+  renderAt('/');
+  expect(screen.getByText(/Good (morning|afternoon|evening)\.|Up late\?/)).toBeInTheDocument();
+});
+
+test('404 hosts the lost dot', () => {
+  renderAt('/nowhere');
+  expect(screen.getByText(/One dot did get lost/)).toBeInTheDocument();
+});
+
 test('clicking the logo toggles the dark-mode body class', async () => {
   document.body.className = '';
   localStorage.clear();

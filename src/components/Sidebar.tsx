@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { profile } from '../data/profile';
 import { LocalTime } from './LocalTime';
 
@@ -18,6 +18,24 @@ type Props = {
 const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
 export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
+  const location = useLocation();
+  const navRef = useRef<HTMLUListElement>(null);
+  const [dotY, setDotY] = useState<number | null>(null);
+  // The nav dot travels to whichever link is active — "you are here".
+  useEffect(() => {
+    const measure = () => {
+      const a = navRef.current?.querySelector<HTMLElement>('a.active');
+      setDotY(a ? a.offsetTop + a.offsetHeight / 2 - 3.5 : null);
+    };
+    measure();
+    const t = setTimeout(measure, 350); // after webfont settles
+    window.addEventListener('resize', measure);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', measure);
+    };
+  }, [location.pathname]);
+
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(copyTimer.current), []);
@@ -60,7 +78,12 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       />
       <p>Navigation</p>
       <br />
-      <ul>
+      <ul className="nav-list" ref={navRef}>
+        <span
+          className="nav-dot"
+          aria-hidden="true"
+          style={{ transform: `translateY(${dotY ?? 0}px)`, opacity: dotY === null ? 0 : 1 }}
+        />
         <li>
           <NavLink to="/" end className={navClass}>
             Home

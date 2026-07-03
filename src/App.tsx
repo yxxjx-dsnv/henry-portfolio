@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { CursorDot } from './components/CursorDot';
+import { CommandPalette, type PaletteAction } from './components/CommandPalette';
+import { profile } from './data/profile';
 import { Home } from './pages/Home';
 import { Projects } from './pages/Projects';
 import { Essays } from './pages/Essays';
@@ -101,9 +103,67 @@ export default function App() {
 
   const closeSidebar = () => setSidebarOpen(false);
 
+  // ⌘K switchboard
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const paletteActions: PaletteAction[] = [
+    { label: 'Home', hint: '1', run: () => navigate('/') },
+    { label: 'Projects', hint: '2', run: () => navigate('/projects') },
+    { label: 'Essays', hint: '3', run: () => navigate('/essays') },
+    { label: 'Extra-Curricular', hint: '4', run: () => navigate('/extra-curricular') },
+    { label: 'Education', hint: '5', run: () => navigate('/education') },
+    { label: 'Colophon', run: () => navigate('/colophon') },
+    { label: 'Toggle dark mode', run: () => toggle() },
+    {
+      label: 'Copy email address',
+      run: () => navigator.clipboard?.writeText?.(profile.social.email.replace(/^mailto:/, '')),
+    },
+  ];
+
+  // Route transitions know which way you moved through the menu.
+  const ORDER = ['/', '/projects', '/essays', '/extra-curricular', '/education', '/colophon'];
+  const prevIndexRef = useRef(ORDER.indexOf(location.pathname));
+  const idx = ORDER.indexOf(location.pathname);
+  const dir = idx >= 0 && prevIndexRef.current >= 0 && idx < prevIndexRef.current ? 'up' : 'down';
+  useEffect(() => {
+    if (idx >= 0) prevIndexRef.current = idx;
+  }, [idx]);
+
+  // Apple-style scroll reveals: anything tagged data-reveal rises in once.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    if (!els.length) return;
+    els.forEach((el, i) => el.style.setProperty('--ri', String(i % 6)));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add('is-revealed');
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [location.pathname]);
+
   return (
     <main>
       <CursorDot />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} actions={paletteActions} />
       <div
         id="side-tab"
         className={sidebarOpen ? 'hidden' : ''}
@@ -114,7 +174,7 @@ export default function App() {
       <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">
-          <div className="route-fade" key={location.pathname}>
+          <div className={`route-fade route-${dir}`} key={location.pathname}>
             <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/projects" element={<Projects />} />

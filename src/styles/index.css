@@ -625,3 +625,145 @@ body.has-cursor-dot * { cursor: none !important; }
 }
 body.dark-mode .cursor-core { background: #f1f1f1; }
 @media print { .cursor-core { display: none !important; } }
+
+/* ============================================================
+   Big batch: switchboard, nav dot, reveals, press, greetings
+   ============================================================ */
+
+/* ⌘K switchboard — serif, hairline, no glass */
+.cmdk-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    z-index: 4000;
+}
+body.dark-mode .cmdk-scrim { background: rgba(0, 0, 0, 0.55); }
+.cmdk {
+    position: fixed;
+    left: 50%;
+    top: 16vh;
+    transform: translateX(-50%);
+    width: min(460px, calc(100vw - 48px));
+    background: #ffffff;
+    border: 1px solid #e3e3e3;
+    z-index: 4001;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.10);
+}
+body.dark-mode .cmdk { background: #191919; border-color: #2e2e2e; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
+.cmdk-input {
+    width: 100%;
+    padding: 15px 18px;
+    border: 0;
+    border-bottom: 1px solid #ececec;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 15px;
+    color: inherit;
+}
+body.dark-mode .cmdk-input { border-bottom-color: #2a2a2a; }
+.cmdk-input::placeholder { color: #9a9a9a; font-style: italic; }
+.cmdk-list { list-style: none; max-height: 320px; overflow-y: auto; padding: 6px 0; }
+.cmdk-empty { padding: 14px 18px; font-size: 13.5px; font-style: italic; color: #787878; }
+.cmdk-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 18px;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.cmdk-row .cmdk-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: 1.4px solid #a9a9a9;
+    align-self: center;
+    flex-shrink: 0;
+    transition: background-color var(--t), border-color var(--t);
+}
+.cmdk-row.is-selected { background: #f6f6f6; }
+body.dark-mode .cmdk-row.is-selected { background: #222222; }
+.cmdk-row.is-selected .cmdk-dot { background: #000000; border-color: #000000; }
+body.dark-mode .cmdk-row.is-selected .cmdk-dot { background: #dad9e2; border-color: #dad9e2; }
+.cmdk-hint { margin-left: auto; font-size: 12px; color: #9a9a9a; }
+
+/* the traveling nav dot — "you are here" */
+.nav-list { position: relative; }
+.nav-dot {
+    position: absolute;
+    left: -15px;
+    top: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #000000;
+    transition: transform var(--t-slow), opacity var(--t);
+    will-change: transform;
+}
+body.dark-mode .nav-dot { background: #dad9e2; }
+
+/* Apple-style reveals: tagged blocks rise in once, gently staggered */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+        opacity 600ms cubic-bezier(0.165, 0.84, 0.44, 1),
+        transform 600ms cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition-delay: calc(var(--ri, 0) * 55ms);
+}
+[data-reveal].is-revealed { opacity: 1; transform: none; }
+
+/* Toss-style press: things give slightly under your finger */
+.sidebar a { display: inline-block; transition: color var(--t), transform 100ms ease; }
+.sidebar a:active { transform: translateY(1px); }
+.cmdk-row:active { transform: scale(0.99); }
+.logo:active { transform: scale(0.95) !important; }
+.end-mark:active { transform: scale(0.8); }
+
+/* time-aware greeting under the Home hero */
+.hero-greeting {
+    padding: 0 40px;
+    margin: -12px 0 6px;
+    max-width: 600px;
+    font-size: 13px;
+    font-style: italic;
+    color: #787878;
+}
+
+/* the 404 resident */
+.lost-dot { margin-top: 26px; }
+.lost-dot canvas {
+    display: block;
+    width: 100%;
+    height: 140px;
+    border: 1px solid #e3e3e3;
+}
+body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
+.lost-dot-caption {
+    margin-top: 10px;
+    font-size: 12.5px;
+    font-style: italic;
+    color: #787878;
+    font-weight: lighter;
+}
+
+/* directional route motion: pages come from where you're heading */
+@keyframes route-in-up {
+    from { opacity: 0; transform: translateY(-7px); }
+    to { opacity: 1; transform: none; }
+}
+.route-fade.route-up { animation-name: route-in-up; }
+
+/* the cursor ring dozes off after 15s of stillness */
+@keyframes cursor-doze {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+.cursor-dot.is-idle { animation: cursor-doze 3.2s ease-in-out infinite; }
