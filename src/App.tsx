@@ -7,6 +7,7 @@ import { Essays } from './pages/Essays';
 import { ExtraCurricular } from './pages/ExtraCurricular';
 import { Education } from './pages/Education';
 import { NotFound } from './pages/NotFound';
+import { Colophon } from './pages/Colophon';
 import { useDarkMode } from './hooks/useDarkMode';
 
 const HASH_ROUTES: Record<string, string> = {
@@ -23,7 +24,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/essays': 'Essays — Henry Kim',
   '/extra-curricular': 'Extra-Curricular — Henry Kim',
   '/education': 'Education — Henry Kim',
+  '/colophon': 'Colophon — Henry Kim',
 };
+
+// Invisible affordance: the five nav pages answer to the keys 1–5.
+const KEY_ROUTES = ['/', '/projects', '/essays', '/extra-curricular', '/education'];
 
 export default function App() {
   const { isDark, toggle } = useDarkMode();
@@ -52,6 +57,19 @@ export default function App() {
     document.title = PAGE_TITLES[location.pathname] ?? 'Not Found — Henry Kim';
   }, [location.pathname]);
 
+  // Number-key navigation (1–5). No hint on screen — documented on the colophon.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement;
+      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
+      const i = ['1', '2', '3', '4', '5'].indexOf(e.key);
+      if (i >= 0) navigate(KEY_ROUTES[i]);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
@@ -72,6 +90,7 @@ export default function App() {
             <Route path="/essays" element={<Essays />} />
             <Route path="/extra-curricular" element={<ExtraCurricular />} />
             <Route path="/education" element={<Education />} />
+            <Route path="/colophon" element={<Colophon />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

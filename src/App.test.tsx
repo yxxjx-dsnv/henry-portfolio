@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
@@ -41,6 +41,19 @@ test('unknown paths render the quiet 404 page', () => {
   expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Return home' })).toHaveAttribute('href', '/');
   expect(document.title).toBe('Not Found — Henry Kim');
+});
+
+test('number keys quietly navigate between pages', () => {
+  renderAt('/');
+  fireEvent.keyDown(document, { key: '3' });
+  expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
+});
+
+test('colophon page renders with the printer mark', () => {
+  renderAt('/colophon');
+  expect(screen.getByRole('heading', { name: 'Colophon' })).toBeInTheDocument();
+  expect(screen.getByText(/build \d{4}-\d{2}-\d{2}/)).toBeInTheDocument();
+  expect(document.title).toBe('Colophon — Henry Kim');
 });
 
 test('clicking the logo toggles the dark-mode body class', async () => {

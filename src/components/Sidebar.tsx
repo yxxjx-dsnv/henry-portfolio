@@ -1,5 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { profile } from '../data/profile';
+import { LocalTime } from './LocalTime';
+
+const EMAIL = profile.social.email.replace(/^mailto:/, '');
 
 const LOGO_LIGHT = '/Images/H Logo.svg';
 const LOGO_DARK = '/Images/H Logo - White.svg';
@@ -14,6 +18,25 @@ type Props = {
 const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
 export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  const copyEmail = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!navigator.clipboard?.writeText) return; // fall through to mailto
+    e.preventDefault();
+    navigator.clipboard
+      .writeText(EMAIL)
+      .then(() => {
+        setCopied(true);
+        clearTimeout(copyTimer.current);
+        copyTimer.current = setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {
+        window.location.href = profile.social.email;
+      });
+  };
+
   return (
     <nav className={`sidebar${open ? ' open' : ''}`}>
       <div className="close-btn" id="close-sidebar" onClick={onClose}>
@@ -78,12 +101,20 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           </a>
         </li>
         <li>
-          <a href={profile.social.email}>
+          <a href={profile.social.email} onClick={copyEmail} title={EMAIL}>
             <i className="fa-regular fa-envelope" aria-hidden="true" />
-            Email
+            <span className="email-label" aria-live="polite">
+              {copied ? 'Copied' : 'Email'}
+            </span>
           </a>
         </li>
       </ul>
+      <LocalTime />
+      <p className="sidebar-colophon">
+        <NavLink to="/colophon" className={navClass}>
+          Colophon
+        </NavLink>
+      </p>
     </nav>
   );
 }

@@ -98,6 +98,7 @@ export function Essays() {
               the journey begins with a single step.
             </p>
             <br />
+            <div className="end-mark" aria-hidden="true" />
           </div>
         </div>
       </section>

@@ -24,6 +24,21 @@ test('renders the five nav links and social links', () => {
   expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/yxxjx-dsnv');
 });
 
+test('clicking Email copies the address and shows a quiet Copied swap', async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  renderSidebar();
+  await userEvent.click(screen.getByRole('link', { name: /Email/ }));
+  expect(writeText).toHaveBeenCalledWith('mail2yjkim@gmail.com');
+  expect(await screen.findByText('Copied')).toBeInTheDocument();
+});
+
+test('sidebar shows the Toronto clock and a colophon link', () => {
+  renderSidebar();
+  expect(screen.getByText(/^Toronto — \d{2}:\d{2}$/)).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Colophon' })).toHaveAttribute('href', '/colophon');
+});
+
 test('social links carry decorative brand icons', () => {
   renderSidebar();
   const social = document.querySelector('.social-list')!;
