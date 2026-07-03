@@ -538,3 +538,77 @@ body.dark-mode .end-mark:hover { background-color: #dad9e2; border-color: #dad9e
     cursor: crosshair;
 }
 .dot-field canvas { display: block; }
+
+/* cursor companion — the dot follows, and fills over anything alive */
+.cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border: 1.6px solid #787878;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.25s ease, background-color var(--t), border-color var(--t),
+        width var(--t), height var(--t);
+    will-change: transform;
+}
+.cursor-dot.is-active {
+    width: 13px;
+    height: 13px;
+    background-color: #000000;
+    border-color: #000000;
+}
+body.dark-mode .cursor-dot { border-color: #c6c4c4; }
+body.dark-mode .cursor-dot.is-active { background-color: #dad9e2; border-color: #dad9e2; }
+
+/* hero name — letters typeset themselves in, then answer the cursor */
+.hero-playful { cursor: default; }
+.hero-playful .hl {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: hl-in 600ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    animation-delay: calc(var(--i) * 42ms);
+}
+@keyframes hl-in {
+    to { opacity: 1; transform: none; }
+}
+.hero-playful .hl-in {
+    display: inline-block;
+    transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* essay reading dot on its hairline rail */
+.read-rail {
+    position: fixed;
+    right: 24px;
+    top: 18vh;
+    height: 64vh;
+    width: 1px;
+    background: #e6e6e6;
+    z-index: 500;
+}
+body.dark-mode .read-rail { background: #2c2c2c; }
+.read-dot {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #000000;
+}
+body.dark-mode .read-dot { background: #dad9e2; }
+@media (max-width: 900px) {
+    .read-rail { display: none; }
+}
+@media print {
+    .read-rail, .cursor-dot { display: none !important; }
+}
+
+/* the logo leans toward the cursor and springs back */
+.logo { transition: transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1); }

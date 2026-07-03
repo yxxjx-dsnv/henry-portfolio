@@ -1,9 +1,11 @@
 import { Hero } from '../components/Hero';
+import { ReadProgress } from '../components/ReadProgress';
 import { profile } from '../data/profile';
 
 export function Essays() {
   return (
     <section className="section">
+      <ReadProgress />
       <Hero title="Learnings from past three years" subtitle={`written: ${profile.lastUpdated.essays}`} />
       <section className="essay-section">
         <div className="text">

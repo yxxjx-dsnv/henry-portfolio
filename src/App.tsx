@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
+import { CursorDot } from './components/CursorDot';
 import { Home } from './pages/Home';
 import { Projects } from './pages/Projects';
 import { Essays } from './pages/Essays';
@@ -102,6 +103,7 @@ export default function App() {
 
   return (
     <main>
+      <CursorDot />
       <div
         id="side-tab"
         className={sidebarOpen ? 'hidden' : ''}

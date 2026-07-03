@@ -48,6 +48,15 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
         id="logo-toggle"
         className="logo"
         onClick={onToggleDark}
+        onPointerMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+          const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+          e.currentTarget.style.transform = `translate(${dx * 7}px, ${dy * 7}px)`;
+        }}
+        onPointerLeave={(e) => {
+          e.currentTarget.style.transform = '';
+        }}
       />
       <p>Navigation</p>
       <br />

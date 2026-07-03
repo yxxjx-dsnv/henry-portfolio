@@ -6,7 +6,7 @@ import { profile } from '../data/profile';
 export function Home() {
   return (
     <section className="section">
-      <Hero title="Henry Kim" subtitle={`last updated: ${profile.lastUpdated.home}`} />
+      <Hero title="Henry Kim" playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
       <DotField />
       <section className="about-section">
         <div className="text">
