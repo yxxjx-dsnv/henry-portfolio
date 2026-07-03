@@ -29,6 +29,6 @@ test('education is grouped by school with nested programs', () => {
 test('profile exposes social links and section dates', () => {
   expect(profile.social.github).toBe('https://github.com/yxxjx-dsnv');
   expect(profile.social.email).toBe('mailto:mail2yjkim@gmail.com');
-  expect(profile.lastUpdated.home).toBe('2026/02/03');
+  expect(profile.lastUpdated.home).toBe('2026/07/03');
   expect(profile.lastUpdated.essays).toBe('2025/01/02');
 });
