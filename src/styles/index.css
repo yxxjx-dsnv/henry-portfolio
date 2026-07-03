@@ -565,18 +565,9 @@ body.dark-mode .end-mark:hover { background-color: #dad9e2; border-color: #dad9e
 body.dark-mode .cursor-dot { border-color: #c6c4c4; }
 body.dark-mode .cursor-dot.is-active { background-color: #dad9e2; border-color: #dad9e2; }
 
-/* hero name — letters typeset themselves in, then answer the cursor */
+/* hero name — letters answer the cursor (no entrance theatrics) */
 .hero-playful { cursor: default; }
-.hero-playful .hl {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: hl-in 600ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-    animation-delay: calc(var(--i) * 42ms);
-}
-@keyframes hl-in {
-    to { opacity: 1; transform: none; }
-}
+.hero-playful .hl { display: inline-block; }
 .hero-playful .hl-in {
     display: inline-block;
     transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -612,3 +603,25 @@ body.dark-mode .read-dot { background: #dad9e2; }
 
 /* the logo leans toward the cursor and springs back */
 .logo { transition: transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1); }
+
+/* the dot IS the cursor: hide the native arrow while the companion is alive */
+body.has-cursor-dot,
+body.has-cursor-dot * { cursor: none !important; }
+
+/* instant core — exact pointer position, so precision never suffers */
+.cursor-core {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #000000;
+    pointer-events: none;
+    z-index: 3001;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    will-change: transform;
+}
+body.dark-mode .cursor-core { background: #f1f1f1; }
+@media print { .cursor-core { display: none !important; } }

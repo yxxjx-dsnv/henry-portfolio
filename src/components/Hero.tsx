@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react';
+import { useRef } from 'react';
 
 type Props = { title: string; subtitle: string; playful?: boolean };
 
@@ -46,7 +46,7 @@ export function Hero({ title, subtitle, playful = false }: Props) {
           onPointerLeave={onLeave}
         >
           {title.split('').map((ch, i) => (
-            <span className="hl" key={i} style={{ '--i': i } as CSSProperties} aria-hidden="true">
+            <span className="hl" key={i} aria-hidden="true">
               <span className="hl-in">{ch === ' ' ? '\u00A0' : ch}</span>
             </span>
           ))}

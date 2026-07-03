@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
-// The site's hollow dot, following the cursor on a soft spring.
-// Over anything interactive it fills — the signature gesture, everywhere.
+// The cursor, in the site's own vocabulary: the native arrow is hidden and
+// replaced by a tiny instant core (exact pointer position, for precision)
+// with the hollow ring trailing it on a soft spring. Over anything
+// interactive the ring fills — the signature gesture, everywhere.
 // Mouse-only (pointer: fine); absent on touch and under reduced motion.
 export function CursorDot() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const coreRef = useRef<HTMLDivElement>(null);
   const [enabled] = useState(
     () =>
       typeof window.matchMedia === 'function' &&
@@ -14,8 +17,11 @@ export function CursorDot() {
 
   useEffect(() => {
     if (!enabled) return;
-    const el = ref.current;
-    if (!el) return;
+    const ring = ringRef.current;
+    const core = coreRef.current;
+    if (!ring || !core) return;
+
+    document.body.classList.add('has-cursor-dot'); // hides the native cursor
 
     let x = -100;
     let y = -100;
@@ -28,24 +34,26 @@ export function CursorDot() {
     const loop = () => {
       x += (tx - x) * 0.16;
       y += (ty - y) * 0.16;
-      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${down ? 0.7 : 1})`;
+      ring.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${down ? 0.7 : 1})`;
       raf = requestAnimationFrame(loop);
     };
 
     const onMove = (e: PointerEvent) => {
       tx = e.clientX;
       ty = e.clientY;
+      core.style.transform = `translate(${tx}px, ${ty}px) translate(-50%, -50%)`;
       if (!visible) {
         visible = true;
         x = tx;
         y = ty;
-        el.style.opacity = '1';
+        ring.style.opacity = '1';
+        core.style.opacity = '1';
       }
       const t = e.target as Element | null;
       const interactive = !!t?.closest?.(
         'a, button, [role="button"], .activity-item, #logo-toggle, .dot-field, .end-mark',
       );
-      el.classList.toggle('is-active', interactive);
+      ring.classList.toggle('is-active', interactive);
     };
     const onDown = () => {
       down = true;
@@ -56,7 +64,8 @@ export function CursorDot() {
     const onLeaveWindow = (e: PointerEvent) => {
       if (!e.relatedTarget) {
         visible = false;
-        el.style.opacity = '0';
+        ring.style.opacity = '0';
+        core.style.opacity = '0';
       }
     };
 
@@ -67,6 +76,7 @@ export function CursorDot() {
     raf = requestAnimationFrame(loop);
 
     return () => {
+      document.body.classList.remove('has-cursor-dot');
       cancelAnimationFrame(raf);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerdown', onDown);
@@ -76,5 +86,10 @@ export function CursorDot() {
   }, [enabled]);
 
   if (!enabled) return null;
-  return <div className="cursor-dot" ref={ref} aria-hidden="true" />;
+  return (
+    <>
+      <div className="cursor-core" ref={coreRef} aria-hidden="true" />
+      <div className="cursor-dot" ref={ringRef} aria-hidden="true" />
+    </>
+  );
 }
