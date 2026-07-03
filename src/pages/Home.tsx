@@ -1,11 +1,13 @@
 import { Hero } from '../components/Hero';
 import { KoreaTrigger } from '../components/KoreaEasterEgg';
+import { DotField } from '../components/DotField';
 import { profile } from '../data/profile';
 
 export function Home() {
   return (
     <section className="section">
       <Hero title="Henry Kim" subtitle={`last updated: ${profile.lastUpdated.home}`} />
+      <DotField />
       <section className="about-section">
         <div className="text">
           <p>Some things about me:</p>

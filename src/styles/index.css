@@ -512,3 +512,29 @@ body.dark-mode .end-mark:hover { background-color: #dad9e2; border-color: #dad9e
         animation-iteration-count: 1 !important;
     }
 }
+
+/* ============================================================
+   The loud-quiet ones: sweep, field, rise
+   ============================================================ */
+
+/* dark-mode circle sweep — we drive the reveal ourselves */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* each page rises gently into place */
+@keyframes route-in {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: none; }
+}
+.route-fade { animation: route-in 300ms cubic-bezier(0.165, 0.84, 0.44, 1); }
+
+/* the living dot field under the Home hero */
+.dot-field {
+    padding: 2px 40px 6px;
+    max-width: 600px;
+    cursor: crosshair;
+}
+.dot-field canvas { display: block; }

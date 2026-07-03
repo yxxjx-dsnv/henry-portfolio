@@ -10,7 +10,7 @@ const LOGO_DARK = '/Images/H Logo - White.svg';
 
 type Props = {
   isDark: boolean;
-  onToggleDark: () => void;
+  onToggleDark: (e: React.MouseEvent) => void;
   open: boolean;
   onClose: () => void;
 };

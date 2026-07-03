@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Home } from './pages/Home';
@@ -35,6 +36,33 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Dark mode sweeps across the page as a circle growing from the click.
+  // (View Transitions API; falls back to a plain toggle where unsupported.)
+  const toggleDarkFrom = (e: React.MouseEvent) => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduced) {
+      toggle();
+      return;
+    }
+    const x = e.clientX;
+    const y = e.clientY;
+    const vt = document.startViewTransition(() => flushSync(() => toggle()));
+    vt.ready.then(() => {
+      const r = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      );
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+        {
+          duration: 550,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        },
+      );
+    });
+  };
 
   // One-time redirect from legacy #hash URLs to real routes.
   useEffect(() => {
@@ -82,9 +110,10 @@ export default function App() {
         &#8250;
       </div>
       <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
-        <Sidebar isDark={isDark} onToggleDark={toggle} open={sidebarOpen} onClose={closeSidebar} />
+        <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">
-          <Routes>
+          <div className="route-fade" key={location.pathname}>
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/essays" element={<Essays />} />
@@ -92,7 +121,8 @@ export default function App() {
             <Route path="/education" element={<Education />} />
             <Route path="/colophon" element={<Colophon />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </div>
         </div>
       </div>
     </main>

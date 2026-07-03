@@ -25,9 +25,18 @@ export function useDarkMode() {
     }
   }, [theme]);
 
+  // Applies the body class synchronously so the change can be snapshotted
+  // inside a View Transition (the circular dark-mode sweep).
   const toggle = useCallback(() => {
-    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
-  }, []);
+    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+    document.body.classList.toggle('dark-mode', next === 'dark');
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignore storage failures */
+    }
+    setTheme(next);
+  }, [theme]);
 
   return { theme, isDark: theme === 'dark', toggle };
 }
