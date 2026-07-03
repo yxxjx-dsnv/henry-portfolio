@@ -56,14 +56,30 @@ export function LocalTime() {
       </span>
       {flight && (
         <span className={`flight-map flight-${flight}`} aria-hidden="true">
-          <svg viewBox="0 0 120 16" width="120" height="16">
-            <path className="fm-route" d="M 5 13 Q 60 -6 115 13" />
-            <circle className="fm-origin" cx={flight === 'east' ? 5 : 115} cy="13" r="2.2" />
-            <circle className="fm-dest" cx={flight === 'east' ? 115 : 5} cy="13" r="2.2" />
+          <svg viewBox="0 0 120 20" width="120" height="20">
+            {/* departure & arrival landmasses, and the ocean between */}
+            <path className="fm-land" d="M0 20 L0 17.6 Q5 15.8 10 16.9 Q14 15.6 19 16.6 Q25 15.9 30 17.4 L33 20 Z" />
+            <path className="fm-land" d="M120 20 L120 17.4 Q114 15.7 109 16.8 Q104 15.7 99 16.7 Q93 16.1 87 17.6 L84 20 Z" />
+            <path className="fm-sea" d="M42 17.8 q3 -1.7 6 0 M56 17.8 q3 -1.7 6 0 M70 17.8 q3 -1.7 6 0" />
+            <path className="fm-route" d="M 6 14 Q 60 -4 114 14" />
+            <circle className="fm-origin" cx={flight === 'east' ? 6 : 114} cy="14" r="2" />
+            <circle className="fm-dest" cx={flight === 'east' ? 114 : 6} cy="14" r="2" />
+            {/* the plane rides the arc itself; the nose follows the tangent */}
+            <g className="fm-plane">
+              <path d="M 4.8 0 L -3.2 2.5 L -1.1 0 L -3.2 -2.5 Z" />
+              <animateMotion
+                dur="1.05s"
+                begin="0.05s"
+                fill="freeze"
+                rotate="auto"
+                calcMode="spline"
+                keyTimes="0;1"
+                keySplines="0.4 0 0.6 1"
+                keyPoints="0;1"
+                path={flight === 'east' ? 'M 6 14 Q 60 -4 114 14' : 'M 114 14 Q 60 -4 6 14'}
+              />
+            </g>
           </svg>
-          <span className={flight === 'west' ? 'plane-mirror' : undefined}>
-            <span className="plane-glyph">✈</span>
-          </span>
         </span>
       )}
     </button>
