@@ -119,8 +119,9 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           const a = (e.target as HTMLElement).closest('a');
           if (!a || !e.currentTarget.contains(a)) return;
           const r = a.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
-          a.style.transform = `translateX(${dx * 3}px)`;
+          // rightward-only lean: 0 at the left edge, up to 3px at the right
+          const t = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+          a.style.transform = `translateX(${t * 3}px)`;
         }}
         onPointerLeave={(e) => {
           e.currentTarget.querySelectorAll('a').forEach((a) => (a.style.transform = ''));
