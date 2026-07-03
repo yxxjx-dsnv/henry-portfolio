@@ -31,6 +31,18 @@ test('renders Education at /education', () => {
   expect(screen.getByRole('heading', { name: 'Education' })).toBeInTheDocument();
 });
 
+test('route changes set a page-specific tab title', () => {
+  renderAt('/essays');
+  expect(document.title).toBe('Essays — Henry Kim');
+});
+
+test('unknown paths render the quiet 404 page', () => {
+  renderAt('/does-not-exist');
+  expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Return home' })).toHaveAttribute('href', '/');
+  expect(document.title).toBe('Not Found — Henry Kim');
+});
+
 test('clicking the logo toggles the dark-mode body class', async () => {
   document.body.className = '';
   localStorage.clear();

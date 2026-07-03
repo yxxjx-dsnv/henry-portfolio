@@ -6,6 +6,7 @@ import { Projects } from './pages/Projects';
 import { Essays } from './pages/Essays';
 import { ExtraCurricular } from './pages/ExtraCurricular';
 import { Education } from './pages/Education';
+import { NotFound } from './pages/NotFound';
 import { useDarkMode } from './hooks/useDarkMode';
 
 const HASH_ROUTES: Record<string, string> = {
@@ -14,6 +15,14 @@ const HASH_ROUTES: Record<string, string> = {
   '#essays': '/essays',
   '#extra-curricular': '/extra-curricular',
   '#education': '/education',
+};
+
+const PAGE_TITLES: Record<string, string> = {
+  '/': 'Henry Kim',
+  '/projects': 'Projects — Henry Kim',
+  '/essays': 'Essays — Henry Kim',
+  '/extra-curricular': 'Extra-Curricular — Henry Kim',
+  '/education': 'Education — Henry Kim',
 };
 
 export default function App() {
@@ -31,6 +40,17 @@ export default function App() {
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // On every route change: return to the top (as the original site did) and
+  // give the tab a page-specific title.
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    } catch {
+      /* jsdom */
+    }
+    document.title = PAGE_TITLES[location.pathname] ?? 'Not Found — Henry Kim';
+  }, [location.pathname]);
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -52,6 +72,7 @@ export default function App() {
             <Route path="/essays" element={<Essays />} />
             <Route path="/extra-curricular" element={<ExtraCurricular />} />
             <Route path="/education" element={<Education />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

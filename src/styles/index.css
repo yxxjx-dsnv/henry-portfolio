@@ -378,3 +378,44 @@ body.dark-mode .edu-break-line::after { border-top-color: #3a3a3a; }
 @media (prefers-reduced-motion: reduce) {
     .edu-entry, .edu-term, .edu-entry::before { transition: none; }
 }
+
+/* ============================================================
+   Quiet professional polish
+   ============================================================ */
+
+/* text selection — mono inversion */
+::selection { background: #111111; color: #ffffff; }
+body.dark-mode ::selection { background: #f1f1f1; color: #121212; }
+
+/* keyboard focus — thin mono ring, only for keyboard users */
+:focus-visible {
+    outline: 1.5px solid #787878;
+    outline-offset: 3px;
+}
+
+/* prose links: reveal a thin underline on hover, darken slightly */
+.content-wrapper a[href] {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s ease, color 0.2s ease;
+}
+.content-wrapper a[href]:hover {
+    color: #000000;
+    text-decoration-color: currentColor;
+}
+body.dark-mode .content-wrapper a[href]:hover { color: #f1f1f1; }
+
+/* external links: a small ↗ cue (only real links that open a new tab) */
+.content-wrapper a[href][target="_blank"]::after {
+    content: "\2197";
+    font-size: 0.68em;
+    margin-left: 2px;
+    vertical-align: 0.32em;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* 404 */
+.notfound-line { font-weight: lighter; font-size: 15px; }
