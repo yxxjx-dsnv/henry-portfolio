@@ -924,3 +924,19 @@ body.dark-mode .hero-quote:hover { color: #c6c4c4; }
     flex-shrink: 0;
     font-size: 12px;
 }
+
+/* the held ring pops at the top of its breath — once per hold */
+.cursor-burst {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.6px solid #787878;
+    opacity: 0;
+    pointer-events: none;
+}
+body.dark-mode .cursor-burst { border-color: #c6c4c4; }
+.cursor-burst.go { animation: ring-burst 400ms ease-out; }
+@keyframes ring-burst {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(3.4); opacity: 0; }
+}
