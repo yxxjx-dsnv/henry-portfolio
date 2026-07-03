@@ -22,8 +22,8 @@ export function ActivityItem({ item }: { item: ResumeLine }) {
       </p>
       <div className="date">
         <p>
-          <span className="date-abs">{date}</span>
-          {durationLabel(date) && <span className="date-rel">{durationLabel(date)}</span>}
+          {date}
+          {durationLabel(date) && <span className="date-rel"> · {durationLabel(date)}</span>}
         </p>
       </div>
       {detail && detail.length > 0 && (

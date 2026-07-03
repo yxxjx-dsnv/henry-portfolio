@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const CITIES = [
   { label: 'Toronto', tz: 'America/Toronto' },
-  { label: 'Incheon', tz: 'Asia/Seoul' },
+  { label: 'Seoul', tz: 'Asia/Seoul' },
 ] as const;
 
 const fmtFor = (tz: string) =>
@@ -14,7 +14,7 @@ const fmtFor = (tz: string) =>
   });
 
 // A quiet clock that ticks once a minute. Click it and it flies home:
-// Toronto <-> Incheon.
+// Toronto <-> Seoul.
 export function LocalTime() {
   const [city, setCity] = useState(0);
   const [time, setTime] = useState<string | null>(null);

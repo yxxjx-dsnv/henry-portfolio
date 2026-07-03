@@ -52,10 +52,10 @@ a {
 .sidebar a:hover { color: #000000; }
 
 /* "Find me on" — icons left of each label, fixed-width so labels align */
-.social-list a {
+.sidebar .social-list a {
     display: inline-flex;
     align-items: center;
-    gap: 13px;
+    gap: 16px;
 }
 .social-list a i {
     width: 15px;
@@ -771,12 +771,14 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
 }
 .cursor-dot.is-idle { animation: cursor-doze 3.2s ease-in-out infinite; }
 
-/* hovering a date reveals how long it lasted */
-.date-rel { display: none; font-style: italic; }
-.activity-item:hover .date-abs,
-.activity-item:focus-within .date-abs { display: none; }
+/* hovering a date quietly appends how long it lasted — no layout shift */
+.date-rel {
+    opacity: 0;
+    font-style: italic;
+    transition: opacity var(--t);
+}
 .activity-item:hover .date-rel,
-.activity-item:focus-within .date-rel { display: inline; }
+.activity-item:focus-within .date-rel { opacity: 1; }
 
 /* reading focus: while you're in the essay, everything else steps back */
 .sidebar { transition: opacity 450ms ease; }

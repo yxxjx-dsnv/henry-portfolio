@@ -22,8 +22,8 @@ export function ProjectItem({ project }: { project: Project }) {
       </p>
       <div className="date">
         <p>
-          <span className="date-abs">{meta}</span>
-          {durationLabel(date) && <span className="date-rel">{durationLabel(date)}</span>}
+          {meta}
+          {durationLabel(date) && <span className="date-rel"> · {durationLabel(date)}</span>}
         </p>
       </div>
       {detail && detail.length > 0 && (
