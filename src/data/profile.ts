@@ -10,7 +10,7 @@ export const profile = {
     home: '2026/02/03',
     essays: '2025/01/02',
     extraCurricular: '2026/02/03',
-    education: '2025/06/14',
+    education: '2026/07/02',
     projects: '2026/07/02',
   },
 } as const;

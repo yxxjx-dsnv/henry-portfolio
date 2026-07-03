@@ -257,3 +257,111 @@ html { scrollbar-gutter: stable; }
 @keyframes fall {
     to { transform: translateY(400vh); opacity: 0; }
 }
+
+/* SECTION EDUCATION — school (대분류) with nested programs (소분류) */
+.edu-group { margin-bottom: 28px; }
+.extra-curricular-section .text .edu-group .edu-school {
+    font-size: 15px;
+    font-weight: normal;
+}
+.edu-school a { color: #000000; }
+body.dark-mode .edu-school a { color: #f1f1f1; }
+.edu-school-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+.edu-degree {
+    font-size: 13px;
+    font-weight: lighter;
+    color: #787878;
+}
+body.dark-mode .edu-degree { color: #c6c4c4; }
+.edu-years {
+    font-size: 12px;
+    font-weight: lighter;
+    color: #787878;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+body.dark-mode .edu-years { color: #c6c4c4; }
+.edu-entries {
+    margin-top: 10px;
+    padding-left: 16px;
+    border-left: 1px solid #e3e3e3;
+}
+body.dark-mode .edu-entries { border-left-color: #2e2e2e; }
+.edu-entry {
+    margin-bottom: 12px;
+    position: relative;
+    transition: opacity 0.25s ease;
+}
+.edu-entry:last-child { margin-bottom: 0; }
+
+/* program + term (year/semester) on one line */
+.edu-entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+.edu-term {
+    font-size: 12px;
+    font-weight: lighter;
+    color: #787878;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    transition: color 0.25s ease;
+}
+body.dark-mode .edu-term { color: #c6c4c4; }
+
+/* hover focus: the hovered entry stays sharp, siblings recede, and its
+   segment of the rail fills in — same language as the dot marker */
+.edu-entries:hover .edu-entry { opacity: 0.38; }
+.edu-entries .edu-entry:hover { opacity: 1; }
+.edu-entry::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 2px;
+    bottom: 2px;
+    width: 1px;
+    background: transparent;
+    transition: background-color 0.25s ease;
+}
+.edu-entry:hover::before { background: #000000; }
+body.dark-mode .edu-entry:hover::before { background: #dad9e2; }
+.edu-entry:hover .edu-term { color: #000000; }
+body.dark-mode .edu-entry:hover .edu-term { color: #dad9e2; }
+
+/* non-academic interlude (military service) — centered, faded divider */
+.edu-entry.edu-break {
+    text-align: center;
+    margin: 22px 0;
+    opacity: 0.55;
+}
+.edu-entry.edu-break::before { display: none; }
+.edu-entries .edu-entry.edu-break:hover { opacity: 0.7; }
+.edu-break-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-style: italic;
+    color: #787878;
+    letter-spacing: 0.03em;
+}
+body.dark-mode .edu-break-line { color: #c6c4c4; }
+.edu-break-line::before,
+.edu-break-line::after {
+    content: "";
+    width: 22px;
+    border-top: 1px dashed #cbcbcb;
+}
+body.dark-mode .edu-break-line::before,
+body.dark-mode .edu-break-line::after { border-top-color: #3a3a3a; }
+
+@media (prefers-reduced-motion: reduce) {
+    .edu-entry, .edu-term, .edu-entry::before { transition: none; }
+}

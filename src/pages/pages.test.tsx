@@ -24,8 +24,15 @@ test('ExtraCurricular renders all 7 activity items', () => {
   expect(container.querySelectorAll('.activity-item')).toHaveLength(7);
 });
 
-test('Education renders all 3 items', () => {
+test('Education renders 2 school groups with nested programs', () => {
   const { container } = render(<Education />);
   expect(screen.getByRole('heading', { name: 'Education' })).toBeInTheDocument();
-  expect(container.querySelectorAll('.activity-item')).toHaveLength(3);
+  expect(container.querySelectorAll('.edu-group')).toHaveLength(2);
+  expect(container.querySelectorAll('.edu-entry')).toHaveLength(5);
+  expect(screen.getByText(/Electrical & Computer Engineering/)).toBeInTheDocument();
+  expect(screen.getByText('Freshman - Fall')).toBeInTheDocument();
+  expect(screen.getByText('Grade 10 – 12')).toBeInTheDocument();
+  // military-service interlude, centered + faded
+  expect(screen.getByText(/Military Service/)).toBeInTheDocument();
+  expect(container.querySelector('.edu-break .edu-break-line')).toBeTruthy();
 });

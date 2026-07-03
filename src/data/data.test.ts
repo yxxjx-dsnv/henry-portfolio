@@ -18,10 +18,12 @@ test('first activity is the UTKESA executive role with two detail paragraphs', (
   expect(first.detail).toHaveLength(2);
 });
 
-test('education has 3 entries linking to schools', () => {
-  expect(education).toHaveLength(3);
-  expect(education[0].link?.url).toBe('https://www.utoronto.ca');
-  expect(education[2].link?.label).toBe('Walnut Grove Secondary School');
+test('education is grouped by school with nested programs', () => {
+  expect(education).toHaveLength(2);
+  expect(education[0].school.url).toBe('https://www.utoronto.ca');
+  expect(education[0].entries.length).toBeGreaterThanOrEqual(3);
+  expect(education[0].entries[0].program).toContain('Electrical & Computer Engineering');
+  expect(education[1].school.name).toBe('Walnut Grove Secondary School');
 });
 
 test('profile exposes social links and section dates', () => {
