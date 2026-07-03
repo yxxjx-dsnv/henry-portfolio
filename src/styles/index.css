@@ -784,8 +784,8 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
 body.reading-focus .sidebar { opacity: 0.45; }
 body.reading-focus .read-rail { opacity: 1; }
 
-/* social links get transforms from the gentle magnet */
-.social-list a { transition: color var(--t), transform 150ms ease; }
+/* nav + social links get transforms from the gentle rightward lean */
+.nav-list a, .social-list a { transition: color var(--t), transform 150ms ease; }
 
 /* the rescued dot's line on the colophon */
 .colophon-rescued { font-style: italic; }
