@@ -44,16 +44,30 @@ export function CursorDot() {
     let down = false;
     let downAt = 0;
     let scale = 1;
+    let popped = false; // one pop per hold; release to re-arm
     let visible = false;
     let raf = 0;
     let lastMove = performance.now();
+    const burst = ring.querySelector<HTMLElement>('.cursor-burst');
 
     const loop = () => {
       x += (tx - x) * 0.16;
       y += (ty - y) * 0.16;
-      // press: quick dip, then a slow inhale while held; release springs back
+      // press: quick dip, then a slow inhale while held — until it pops
       const held = down ? performance.now() - downAt : 0;
-      const target = down ? 0.72 + Math.min(held / 1400, 1) * 0.9 : 1;
+      let target = 1;
+      if (down && !popped) {
+        target = 0.72 + Math.min(held / 1400, 1) * 0.9;
+        if (held >= 1500) {
+          popped = true;
+          scale = 0.45; // deflates instantly, springs back to small
+          if (burst) {
+            burst.classList.remove('go');
+            void burst.offsetWidth; // restart the burst animation
+            burst.classList.add('go');
+          }
+        }
+      }
       scale += (target - scale) * 0.18;
       ring.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
       ring.classList.toggle('is-idle', visible && performance.now() - lastMove > 15000);
@@ -84,6 +98,7 @@ export function CursorDot() {
     };
     const onUp = () => {
       down = false;
+      popped = false; // re-arm for the next hold
     };
     const onLeaveWindow = (e: PointerEvent) => {
       if (!e.relatedTarget) {
@@ -135,6 +150,7 @@ export function CursorDot() {
     <>
       <div className="cursor-core" ref={coreRef} aria-hidden="true" />
       <div className="cursor-dot" ref={ringRef} aria-hidden="true">
+        <span className="cursor-burst" aria-hidden="true" />
         {companion && (
           <span className="cursor-orbit" aria-hidden="true">
             <span className="cursor-satellite" />
