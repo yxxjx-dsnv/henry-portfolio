@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { durationLabel } from '../utils/duration';
 import type { ResumeLine } from '../types';
 
 export function ActivityItem({ item }: { item: ResumeLine }) {
@@ -20,7 +21,10 @@ export function ActivityItem({ item }: { item: ResumeLine }) {
         {suffix}
       </p>
       <div className="date">
-        <p>{date}</p>
+        <p>
+          <span className="date-abs">{date}</span>
+          {durationLabel(date) && <span className="date-rel">{durationLabel(date)}</span>}
+        </p>
       </div>
       {detail && detail.length > 0 && (
         <div className="detail-wrap">

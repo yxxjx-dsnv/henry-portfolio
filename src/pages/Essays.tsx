@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Hero } from '../components/Hero';
 import { ReadProgress } from '../components/ReadProgress';
 import { profile } from '../data/profile';
 
 export function Essays() {
+  useEffect(() => () => document.body.classList.remove('reading-focus'), []);
   return (
     <section className="section">
       <ReadProgress />
@@ -16,7 +18,11 @@ export function Essays() {
             </p>
             <br />
           </div>
-          <div className="section-body">
+          <div
+            className="section-body"
+            onPointerEnter={() => document.body.classList.add('reading-focus')}
+            onPointerLeave={() => document.body.classList.remove('reading-focus')}
+          >
             <p>
               In August 2022, I stood alone at Incheon International Airport, poised to board a flight to
               Canada. It was a leap into the unknown. As the plane climbed, Neil Armstrong's words

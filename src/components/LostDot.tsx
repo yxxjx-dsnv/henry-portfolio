@@ -92,6 +92,11 @@ export function LostDot() {
       if (d < 16 && !isCaught) {
         isCaught = true;
         setCaught(true);
+        try {
+          localStorage.setItem('lost-dot-rescued', '1');
+        } catch {
+          /* fine */
+        }
       }
     };
 

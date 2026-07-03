@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { durationLabel } from '../utils/duration';
 import type { Project } from '../types';
 
 // Reuses the .activity-item dot-timeline styling for visual consistency with
@@ -20,7 +21,10 @@ export function ProjectItem({ project }: { project: Project }) {
         )}
       </p>
       <div className="date">
-        <p>{meta}</p>
+        <p>
+          <span className="date-abs">{meta}</span>
+          {durationLabel(date) && <span className="date-rel">{durationLabel(date)}</span>}
+        </p>
       </div>
       {detail && detail.length > 0 && (
         <div className="detail-wrap">

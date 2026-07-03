@@ -55,7 +55,7 @@ a {
 .social-list a {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
+    gap: 13px;
 }
 .social-list a i {
     width: 15px;
@@ -450,11 +450,20 @@ body.dark-mode .content-wrapper a[href]:hover { color: #f1f1f1; }
 
 /* local time + colophon link, tucked under the social list */
 .sidebar .sidebar-time {
+    display: block;
     margin-top: 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
     font-size: 12.5px;
     color: #787878;
     letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: color var(--t);
 }
+.sidebar .sidebar-time:hover { color: #000000; }
+body.dark-mode .sidebar .sidebar-time:hover { color: #f1f1f1; }
 body.dark-mode .sidebar .sidebar-time { color: #8f8f8f; }
 .sidebar .sidebar-colophon { margin-top: 6px; font-size: 12.5px; }
 .sidebar .sidebar-colophon a { font-size: 12.5px; }
@@ -576,14 +585,23 @@ body.dark-mode .cursor-dot.is-active { background-color: #dad9e2; border-color: 
 /* essay reading dot on its hairline rail */
 .read-rail {
     position: fixed;
-    right: 24px;
+    right: 18px;
     top: 18vh;
     height: 64vh;
+    width: 13px;
+    z-index: 500;
+    touch-action: none;
+}
+.read-rail::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
     width: 1px;
     background: #e6e6e6;
-    z-index: 500;
 }
-body.dark-mode .read-rail { background: #2c2c2c; }
+body.dark-mode .read-rail::before { background: #2c2c2c; }
 .read-dot {
     position: absolute;
     left: 50%;
@@ -752,3 +770,21 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
     50% { opacity: 0.25; }
 }
 .cursor-dot.is-idle { animation: cursor-doze 3.2s ease-in-out infinite; }
+
+/* hovering a date reveals how long it lasted */
+.date-rel { display: none; font-style: italic; }
+.activity-item:hover .date-abs,
+.activity-item:focus-within .date-abs { display: none; }
+.activity-item:hover .date-rel,
+.activity-item:focus-within .date-rel { display: inline; }
+
+/* reading focus: while you're in the essay, everything else steps back */
+.sidebar { transition: opacity 450ms ease; }
+body.reading-focus .sidebar { opacity: 0.45; }
+body.reading-focus .read-rail { opacity: 1; }
+
+/* social links get transforms from the gentle magnet */
+.social-list a { transition: color var(--t), transform 150ms ease; }
+
+/* the rescued dot's line on the colophon */
+.colophon-rescued { font-style: italic; }

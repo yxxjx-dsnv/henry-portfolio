@@ -128,6 +128,8 @@ export default function App() {
       label: 'Copy email address',
       run: () => navigator.clipboard?.writeText?.(profile.social.email.replace(/^mailto:/, '')),
     },
+    { label: 'Copy link to this page', run: () => navigator.clipboard?.writeText?.(window.location.href) },
+    { label: 'Print this page', run: () => window.print() },
   ];
 
 

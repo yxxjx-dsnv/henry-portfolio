@@ -113,7 +113,19 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       </ul>
       <p>Find me on</p>
       <br />
-      <ul className="social-list">
+      <ul
+        className="social-list"
+        onPointerMove={(e) => {
+          const a = (e.target as HTMLElement).closest('a');
+          if (!a || !e.currentTarget.contains(a)) return;
+          const r = a.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+          a.style.transform = `translateX(${dx * 3}px)`;
+        }}
+        onPointerLeave={(e) => {
+          e.currentTarget.querySelectorAll('a').forEach((a) => (a.style.transform = ''));
+        }}
+      >
         <li>
           <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer">
             <i className="fa-brands fa-instagram" aria-hidden="true" />
