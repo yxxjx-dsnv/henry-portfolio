@@ -151,13 +151,39 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
     cursor: pointer;
 }
 
-.detail-box {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.6s ease, padding 0.6s ease, opacity 0.6s ease;
-    padding: 0;
+/* Smarter reveal: a grid-rows animation (true height, smooth both ways),
+   a 0.12s open delay so a passing cursor doesn't trigger it (intent), and a
+   0.25s close delay so slipping off doesn't snap it shut (grace).
+   :focus-within opens it for keyboard and touch. */
+.detail-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
     opacity: 0;
-    color: #787878
+    transition: grid-template-rows 0.45s ease, opacity 0.35s ease;
+    transition-delay: 0.25s;
+}
+.activity-item:hover .detail-wrap,
+.activity-item:focus-within .detail-wrap {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transition-delay: 0.12s;
+}
+.detail-box {
+    overflow: hidden;
+    min-height: 0;
+    padding: 0 0 0 14px;
+    border-left: 1px solid #e3e3e3; /* readability: hairline rail, same language as Education */
+    color: #4d4d4d; /* readability: darker than the old #787878 */
+    line-height: 1.65;
+    transition: padding 0.45s ease 0.25s;
+}
+.activity-item:hover .detail-box,
+.activity-item:focus-within .detail-box {
+    padding: 14px 0 4px 14px;
+    transition-delay: 0.12s;
+}
+.extra-curricular-section .text .activity-item .detail-box p {
+    font-weight: normal; /* readability: the muted-lighter weight stays on titles/dates only */
 }
 
 /* empty circle */
@@ -176,6 +202,7 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
 
 /* filled circle */
 .activity-item:hover::before,
+.activity-item:focus-within::before,
 .activity-item.active::before,
 .activity-item.in-view::before {
   background-color: #000000;
@@ -184,15 +211,14 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
 
 body.dark-mode .activity-item::before { border-color: #c6c4c4; }
 body.dark-mode .activity-item:hover::before,
+body.dark-mode .activity-item:focus-within::before,
 body.dark-mode .activity-item.active::before,
 body.dark-mode .activity-item.in-view::before {
   background-color: #dad9e2;
   border-color: #dad9e2;
 }
 
-.activity-item:hover .detail-box { max-height: 9990px; padding: 20px 0; opacity: 1; }
-
-body.dark-mode .detail-box { background-color: #121212; color: #c6c4c4; }
+body.dark-mode .detail-box { color: #c6c4c4; border-left-color: #2e2e2e; }
 body.dark-mode .activity-item:hover .date p { color: #c6c4c4; }
 body.dark-mode .extra-curricular-section .text .activity-item .date p { color: #c6c4c4; }
 
@@ -376,7 +402,8 @@ body.dark-mode .edu-break-line::before,
 body.dark-mode .edu-break-line::after { border-top-color: #3a3a3a; }
 
 @media (prefers-reduced-motion: reduce) {
-    .edu-entry, .edu-term, .edu-entry::before { transition: none; }
+    .edu-entry, .edu-term, .edu-entry::before,
+    .detail-wrap, .detail-box { transition: none; }
 }
 
 /* ============================================================

@@ -4,7 +4,7 @@ import type { ResumeLine } from '../types';
 export function ActivityItem({ item }: { item: ResumeLine }) {
   const { prefix, link, suffix, date, detail } = item;
   return (
-    <div className="activity-item">
+    <div className="activity-item" tabIndex={detail && detail.length > 0 ? 0 : undefined}>
       <p>
         {prefix}
         {link &&
@@ -23,13 +23,15 @@ export function ActivityItem({ item }: { item: ResumeLine }) {
         <p>{date}</p>
       </div>
       {detail && detail.length > 0 && (
-        <div className="detail-box">
-          {detail.map((para, i) => (
-            <Fragment key={i}>
-              <p>{para}</p>
-              {i < detail.length - 1 && <br />}
-            </Fragment>
-          ))}
+        <div className="detail-wrap">
+          <div className="detail-box">
+            {detail.map((para, i) => (
+              <Fragment key={i}>
+                <p>{para}</p>
+                {i < detail.length - 1 && <br />}
+              </Fragment>
+            ))}
+          </div>
         </div>
       )}
     </div>

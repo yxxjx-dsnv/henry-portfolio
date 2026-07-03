@@ -7,7 +7,7 @@ export function ProjectItem({ project }: { project: Project }) {
   const { name, date, stack, link, detail } = project;
   const meta = stack && stack.length > 0 ? `${date} · ${stack.join(', ')}` : date;
   return (
-    <div className="activity-item">
+    <div className="activity-item" tabIndex={detail && detail.length > 0 ? 0 : undefined}>
       <p>
         {name}
         {link && (
@@ -23,13 +23,15 @@ export function ProjectItem({ project }: { project: Project }) {
         <p>{meta}</p>
       </div>
       {detail && detail.length > 0 && (
-        <div className="detail-box">
-          {detail.map((para, i) => (
-            <Fragment key={i}>
-              <p>{para}</p>
-              {i < detail.length - 1 && <br />}
-            </Fragment>
-          ))}
+        <div className="detail-wrap">
+          <div className="detail-box">
+            {detail.map((para, i) => (
+              <Fragment key={i}>
+                <p>{para}</p>
+                {i < detail.length - 1 && <br />}
+              </Fragment>
+            ))}
+          </div>
         </div>
       )}
     </div>
