@@ -605,8 +605,11 @@ body.dark-mode .read-dot { background: #dad9e2; }
 .logo { transition: transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1); }
 
 /* the dot IS the cursor: hide the native arrow while the companion is alive */
+html.has-cursor-dot,
+html.has-cursor-dot *,
 body.has-cursor-dot,
 body.has-cursor-dot * { cursor: none !important; }
+html.has-cursor-dot::view-transition { cursor: none; }
 
 /* instant core — exact pointer position, so precision never suffers */
 .cursor-core {
@@ -709,17 +712,6 @@ body.dark-mode .cmdk-row.is-selected .cmdk-dot { background: #dad9e2; border-col
 }
 body.dark-mode .nav-dot { background: #dad9e2; }
 
-/* Apple-style reveals: tagged blocks rise in once, gently staggered */
-[data-reveal] {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-        opacity 600ms cubic-bezier(0.165, 0.84, 0.44, 1),
-        transform 600ms cubic-bezier(0.165, 0.84, 0.44, 1);
-    transition-delay: calc(var(--ri, 0) * 55ms);
-}
-[data-reveal].is-revealed { opacity: 1; transform: none; }
-
 /* Toss-style press: things give slightly under your finger */
 .sidebar a { display: inline-block; transition: color var(--t), transform 100ms ease; }
 .sidebar a:active { transform: translateY(1px); }
@@ -753,13 +745,6 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
     color: #787878;
     font-weight: lighter;
 }
-
-/* directional route motion: pages come from where you're heading */
-@keyframes route-in-up {
-    from { opacity: 0; transform: translateY(-7px); }
-    to { opacity: 1; transform: none; }
-}
-.route-fade.route-up { animation-name: route-in-up; }
 
 /* the cursor ring dozes off after 15s of stillness */
 @keyframes cursor-doze {

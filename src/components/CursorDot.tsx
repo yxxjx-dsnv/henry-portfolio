@@ -22,6 +22,7 @@ export function CursorDot() {
     if (!ring || !core) return;
 
     document.body.classList.add('has-cursor-dot'); // hides the native cursor
+    document.documentElement.classList.add('has-cursor-dot');
 
     let x = -100;
     let y = -100;
@@ -71,15 +72,36 @@ export function CursorDot() {
         core.style.opacity = '0';
       }
     };
+    // Returning from another window/tab (or bfcache) can leave the pair in a
+    // half state — re-assert everything and let the next move re-show both.
+    const resync = () => {
+      document.body.classList.add('has-cursor-dot');
+      document.documentElement.classList.add('has-cursor-dot');
+      visible = false;
+      down = false;
+      ring.style.opacity = '0';
+      core.style.opacity = '0';
+      lastMove = performance.now();
+    };
+    const onVisibility = () => {
+      if (!document.hidden) resync();
+    };
 
     document.addEventListener('pointermove', onMove, { passive: true });
     document.addEventListener('pointerdown', onDown, { passive: true });
     document.addEventListener('pointerup', onUp, { passive: true });
     document.addEventListener('pointerout', onLeaveWindow);
+    window.addEventListener('focus', resync);
+    window.addEventListener('pageshow', resync);
+    document.addEventListener('visibilitychange', onVisibility);
     raf = requestAnimationFrame(loop);
 
     return () => {
       document.body.classList.remove('has-cursor-dot');
+      document.documentElement.classList.remove('has-cursor-dot');
+      window.removeEventListener('focus', resync);
+      window.removeEventListener('pageshow', resync);
+      document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(raf);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerdown', onDown);

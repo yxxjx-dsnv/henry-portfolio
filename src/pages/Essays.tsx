@@ -10,14 +10,14 @@ export function Essays() {
       <section className="essay-section">
         <div className="text">
           <div className="section-title">
-            <p data-reveal>
+            <p>
               Prompt: Discuss an accomplishment, event, or realization that sparked a period of personal
               growth and a new understanding of yourself or others.
             </p>
             <br />
           </div>
           <div className="section-body">
-            <p data-reveal>
+            <p>
               In August 2022, I stood alone at Incheon International Airport, poised to board a flight to
               Canada. It was a leap into the unknown. As the plane climbed, Neil Armstrong's words
               resonated in my brain: "That's one small step for a man, one giant leap for mankind." For
@@ -25,7 +25,7 @@ export function Essays() {
               an opportunity to grow and reshape my future.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               My first few days in Canada were a whirlwind of challenges. Taking classes in a foreign
               language, adjusting to new cultures, and living independently challenged me in ways I never
               imagined. Despite this whirlwind, I saw an opportunity to stretch beyond my comfort zone and
@@ -35,14 +35,14 @@ export function Essays() {
               opportunity to cultivate these traits.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               At the time, U4C was bursting with enthusiasm but lacked structure. Meetings floundered
               without a clear direction, roles were unclear, and progress was slow. Where others saw
               chaos, I saw possibilities. I set out on the ambitious mission of converting the
               organization into an efficient, goal-driven institution fuelled by my optimism.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               I began by examining the personnel management systems of global leaders such as Apple and
               Amazon, which prompted a thorough structural redesign. U4C was reorganized into four
               departments: planning and development, communications and media, operations and
@@ -52,7 +52,7 @@ export function Essays() {
               they could thrive.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               Our first significant challenge took the form of a fundraising effort. Each department met
               weekly to prepare: the Planning team researched and designed things to sell, Communications
               created engaging promotional materials, Operations secured event sites, and Volunteer
@@ -61,14 +61,14 @@ export function Essays() {
               Columbia in November 2023, demonstrating all members' commitment.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               This adventure showed me that leadership is about empowerment, not control. Leadership
               brings people together under a shared vision, creating an atmosphere to ignite innovation.
               However, the most important lesson was not about systems or strategies; resilience is the
               ability to turn setbacks into opportunities and persevere toward a goal.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               Throughout the campaign, we encountered obstacles that tested us. Creative solutions were
               needed to capture public interest, and moments of discord required careful mediation to
               align perspectives. These problems served as growth opportunities for both me and the
@@ -76,7 +76,7 @@ export function Essays() {
               remaining focused on the broader picture.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               The experience with U4C was revolutionary. It taught me the value of collaboration and
               balancing individual potential with a larger objective. Designing systems to increase
               organizational efficiency while nurturing passion and creativity became a pillar of my
@@ -84,7 +84,7 @@ export function Essays() {
               situations.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               Reflecting on this voyage, I reimagined how uncertain I felt as I boarded that plane to
               Canada. Back then, I feared the unknown, unsure of my readiness. But now I realize that
               challenges are not obstacles; they are opportunities to improve. Failures do not mark the
@@ -92,7 +92,7 @@ export function Essays() {
               intent builds the basis for something greater.
             </p>
             <br />
-            <p data-reveal>
+            <p>
               As I prepare to embark on the next stage in college, I carry the lessons learned from this
               experience. The fortitude to face uncertainty, the ingenuity to solve difficulties, and the
               determination to bring people together behind a common vision will guide me. Just as that

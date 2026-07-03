@@ -130,35 +130,7 @@ export default function App() {
     },
   ];
 
-  // Route transitions know which way you moved through the menu.
-  const ORDER = ['/', '/projects', '/essays', '/extra-curricular', '/education', '/colophon'];
-  const prevIndexRef = useRef(ORDER.indexOf(location.pathname));
-  const idx = ORDER.indexOf(location.pathname);
-  const dir = idx >= 0 && prevIndexRef.current >= 0 && idx < prevIndexRef.current ? 'up' : 'down';
-  useEffect(() => {
-    if (idx >= 0) prevIndexRef.current = idx;
-  }, [idx]);
 
-  // Apple-style scroll reveals: anything tagged data-reveal rises in once.
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
-    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-    if (!els.length) return;
-    els.forEach((el, i) => el.style.setProperty('--ri', String(i % 6)));
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((en) => {
-          if (en.isIntersecting) {
-            en.target.classList.add('is-revealed');
-            io.unobserve(en.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [location.pathname]);
 
   return (
     <main>
@@ -174,7 +146,7 @@ export default function App() {
       <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">
-          <div className={`route-fade route-${dir}`} key={location.pathname}>
+          <div className="route-fade" key={location.pathname}>
             <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/projects" element={<Projects />} />
