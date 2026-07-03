@@ -33,6 +33,10 @@ export function DotField({ height = 132 }: { height?: number }) {
     let ripples: Ripple[] = [];
     // per-dot stir displacement (index = grid cell), spring back to rest
     let stir = new Map<number, { ox: number; oy: number; vx: number; vy: number }>();
+    // page-scroll inertia (shared spring, per-dot weight) + idle blinks
+    let scrollOy = 0;
+    let scrollVy = 0;
+    let blinks: { i: number; j: number; born: number }[] = [];
 
     const colors = () => {
       const dark = document.body.classList.contains('dark-mode');
@@ -57,6 +61,15 @@ export function DotField({ height = 132 }: { height?: number }) {
       ctx.clearRect(0, 0, width, height);
       ripples = ripples.filter((r) => now - r.born < RIPPLE_LIFE);
 
+      // scroll inertia settles back
+      scrollVy = (scrollVy - scrollOy * 0.08) * 0.82;
+      scrollOy += scrollVy;
+      if (Math.abs(scrollOy) < 0.05 && Math.abs(scrollVy) < 0.05) {
+        scrollOy = 0;
+        scrollVy = 0;
+      }
+      blinks = blinks.filter((b) => now - b.born < 1600);
+
       // integrate stir springs; drop settled dots
       for (const [k, d] of stir) {
         d.vx = (d.vx - d.ox * 0.06) * 0.86;
@@ -80,6 +93,13 @@ export function DotField({ height = 132 }: { height?: number }) {
           const dm = Math.hypot(gx - mouse.x, gy - mouse.y);
           let t = mouse.inside ? Math.max(0, 1 - dm / REACH) : 0;
 
+          // idle blink influence
+          for (const b of blinks) {
+            if (b.i === i && b.j === j) {
+              const ph = (now - b.born) / 1600;
+              t = Math.max(t, Math.sin(ph * Math.PI) * 0.85);
+            }
+          }
           // ripple influence
           for (const r of ripples) {
             const age = now - r.born;
@@ -96,6 +116,10 @@ export function DotField({ height = 132 }: { height?: number }) {
           if (st) {
             x += st.ox;
             y += st.oy;
+          }
+          if (scrollOy !== 0) {
+            // pseudo-random per-cell weight so the field flutters, not slides
+            y += scrollOy * (0.4 + (((i * 7 + j * 13) % 5) / 5) * 0.6);
           }
           if (mouse.inside && dm > 0.001 && dm < REACH) {
             const pull = 3.5 * (1 - dm / REACH);
@@ -121,7 +145,7 @@ export function DotField({ height = 132 }: { height?: number }) {
 
     const loop = (now: number) => {
       draw(now);
-      if (mouse.inside || ripples.length > 0 || stir.size > 0) {
+      if (mouse.inside || ripples.length > 0 || stir.size > 0 || scrollOy !== 0 || blinks.length > 0) {
         raf = requestAnimationFrame(loop);
       } else {
         running = false;
@@ -190,6 +214,33 @@ export function DotField({ height = 132 }: { height?: number }) {
     canvas.addEventListener('pointerdown', onClick);
     window.addEventListener('pointerup', onUp);
 
+    // the field flutters with page scroll
+    let lastScrollY = window.scrollY;
+    const onScroll = () => {
+      if (reduced) return;
+      const dy = window.scrollY - lastScrollY;
+      lastScrollY = window.scrollY;
+      scrollVy += Math.max(-6, Math.min(6, dy * 0.10));
+      wake();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // while nobody's around, one dot occasionally blinks
+    const blinkTimer = reduced
+      ? undefined
+      : setInterval(() => {
+          if (document.hidden || mouse.inside) return;
+          const cols = Math.floor((width - SPACING) / SPACING);
+          const rows = Math.floor((height - SPACING / 2) / SPACING);
+          if (cols < 1 || rows < 1) return;
+          blinks.push({
+            i: Math.floor(Math.random() * cols),
+            j: Math.floor(Math.random() * rows),
+            born: performance.now(),
+          });
+          wake();
+        }, 7000);
+
     // repaint when the theme flips (the sweep repaints the page; we follow)
     const observer = new MutationObserver(() => draw(performance.now()));
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -204,6 +255,8 @@ export function DotField({ height = 132 }: { height?: number }) {
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('pointerdown', onClick);
       window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('scroll', onScroll);
+      if (blinkTimer) clearInterval(blinkTimer);
       observer.disconnect();
       ro?.disconnect();
     };

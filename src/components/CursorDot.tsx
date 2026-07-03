@@ -8,6 +8,19 @@ import { useEffect, useRef, useState } from 'react';
 export function CursorDot() {
   const ringRef = useRef<HTMLDivElement>(null);
   const coreRef = useRef<HTMLDivElement>(null);
+  // the dot rescued on the 404 page tags along for the rest of the session
+  const [companion, setCompanion] = useState(() => {
+    try {
+      return sessionStorage.getItem('dot-companion') === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    const on = () => setCompanion(true);
+    window.addEventListener('dot-rescued', on);
+    return () => window.removeEventListener('dot-rescued', on);
+  }, []);
   const [enabled] = useState(
     () =>
       typeof window.matchMedia === 'function' &&
@@ -29,6 +42,8 @@ export function CursorDot() {
     let tx = -100;
     let ty = -100;
     let down = false;
+    let downAt = 0;
+    let scale = 1;
     let visible = false;
     let raf = 0;
     let lastMove = performance.now();
@@ -36,7 +51,11 @@ export function CursorDot() {
     const loop = () => {
       x += (tx - x) * 0.16;
       y += (ty - y) * 0.16;
-      ring.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${down ? 0.7 : 1})`;
+      // press: quick dip, then a slow inhale while held; release springs back
+      const held = down ? performance.now() - downAt : 0;
+      const target = down ? 0.72 + Math.min(held / 1400, 1) * 0.9 : 1;
+      scale += (target - scale) * 0.18;
+      ring.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
       ring.classList.toggle('is-idle', visible && performance.now() - lastMove > 15000);
       raf = requestAnimationFrame(loop);
     };
@@ -61,6 +80,7 @@ export function CursorDot() {
     };
     const onDown = () => {
       down = true;
+      downAt = performance.now();
     };
     const onUp = () => {
       down = false;
@@ -114,7 +134,13 @@ export function CursorDot() {
   return (
     <>
       <div className="cursor-core" ref={coreRef} aria-hidden="true" />
-      <div className="cursor-dot" ref={ringRef} aria-hidden="true" />
+      <div className="cursor-dot" ref={ringRef} aria-hidden="true">
+        {companion && (
+          <span className="cursor-orbit" aria-hidden="true">
+            <span className="cursor-satellite" />
+          </span>
+        )}
+      </div>
     </>
   );
 }

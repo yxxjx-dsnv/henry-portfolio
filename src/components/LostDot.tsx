@@ -94,9 +94,11 @@ export function LostDot() {
         setCaught(true);
         try {
           localStorage.setItem('lost-dot-rescued', '1');
+          sessionStorage.setItem('dot-companion', '1');
         } catch {
           /* fine */
         }
+        window.dispatchEvent(new Event('dot-rescued'));
       }
     };
 

@@ -18,12 +18,23 @@ export function useDarkMode() {
 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', theme === 'dark');
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      /* ignore storage failures */
-    }
   }, [theme]);
+
+  // Until the visitor chooses manually, follow the OS if it changes live.
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e: MediaQueryListEvent) => {
+      try {
+        if (localStorage.getItem(STORAGE_KEY)) return; // user has chosen
+      } catch {
+        /* fall through */
+      }
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
 
   // Applies the body class synchronously so the change can be snapshotted
   // inside a View Transition (the circular dark-mode sweep).
