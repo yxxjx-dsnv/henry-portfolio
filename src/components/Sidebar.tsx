@@ -17,19 +17,6 @@ type Props = {
 
 const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
-// rightward-only lean shared by the nav and social lists:
-// 0 at a link's left edge, up to 3px at its right.
-const leanRight = (e: React.PointerEvent<HTMLUListElement>) => {
-  const a = (e.target as HTMLElement).closest('a');
-  if (!a || !e.currentTarget.contains(a)) return;
-  const r = a.getBoundingClientRect();
-  const t = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-  a.style.transform = `translateX(${t * 3}px)`;
-};
-const leanReset = (e: React.PointerEvent<HTMLUListElement>) => {
-  e.currentTarget.querySelectorAll('a').forEach((a) => (a.style.transform = ''));
-};
-
 export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
   const location = useLocation();
   const navRef = useRef<HTMLUListElement>(null);
@@ -91,7 +78,7 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       />
       <p>Navigation</p>
       <br />
-      <ul className="nav-list" ref={navRef} onPointerMove={leanRight} onPointerLeave={leanReset}>
+      <ul className="nav-list" ref={navRef}>
         <span
           className="nav-dot"
           aria-hidden="true"
@@ -126,7 +113,7 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       </ul>
       <p>Find me on</p>
       <br />
-      <ul className="social-list" onPointerMove={leanRight} onPointerLeave={leanReset}>
+      <ul className="social-list">
         <li>
           <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer">
             <i className="fa-brands fa-instagram" aria-hidden="true" />
