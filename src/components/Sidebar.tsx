@@ -58,24 +58,30 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       </ul>
       <p>Find me on</p>
       <br />
-      <ul>
+      <ul className="social-list">
         <li>
           <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-instagram" aria-hidden="true" />
             Instagram
           </a>
         </li>
         <li>
           <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-linkedin-in" aria-hidden="true" />
             Linkedin
           </a>
         </li>
         <li>
           <a href={profile.social.github} target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-github" aria-hidden="true" />
             GitHub
           </a>
         </li>
         <li>
-          <a href={profile.social.email}>Email</a>
+          <a href={profile.social.email}>
+            <i className="fa-regular fa-envelope" aria-hidden="true" />
+            Email
+          </a>
         </li>
       </ul>
     </nav>

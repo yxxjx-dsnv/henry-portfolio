@@ -24,6 +24,16 @@ test('renders the five nav links and social links', () => {
   expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/yxxjx-dsnv');
 });
 
+test('social links carry decorative brand icons', () => {
+  renderSidebar();
+  const social = document.querySelector('.social-list')!;
+  expect(social.querySelector('.fa-instagram')).toBeTruthy();
+  expect(social.querySelector('.fa-linkedin-in')).toBeTruthy();
+  expect(social.querySelector('.fa-github')).toBeTruthy();
+  expect(social.querySelector('.fa-envelope')).toBeTruthy();
+  social.querySelectorAll('i').forEach((i) => expect(i).toHaveAttribute('aria-hidden', 'true'));
+});
+
 test('clicking the logo toggles dark mode; light logo shown when not dark', () => {
   const { onToggleDark } = renderSidebar({ isDark: false });
   const logo = screen.getByAltText('Logo') as HTMLImageElement;

@@ -48,6 +48,19 @@ a {
 .sidebar a.active { font-weight: bold; color: #000000; }
 .sidebar a:hover { color: #000000; }
 
+/* "Find me on" — icons left of each label, fixed-width so labels align */
+.social-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+.social-list a i {
+    width: 15px;
+    font-size: 13px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
 /* Dark mode */
 body.dark-mode { background-color: #121212; color: #f1f1f1; }
 body.dark-mode a { color: #c6c4c4; }
