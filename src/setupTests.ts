@@ -14,3 +14,7 @@ if (typeof window.matchMedia !== 'function') {
       dispatchEvent: () => false,
     }) as MediaQueryList;
 }
+
+// jsdom implements neither — stub them so tests pass *quietly*.
+HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext;
+window.scrollTo = (() => {}) as typeof window.scrollTo;

@@ -8,3 +8,6 @@ Henry's portfolio/
 
 # bkit plugin per-project state (tool state, not site source)
 .bkit/
+
+# Obsidian app config (vault opened at repo root)
+.obsidian/

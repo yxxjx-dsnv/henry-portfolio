@@ -21,12 +21,21 @@ export function CursorDot() {
     window.addEventListener('dot-rescued', on);
     return () => window.removeEventListener('dot-rescued', on);
   }, []);
-  const [enabled] = useState(
-    () =>
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(pointer: fine)').matches &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  );
+  // desktop-only: fine pointer, motion allowed, and wider than the mobile
+  // breakpoint — re-evaluated live so resizing past 768px flips it (BUG-2)
+  const compute = () =>
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    !window.matchMedia('(max-width: 768px)').matches;
+  const [enabled, setEnabled] = useState(compute);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setEnabled(compute());
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;

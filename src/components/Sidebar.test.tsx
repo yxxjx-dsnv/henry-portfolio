@@ -7,7 +7,7 @@ function renderSidebar(props: Partial<Parameters<typeof Sidebar>[0]> = {}) {
   const onToggleDark = vi.fn();
   const onClose = vi.fn();
   render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Sidebar isDark={false} onToggleDark={onToggleDark} open={false} onClose={onClose} {...props} />
     </MemoryRouter>,
   );

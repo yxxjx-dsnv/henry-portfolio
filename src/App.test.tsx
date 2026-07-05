@@ -5,7 +5,7 @@ import App from './App';
 
 function renderAt(path: string) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <App />
     </MemoryRouter>,
   );
@@ -80,6 +80,21 @@ test('Home always serves a quote with an author', () => {
 test('404 hosts the lost dot', () => {
   renderAt('/nowhere');
   expect(screen.getByText(/One dot did get lost/)).toBeInTheDocument();
+});
+
+test('in-session hash navigation redirects (#essays -> /essays) — BUG-6', () => {
+  renderAt('/');
+  window.location.hash = '#essays';
+  fireEvent(window, new Event('hashchange'));
+  expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
+  window.location.hash = '';
+});
+
+test('shell controls are real buttons — BUG-4', () => {
+  renderAt('/');
+  expect(screen.getByRole('button', { name: 'Open navigation' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Toggle dark mode' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Close navigation' })).toBeInTheDocument();
 });
 
 test('clicking the logo toggles the dark-mode body class', async () => {

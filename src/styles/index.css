@@ -69,7 +69,7 @@ body.dark-mode { background-color: #121212; color: #f1f1f1; }
 body.dark-mode a { color: #c6c4c4; }
 body.dark-mode .sidebar { background-color: #1e1e1e; }
 body.dark-mode .sidebar a.active { font-weight: bold; color: #dad9e2; }
-body.dark-mode .sidebar a:hover { color: #e17acb; }
+body.dark-mode .sidebar a:hover { color: #f1f1f1; }
 .dark-mode .hero-section .text .subtitle { color: #c6c4c4; }
 
 /* Main container */
@@ -166,7 +166,8 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
     transition-delay: 0.25s;
 }
 .activity-item:hover .detail-wrap,
-.activity-item:focus-within .detail-wrap {
+.activity-item:focus-within .detail-wrap,
+.activity-item.is-open .detail-wrap {
     grid-template-rows: 1fr;
     opacity: 1;
     transition-delay: 0.12s;
@@ -181,7 +182,8 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
     transition: padding var(--t-slow) 0.25s;
 }
 .activity-item:hover .detail-box,
-.activity-item:focus-within .detail-box {
+.activity-item:focus-within .detail-box,
+.activity-item.is-open .detail-box {
     padding: 14px 0 4px 14px;
     transition-delay: 0.12s;
 }
@@ -206,6 +208,7 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
 /* filled circle */
 .activity-item:hover::before,
 .activity-item:focus-within::before,
+.activity-item.is-open::before,
 .activity-item.active::before,
 .activity-item.in-view::before {
   background-color: #000000;
@@ -215,6 +218,7 @@ body.dark-mode .sidebar a:hover { color: #e17acb; }
 body.dark-mode .activity-item::before { border-color: #c6c4c4; }
 body.dark-mode .activity-item:hover::before,
 body.dark-mode .activity-item:focus-within::before,
+body.dark-mode .activity-item.is-open::before,
 body.dark-mode .activity-item.active::before,
 body.dark-mode .activity-item.in-view::before {
   background-color: #dad9e2;
@@ -227,8 +231,11 @@ body.dark-mode .extra-curricular-section .text .activity-item .date p { color: #
 
 html { scrollbar-gutter: stable; }
 
-/* side-tab */
+/* side-tab (a real button now — reset chrome, keep the look) */
 #side-tab {
+    border: 0;
+    padding: 0;
+    font-family: inherit;
     display: block;
     position: fixed;
     top: 50%;
@@ -280,6 +287,11 @@ html { scrollbar-gutter: stable; }
 
 .close-btn {
     display: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
     position: absolute;
     top: 10px;
     right: 15px;
@@ -446,7 +458,7 @@ body.dark-mode .content-wrapper a[href]:hover { color: #f1f1f1; }
 .notfound-line { font-weight: lighter; font-size: 15px; }
 
 /* email label swaps to "Copied" with zero layout shift */
-.email-label { display: inline-block; min-width: 3.4em; }
+.email-label { display: inline-block; min-width: 3.9em; }
 
 /* local time + colophon link, tucked under the social list */
 .sidebar .sidebar-time {
@@ -628,6 +640,13 @@ html.has-cursor-dot *,
 body.has-cursor-dot,
 body.has-cursor-dot * { cursor: none !important; }
 html.has-cursor-dot::view-transition { cursor: none; }
+@media (max-width: 768px) {
+    .cursor-dot, .cursor-core { display: none !important; }
+    html.has-cursor-dot,
+    html.has-cursor-dot *,
+    body.has-cursor-dot,
+    body.has-cursor-dot * { cursor: auto !important; }
+}
 
 /* instant core — exact pointer position, so precision never suffers */
 .cursor-core {
@@ -734,6 +753,16 @@ body.dark-mode .nav-dot { background: #dad9e2; }
 .sidebar a { display: inline-block; transition: color var(--t), transform 100ms ease; }
 .cmdk-row:active { transform: scale(0.99); }
 .logo:active { transform: scale(0.95) !important; }
+.logo-button { background: none; border: 0; padding: 0; display: block; cursor: pointer; }
+#korea-trigger {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
 .end-mark:active { transform: scale(0.8); }
 
 /* the 404 resident */
@@ -767,7 +796,8 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
     transition: opacity var(--t);
 }
 .activity-item:hover .date-rel,
-.activity-item:focus-within .date-rel { opacity: 1; }
+.activity-item:focus-within .date-rel,
+.activity-item.is-open .date-rel { opacity: 1; }
 
 /* reading focus: while you're in the essay, everything else steps back */
 .sidebar { transition: opacity 450ms ease; }

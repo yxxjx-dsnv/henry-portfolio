@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Home } from './Home';
 import { Essays } from './Essays';
 import { ExtraCurricular } from './ExtraCurricular';
@@ -22,6 +22,22 @@ test('ExtraCurricular renders all 7 activity items', () => {
   const { container } = render(<ExtraCurricular />);
   expect(screen.getByRole('heading', { name: 'Extra-Curricular' })).toBeInTheDocument();
   expect(container.querySelectorAll('.activity-item')).toHaveLength(7);
+});
+
+test('timeline rows are announced as expandable controls — BUG-3', () => {
+  const { container } = render(<ExtraCurricular />);
+  const row = container.querySelector('.activity-item')!;
+  expect(row).toHaveAttribute('role', 'button');
+  expect(row).toHaveAttribute('aria-expanded', 'false');
+  fireEvent.focus(row);
+  expect(row).toHaveAttribute('aria-expanded', 'true');
+  fireEvent.keyDown(row, { key: 'Enter' });
+  expect(row.className).toContain('is-open');
+});
+
+test('the Korea trigger is a real button', () => {
+  render(<Home />);
+  expect(screen.getByRole('button', { name: 'South Korea' })).toHaveAttribute('id', 'korea-trigger');
 });
 
 test('Education renders 2 school groups with nested programs', () => {

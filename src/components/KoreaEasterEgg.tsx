@@ -22,9 +22,9 @@ export function KoreaTrigger({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <span id="korea-trigger" onClick={rain}>
+      <button type="button" id="korea-trigger" onClick={rain}>
         {children}
-      </span>
+      </button>
       {flags.map((f) => (
         <div
           key={f.id}

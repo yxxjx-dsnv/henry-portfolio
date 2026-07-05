@@ -57,15 +57,15 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
 
   return (
     <nav className={`sidebar${open ? ' open' : ''}`}>
-      <div className="close-btn" id="close-sidebar" onClick={onClose}>
+      <button type="button" className="close-btn" id="close-sidebar" aria-label="Close navigation" onClick={onClose}>
         ×
-      </div>
+      </button>
+      <button type="button" className="logo-button" aria-label="Toggle dark mode" onClick={onToggleDark}>
       <img
         src={isDark ? LOGO_DARK : LOGO_LIGHT}
         alt="Logo"
         id="logo-toggle"
         className="logo"
-        onClick={onToggleDark}
         onPointerMove={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
@@ -76,6 +76,7 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           e.currentTarget.style.transform = '';
         }}
       />
+      </button>
       <p>Navigation</p>
       <br />
       <ul className="nav-list" ref={navRef}>

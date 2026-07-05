@@ -41,6 +41,8 @@ export function LocalTime() {
 
   const fly = () => {
     if (flight) return; // one plane at a time
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
     const next = (city + 1) % CITIES.length;
     // to Toronto = eastward (left->right); to Seoul = westward (right->left)
     setFlight(CITIES[next].label === 'Toronto' ? 'east' : 'west');

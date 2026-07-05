@@ -1,11 +1,13 @@
 import { Fragment } from 'react';
+import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
 import type { ResumeLine } from '../types';
 
 export function ActivityItem({ item }: { item: ResumeLine }) {
   const { prefix, link, suffix, date, detail } = item;
+  const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
-    <div className="activity-item" tabIndex={detail && detail.length > 0 ? 0 : undefined}>
+    <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
       <p>
         {prefix}
         {link &&
@@ -27,7 +29,7 @@ export function ActivityItem({ item }: { item: ResumeLine }) {
         </p>
       </div>
       {detail && detail.length > 0 && (
-        <div className="detail-wrap">
+        <div className="detail-wrap" id={detailId}>
           <div className="detail-box">
             {detail.map((para, i) => (
               <Fragment key={i}>

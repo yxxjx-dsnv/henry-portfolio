@@ -29,9 +29,13 @@ export function ReadProgress() {
       if (q === last) return;
       last = q;
       ctx.clearRect(0, 0, 32, 32);
+      // match the dark-tab-aware favicon.svg: light H on dark tabs
+      const darkTab =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
       // reading progress fills as a pale wedge behind the H mark
       if (prog > 0.005) {
-        ctx.fillStyle = '#d4d4d4';
+        ctx.fillStyle = darkTab ? '#3f3f3f' : '#d4d4d4';
         ctx.beginPath();
         ctx.moveTo(16, 16);
         ctx.arc(16, 16, 16, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2);
@@ -41,7 +45,7 @@ export function ReadProgress() {
       if (hMark) {
         ctx.save();
         ctx.scale(32 / 1024, 32 / 1024);
-        ctx.fillStyle = '#121212';
+        ctx.fillStyle = darkTab ? '#f1f1f1' : '#121212';
         ctx.fill(hMark);
         ctx.restore();
       }

@@ -77,6 +77,16 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // …and the same for in-session hash-only navigation (BUG-6).
+  useEffect(() => {
+    const onHash = () => {
+      const target = HASH_ROUTES[window.location.hash];
+      if (target) navigate(target, { replace: true });
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, [navigate]);
+
   // On every route change: return to the top (as the original site did) and
   // give the tab a page-specific title.
   useEffect(() => {
@@ -145,13 +155,15 @@ export default function App() {
     <main>
       <CursorDot />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} actions={paletteActions} />
-      <div
+      <button
+        type="button"
         id="side-tab"
+        aria-label="Open navigation"
         className={sidebarOpen ? 'hidden' : ''}
         onClick={() => setSidebarOpen(true)}
       >
         &#8250;
-      </div>
+      </button>
       <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">

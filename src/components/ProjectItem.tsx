@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
 import type { Project } from '../types';
 
@@ -7,8 +8,9 @@ import type { Project } from '../types';
 export function ProjectItem({ project }: { project: Project }) {
   const { name, date, stack, link, detail } = project;
   const meta = stack && stack.length > 0 ? `${date} · ${stack.join(', ')}` : date;
+  const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
-    <div className="activity-item" tabIndex={detail && detail.length > 0 ? 0 : undefined}>
+    <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
       <p>
         {name}
         {link && (
@@ -27,7 +29,7 @@ export function ProjectItem({ project }: { project: Project }) {
         </p>
       </div>
       {detail && detail.length > 0 && (
-        <div className="detail-wrap">
+        <div className="detail-wrap" id={detailId}>
           <div className="detail-box">
             {detail.map((para, i) => (
               <Fragment key={i}>
