@@ -1018,3 +1018,65 @@ body.dark-mode .cursor-burst { border-color: #c6c4c4; }
         forced-color-adjust: none;
     }
 }
+
+/* ============================================================
+   Mobile layout refinement (<=768px) — the desktop composition,
+   re-set for a phone: tighter margins, calmer hero, stacked meta
+   lines, comfortable reading measure. Desktop is untouched.
+   ============================================================ */
+@media (max-width: 768px) {
+    /* breathing room: 40px gutters were crushing a 375px screen */
+    .hero-section,
+    .about-section,
+    .essay-section,
+    .extra-curricular-section {
+        padding-left: 22px;
+        padding-right: 22px;
+    }
+    .dot-field { padding-left: 22px; padding-right: 22px; }
+    .hero-quote { padding-left: 22px; padding-right: 22px; }
+    .sheet-head { padding-left: 22px; padding-right: 22px; }
+
+    /* the hero, scaled for a hand instead of a monitor */
+    .hero-section { padding-top: 22px; padding-bottom: 22px; }
+    .hero-section .text h1 { font-size: 29px; }
+
+    /* quote: text above, author tucked under it on the right */
+    .hero-quote {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .hero-quote-author { align-self: flex-end; }
+
+    /* education: program and date stack instead of fighting for one line */
+    .edu-school-head,
+    .edu-entry-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .edu-term { white-space: normal; }
+
+    /* reading measure: the essay earns book-like line spacing on a phone */
+    .essay-section .text .section-body p {
+        font-size: 15.5px;
+        line-height: 1.7;
+    }
+    .essay-section .text .section-title p { line-height: 1.6; }
+    .about-section .text .section-title { line-height: 1.6; }
+    .extra-curricular-section .text .activity-item p { line-height: 1.55; }
+    .detail-box { line-height: 1.7; }
+
+    /* a finger-sized door to the drawer */
+    #side-tab { width: 36px; height: 64px; line-height: 64px; }
+
+    /* drawer respects notches and home indicators */
+    .sidebar {
+        padding-top: max(30px, env(safe-area-inset-top));
+        padding-bottom: max(30px, env(safe-area-inset-bottom));
+    }
+
+    /* the switchboard sits comfortably above the keyboard */
+    .cmdk { top: 10vh; }
+}
