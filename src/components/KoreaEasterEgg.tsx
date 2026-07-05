@@ -14,7 +14,7 @@ export function KoreaTrigger({ children }: { children: ReactNode }) {
   const rain = useCallback(() => {
     const batch: Flag[] = Array.from({ length: 250 }, () => ({
       id: nextId.current++,
-      left: Math.random() * 300,
+      left: Math.random() * 98,
       size: Math.random() * 24 + 16,
       delay: Math.random(),
     }));

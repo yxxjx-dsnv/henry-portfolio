@@ -28,7 +28,8 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       setDotY(a ? a.offsetTop + a.offsetHeight / 2 - 3.5 : null);
     };
     measure();
-    const t = setTimeout(measure, 350); // after webfont settles
+    const t = setTimeout(measure, 350); // fallback for engines without document.fonts
+    document.fonts?.ready?.then?.(measure); // the reliable signal (W4)
     window.addEventListener('resize', measure);
     return () => {
       clearTimeout(t);

@@ -11,6 +11,10 @@ console.log(
   'color: #787878;',
 );
 
+// iOS Safari only honors :active during touch when a touchstart listener
+// exists — this no-op unlocks the press micro-interactions there.
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

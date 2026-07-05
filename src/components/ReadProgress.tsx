@@ -9,6 +9,11 @@ export function ReadProgress() {
   const [fine] = useState(
     () => typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches,
   );
+  // Windows-style persistent scrollbars already show reading position — a
+  // second indicator 17px away would be noise, so the rail yields (W6).
+  const [overlayScrollbars] = useState(
+    () => window.innerWidth - document.documentElement.clientWidth === 0,
+  );
 
   const favRef = useRef<((p: number) => void) | null>(null);
 
@@ -90,6 +95,7 @@ export function ReadProgress() {
   return (
     <>
       <div className="read-topbar" style={{ width: `${p * 100}%` }} aria-hidden="true" />
+      {overlayScrollbars && (
       <div
       className="read-rail"
       aria-hidden="true"
@@ -103,6 +109,7 @@ export function ReadProgress() {
     >
       <div className="read-dot" style={{ top: `${p * 100}%` }} />
       </div>
+      )}
     </>
   );
 }

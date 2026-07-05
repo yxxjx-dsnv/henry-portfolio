@@ -56,6 +56,7 @@ export default function App() {
         Math.max(x, window.innerWidth - x),
         Math.max(y, window.innerHeight - y),
       );
+      try {
       document.documentElement.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
         {
@@ -64,6 +65,9 @@ export default function App() {
           pseudoElement: '::view-transition-new(root)',
         },
       );
+      } catch {
+        /* engines without pseudo-element animation: instant swap */
+      }
     });
   };
 

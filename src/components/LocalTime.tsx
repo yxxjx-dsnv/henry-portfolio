@@ -23,7 +23,12 @@ export function LocalTime() {
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    const fmt = fmtFor(CITIES[city].tz);
+    let fmt: Intl.DateTimeFormat;
+    try {
+      fmt = fmtFor(CITIES[city].tz);
+    } catch {
+      return; // no IANA tz data: the clock simply doesn't render
+    }
     const tick = () => setTime(fmt.format(new Date()));
     tick();
     let interval: ReturnType<typeof setInterval> | undefined;

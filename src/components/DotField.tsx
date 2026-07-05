@@ -213,6 +213,7 @@ export function DotField({ height = 132 }: { height?: number }) {
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('pointerdown', onClick);
     window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
 
     // the field flutters with page scroll
     let lastScrollY = window.scrollY;
@@ -255,6 +256,7 @@ export function DotField({ height = 132 }: { height?: number }) {
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('pointerdown', onClick);
       window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
       window.removeEventListener('scroll', onScroll);
       if (blinkTimer) clearInterval(blinkTimer);
       observer.disconnect();

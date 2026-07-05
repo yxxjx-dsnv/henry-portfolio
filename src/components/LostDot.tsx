@@ -28,6 +28,10 @@ export function LostDot() {
     size();
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarse =
+      typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    const hitR = coarse ? 30 : 16; // fingers deserve a bigger target
+    let fleeTimer: ReturnType<typeof setTimeout> | undefined;
     const dot = { x: W / 2, y: H / 2, vx: 0.4, vy: 0.3 };
     const mouse = { x: -999, y: -999 };
     let isCaught = false;
@@ -88,8 +92,19 @@ export function LostDot() {
     };
     const onDown = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
+      // on touch there is no hover — the dot flees the last tap for a moment,
+      // so the chase exists there too
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+      if (coarse) {
+        clearTimeout(fleeTimer);
+        fleeTimer = setTimeout(() => {
+          mouse.x = -999;
+          mouse.y = -999;
+        }, 900);
+      }
       const d = Math.hypot(e.clientX - r.left - dot.x, e.clientY - r.top - dot.y);
-      if (d < 16 && !isCaught) {
+      if (d < hitR && !isCaught) {
         isCaught = true;
         setCaught(true);
         try {
@@ -115,6 +130,7 @@ export function LostDot() {
     }
 
     return () => {
+      clearTimeout(fleeTimer);
       cancelAnimationFrame(raf);
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerleave', onLeave);
@@ -125,7 +141,7 @@ export function LostDot() {
 
   return (
     <div className="lost-dot" ref={wrapRef}>
-      <canvas ref={canvasRef} aria-hidden="true" />
+      <canvas ref={canvasRef} aria-hidden="true" style={{ touchAction: 'none' }} />
       <p className="lost-dot-caption">
         {caught ? 'You caught it. It lives with you now.' : 'One dot did get lost, though. It’s quick.'}
       </p>

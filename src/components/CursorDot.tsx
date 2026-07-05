@@ -84,6 +84,7 @@ export function CursorDot() {
     };
 
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return; // touch-screen laptops (W7)
       lastMove = performance.now();
       tx = e.clientX;
       ty = e.clientY;
@@ -101,11 +102,13 @@ export function CursorDot() {
       );
       ring.classList.toggle('is-active', interactive);
     };
-    const onDown = () => {
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
       down = true;
       downAt = performance.now();
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
       down = false;
       popped = false; // re-arm for the next hold
     };

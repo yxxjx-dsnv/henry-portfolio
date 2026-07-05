@@ -18,6 +18,9 @@ export function useDarkMode() {
 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', theme === 'dark');
+    // the <html> class drives color-scheme, so Windows' classic scrollbars
+    // (page + palette list) turn dark with the page — W2
+    document.documentElement.classList.toggle('dark-mode', theme === 'dark');
   }, [theme]);
 
   // Until the visitor chooses manually, follow the OS if it changes live.
@@ -41,6 +44,7 @@ export function useDarkMode() {
   const toggle = useCallback(() => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     document.body.classList.toggle('dark-mode', next === 'dark');
+    document.documentElement.classList.toggle('dark-mode', next === 'dark');
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {

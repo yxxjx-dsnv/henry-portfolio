@@ -40,9 +40,34 @@
           if (t !== 'light' && t !== 'dark') {
             t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }
-          if (t === 'dark') document.body.classList.add('dark-mode');
+          if (t === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.documentElement.classList.add('dark-mode');
+          }
         } catch (e) {}
       })();
+    </script>
+    <script>
+      // After a deploy, a cached index.html can reference a hashed bundle that
+      // no longer exists on Pages — the page would render blank forever on
+      // that device. One cache-busting reload heals it.
+      window.addEventListener(
+        'error',
+        function (e) {
+          var t = e.target;
+          if (
+            t &&
+            t.tagName === 'SCRIPT' &&
+            t.src &&
+            t.src.indexOf('/assets/') !== -1 &&
+            !sessionStorage.getItem('bundle-reloaded')
+          ) {
+            sessionStorage.setItem('bundle-reloaded', '1');
+            location.reload();
+          }
+        },
+        true
+      );
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
