@@ -27,7 +27,7 @@ export function Colophon() {
             Built by hand with React, TypeScript, and Vite. Plain CSS, no UI libraries. Hosted on
             GitHub Pages at henrykim.ca.
           </p>
-          <p className="colophon-line">Pages answer to the keys 1–5. ⌘K opens the switchboard.</p>
+          <p className="colophon-line">Pages answer to the keys 1–5. ⌘K (Ctrl+K elsewhere) opens the switchboard.</p>
           {rescued() && (
             <p className="colophon-line colophon-rescued">
               A dot once got lost on the 404 page. Someone caught it. It lives here now.

@@ -14,7 +14,10 @@
 }
 
 body {
-    font-family: 'Libre Baskerville';
+    /* explicit fallbacks: without them, a slow/blocked Google Fonts load
+       leaves Windows on its default serif and the site looks like a different
+       website. Georgia is the closest metric-compatible fallback. */
+    font-family: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
     background-color: var(--background-color);
 }
 
@@ -130,7 +133,7 @@ body.dark-mode .sidebar a:hover { color: #f1f1f1; }
     max-width: 600px;
 }
 .essay-section .text .section-title p { margin-bottom: 15px; font-weight: bold; }
-.essay-section .text .section-body p { font-size: 15px; font-weight: lighter; }
+.essay-section .text .section-body p { font-size: 15px; font-weight: 400; }
 
 /* SECTION EXTRA CURRICULAR */
 .extra-curricular-section {
@@ -141,9 +144,9 @@ body.dark-mode .sidebar a:hover { color: #f1f1f1; }
     gap: 40px;
     max-width: 600px;
 }
-.extra-curricular-section .text .activity-item p { font-weight: lighter; font-size: 14px }
+.extra-curricular-section .text .activity-item p { font-weight: 400; font-size: 14px }
 .extra-curricular-section .text .activity-item .date p {
-    font-size: 14px; font-weight: lighter; color: #787878;
+    font-size: 14px; font-weight: 400; color: #787878;
 }
 
 .activity-item {
@@ -268,6 +271,7 @@ html { scrollbar-gutter: stable; }
         top: 0;
         width: 200px;
         height: 100vh;
+        height: 100dvh; /* mobile URL bars: dvh tracks the real viewport */
         background-color: #f8f8f8;
         transition: left 0.3s ease;
         z-index: 1000;
@@ -328,13 +332,13 @@ body.dark-mode .edu-school a { color: #f1f1f1; }
 }
 .edu-degree {
     font-size: 13px;
-    font-weight: lighter;
+    font-weight: 400;
     color: #787878;
 }
 body.dark-mode .edu-degree { color: #c6c4c4; }
 .edu-years {
     font-size: 12px;
-    font-weight: lighter;
+    font-weight: 400;
     color: #787878;
     white-space: nowrap;
     letter-spacing: 0.02em;
@@ -362,7 +366,7 @@ body.dark-mode .edu-entries { border-left-color: #2e2e2e; }
 }
 .edu-term {
     font-size: 12px;
-    font-weight: lighter;
+    font-weight: 400;
     color: #787878;
     white-space: nowrap;
     letter-spacing: 0.02em;
@@ -455,7 +459,7 @@ body.dark-mode .content-wrapper a[href]:hover { color: #f1f1f1; }
 }
 
 /* 404 */
-.notfound-line { font-weight: lighter; font-size: 15px; }
+.notfound-line { font-weight: 400; font-size: 15px; }
 
 /* email label swaps to "Copied" with zero layout shift */
 .email-label { display: inline-block; min-width: 3.9em; }
@@ -627,6 +631,25 @@ body.dark-mode .read-dot { background: #dad9e2; }
 @media (max-width: 900px) {
     .read-rail { display: none; }
 }
+
+/* on narrow screens the rail yields to a hairline across the top */
+.read-topbar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: #000000;
+    z-index: 1002;
+    pointer-events: none;
+}
+body.dark-mode .read-topbar { background: #dad9e2; }
+@media (max-width: 900px) {
+    .read-topbar { display: block; }
+}
+@media print {
+    .read-topbar { display: none !important; }
+}
 @media print {
     .read-rail, .cursor-dot { display: none !important; }
 }
@@ -779,7 +802,7 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
     font-size: 12.5px;
     font-style: italic;
     color: #787878;
-    font-weight: lighter;
+    font-weight: 400;
 }
 
 /* the cursor ring dozes off after 15s of stillness */

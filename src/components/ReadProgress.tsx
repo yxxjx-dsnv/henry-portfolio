@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { H_LOGO_PATH } from '../assets/hLogoPath';
 
-// A filled dot travelling down a hairline as you read — scroll feedback in
-// the site's own vocabulary. Desktop only; hidden on narrow screens via CSS.
+// Scroll feedback in the site's own vocabulary: a dot on a hairline rail on
+// desktop, a hairline across the top on narrow screens (CSS decides which
+// shows). The favicon wedge stays desktop-only.
 export function ReadProgress() {
   const [p, setP] = useState(0);
-  const [enabled] = useState(
+  const [fine] = useState(
     () => typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches,
   );
 
@@ -13,7 +14,7 @@ export function ReadProgress() {
 
   // The browser-tab dot fills like a pie as you read; restored on leave.
   useEffect(() => {
-    if (!enabled) return;
+    if (!fine) return;
     const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
     if (!link) return;
     const orig = link.href;
@@ -55,10 +56,9 @@ export function ReadProgress() {
       favRef.current = null;
       link.href = orig;
     };
-  }, [enabled]);
+  }, [fine]);
 
   useEffect(() => {
-    if (!enabled) return;
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -78,7 +78,7 @@ export function ReadProgress() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [enabled]);
+  }, []);
 
   const scrubTo = (clientY: number, el: HTMLElement) => {
     const r = el.getBoundingClientRect();
@@ -87,9 +87,10 @@ export function ReadProgress() {
     window.scrollTo({ top: ratio * (h.scrollHeight - h.clientHeight) });
   };
 
-  if (!enabled) return null;
   return (
-    <div
+    <>
+      <div className="read-topbar" style={{ width: `${p * 100}%` }} aria-hidden="true" />
+      <div
       className="read-rail"
       aria-hidden="true"
       onPointerDown={(e) => {
@@ -101,6 +102,7 @@ export function ReadProgress() {
       }}
     >
       <div className="read-dot" style={{ top: `${p * 100}%` }} />
-    </div>
+      </div>
+    </>
   );
 }

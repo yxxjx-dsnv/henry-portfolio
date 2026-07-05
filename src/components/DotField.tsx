@@ -264,7 +264,7 @@ export function DotField({ height = 132 }: { height?: number }) {
 
   return (
     <div className="dot-field" ref={wrapRef} aria-hidden="true">
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} style={{ touchAction: 'pan-y' }} />
     </div>
   );
 }

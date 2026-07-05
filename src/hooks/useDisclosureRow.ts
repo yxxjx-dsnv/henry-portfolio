@@ -34,6 +34,13 @@ export function useDisclosureRow(hasDetail: boolean) {
         setPinned((p) => !p);
       }
     },
+    // Tap/click toggles too — iOS Safari never focuses a tabIndex div on tap,
+    // so without this the details were unreachable on mobile. Links inside
+    // the row keep working normally.
+    onClick: (e: React.MouseEvent<HTMLDivElement>) => {
+      if ((e.target as HTMLElement).closest('a')) return;
+      setPinned((p) => !p);
+    },
   };
   return { rowProps, detailId, open, pinned };
 }
