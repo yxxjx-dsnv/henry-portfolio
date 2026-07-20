@@ -4,6 +4,10 @@ export type PaletteAction = {
   label: string;
   hint?: string;
   run: () => void;
+  // extra terms to match on (not shown); e.g. an egg answers to "easter egg"
+  keywords?: string;
+  // hidden from the default list — only surfaces once its keywords are typed
+  secret?: boolean;
 };
 
 // ⌘K switchboard — a quiet serif palette. Type to filter, arrows to move,
@@ -22,9 +26,11 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return actions;
-    return actions.filter((a) => a.label.toLowerCase().includes(q));
+    const q = query.trim().toLowerCase().replace(/\s+/g, '');
+    if (!q) return actions.filter((a) => !a.secret);
+    return actions.filter((a) =>
+      `${a.label} ${a.keywords ?? ''}`.toLowerCase().replace(/\s+/g, '').includes(q),
+    );
   }, [actions, query]);
 
   useEffect(() => {

@@ -11,3 +11,16 @@ Henry's portfolio/
 
 # Obsidian app config (vault opened at repo root)
 .obsidian/
+
+# original photo/video sources (web versions live in public/media/)
+_media-originals/
+
+# archived earlier project (kept locally, not part of the live site)
+_archive/
+
+# raw APS105 lab dump (build artifacts + PDFs); the served sources are copied
+# into src/assets/aps105/ and the toolchain into public/cide/
+Labs/
+
+# tool-generated analysis cache
+.understand-anything/

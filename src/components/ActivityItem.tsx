@@ -1,15 +1,16 @@
 import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
-import type { ResumeLine } from '../types';
+import type { Activity } from '../types';
 
-export function ActivityItem({ item }: { item: ResumeLine }) {
-  const { prefix, link, suffix, date, detail } = item;
+export function ActivityItem({ item }: { item: Activity }) {
+  const { prefix, link, suffix, date, detail, slug } = item;
   const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
     <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
       <p>
-        {prefix}
+        {slug ? <Link to={`/extra-curricular/${slug}`}>{prefix}</Link> : prefix}
         {link &&
           (link.url ? (
             <a href={link.url} target="_blank" rel="noopener noreferrer">

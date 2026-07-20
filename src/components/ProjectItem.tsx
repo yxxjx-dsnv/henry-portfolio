@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
 import type { Project } from '../types';
@@ -6,13 +7,13 @@ import type { Project } from '../types';
 // Reuses the .activity-item dot-timeline styling for visual consistency with
 // the Extra-Curricular / Education sections. Stack tags ride in the muted date line.
 export function ProjectItem({ project }: { project: Project }) {
-  const { name, date, stack, link, detail } = project;
+  const { name, date, stack, link, detail, slug } = project;
   const meta = stack && stack.length > 0 ? `${date} · ${stack.join(', ')}` : date;
   const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
     <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
       <p>
-        {name}
+        {slug ? <Link to={`/projects/${slug}`}>{name}</Link> : name}
         {link && (
           <>
             {' — '}

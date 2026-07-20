@@ -1,18 +1,13 @@
-import { render, screen, act } from '@testing-library/react';
-import { KoreaTrigger } from './KoreaEasterEgg';
+import { render, screen } from '@testing-library/react';
+import { KoreaTrigger, SKYLINE_EVENT } from './KoreaEasterEgg';
 
-beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
-
-test('clicking the trigger rains 250 flags, then clears them after 10s', () => {
-  const { container } = render(<KoreaTrigger>South Korea</KoreaTrigger>);
-  const span = screen.getByText('South Korea');
-  act(() => {
-    span.click();
-  });
-  expect(container.querySelectorAll('.kr-flag')).toHaveLength(250);
-  act(() => {
-    vi.advanceTimersByTime(10000);
-  });
-  expect(container.querySelectorAll('.kr-flag')).toHaveLength(0);
+test('clicking the trigger fires the skyline event for the dot field', () => {
+  const spy = vi.fn();
+  window.addEventListener(SKYLINE_EVENT, spy);
+  render(<KoreaTrigger>South Korea</KoreaTrigger>);
+  screen.getByText('South Korea').click();
+  expect(spy).toHaveBeenCalledTimes(1);
+  // the old flag-emoji rain is gone
+  expect(document.querySelectorAll('.kr-flag')).toHaveLength(0);
+  window.removeEventListener(SKYLINE_EVENT, spy);
 });

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { KoreaTrigger } from '../components/KoreaEasterEgg';
 import { DotField } from '../components/DotField';
@@ -15,12 +16,19 @@ export function Home() {
           <p>Some things about me:</p>
           <div className="section-title">
             <li>
-              18-years-old, born in <KoreaTrigger>South Korea</KoreaTrigger> — First Year
-              TrackOne(Undeclared Engineering) student at the{' '}
+              19-years-old, born in <KoreaTrigger>South Korea</KoreaTrigger> — Second Year
+              Electrical &amp; Computer Engineering (ECE) student at the{' '}
               <a href="https://www.utoronto.ca" target="_blank" rel="noopener noreferrer">
                 University of Toronto
               </a>
               .
+            </li>
+            <br />
+            <li>
+              Currently, I'm working as a freelance developer at Branphic Inc., building
+              AI-automation tools that run its e-commerce operations — an auto review-reply engine,
+              customer-service bots, and sourcing &amp; settlement workflows. Several of them live
+              on the <Link to="/projects">Projects</Link> page.
             </li>
             <br />
             <li>

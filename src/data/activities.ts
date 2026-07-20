@@ -2,13 +2,24 @@ import type { Activity } from '../types';
 
 export const activities: Activity[] = [
   {
-    prefix: 'Executive member at ',
-    link: { label: 'UTKESA', url: 'https://www.instagram.com/utkesa_official/' },
-    suffix: ' in Event Dept.',
-    date: 'Sep 2025 - present',
+    prefix: 'The Greenstone Grind',
+    suffix: ' — mine-life immersion with the Ontario Mining Association × Equinox Gold',
+    date: 'Feb 2026',
+    slug: 'greenstone-grind',
     detail: [
-      'University of Toronto Korean Engineering Student Association (UTKESA) is a student organization that connects Korean engineering students through academic support, professional development, and social networking.',
-      'In Event Dept., We plans and executes social and professional events, coordinating logistics and collaborations to create engaging experiences for U of T students.',
+      'Selected as one of 11 U of T Engineering students from 75+ applicants for a week inside an operating gold mine in Geraldton, Ontario, rotating through open-pit operations, the mill, geology, maintenance, and emergency response. The full story, with photographs, lives on its own page.',
+    ],
+  },
+  {
+    prefix: 'Event Dept. Executive at ',
+    link: { label: 'UTKESA', url: 'https://www.instagram.com/utkesa_official/' },
+    suffix: ' (Korean Engineering Students\' Association)',
+    date: 'Sep 2025 - present',
+    slug: 'utkesa',
+    detail: [
+      'The University of Toronto Korean Engineering Students\' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025 and became an executive in January 2026.',
+      'In the Event Department I help plan and run UTKESA\'s social and professional events, coordinating logistics and collaborations to create engaging experiences for U of T students.',
+      'On the event team, I supported UTKESA\'s Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum\'s Korean Gallery — Canada\'s only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The contribution, raised over the year by the executive team, is documented on UTKESA\'s LinkedIn.',
     ],
   },
   {

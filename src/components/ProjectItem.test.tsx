@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ProjectItem } from './ProjectItem';
 
 test('renders name, date with stack, and detail', () => {
@@ -20,4 +21,13 @@ test('shows date only when no stack is given', () => {
 test('renders an optional link', () => {
   render(<ProjectItem project={{ name: 'X', date: '2025', link: { label: 'repo', url: 'https://example.com' } }} />);
   expect(screen.getByRole('link', { name: 'repo' })).toHaveAttribute('href', 'https://example.com');
+});
+
+test('a slugged project titles itself as a link to its story page', () => {
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ProjectItem project={{ name: 'X', date: '2026', slug: 'campus-pulse' }} />
+    </MemoryRouter>,
+  );
+  expect(screen.getByRole('link', { name: 'X' })).toHaveAttribute('href', '/projects/campus-pulse');
 });

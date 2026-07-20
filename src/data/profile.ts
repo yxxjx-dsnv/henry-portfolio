@@ -7,10 +7,10 @@ export const profile = {
     email: 'mailto:mail2yjkim@gmail.com',
   },
   lastUpdated: {
-    home: '2026/07/03',
+    home: '2026/07/19',
     essays: '2025/01/02',
-    extraCurricular: '2026/02/03',
-    education: '2026/07/02',
-    projects: '2026/07/02',
+    extraCurricular: '2026/07/19',
+    education: '2026/07/20',
+    projects: '2026/07/19',
   },
 } as const;
