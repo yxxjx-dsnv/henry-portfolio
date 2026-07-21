@@ -1539,6 +1539,12 @@ export function DotField({ height = 132 }: { height?: number }) {
       if (blinkTimer) clearInterval(blinkTimer);
       observer.disconnect();
       ro?.disconnect();
+      // Release the canvas backing store while it is still attached, so WebKit
+      // invalidates the composited layer instead of leaving a ghost of the field
+      // painted over the next page after Home unmounts during SPA navigation.
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = 0;
+      canvas.height = 0;
     };
   }, [height]);
 
