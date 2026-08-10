@@ -11,6 +11,7 @@ export type ResumeLine = LinkedLine & {
 
 export type Activity = ResumeLine & {
   slug?: string; // has a full story page at /extra-curricular/<slug>
+  logo?: string; // org mark shown in the detail box (dark mode inverts it)
 };
 
 export type EducationEntry = {

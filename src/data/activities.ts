@@ -2,6 +2,19 @@ import type { Activity } from '../types';
 
 export const activities: Activity[] = [
   {
+    prefix: 'AI/Robotics Engineering Intern at ',
+    link: { label: 'Incheon Robotics', url: 'https://incheonrobotics.com' },
+    suffix: ' (주식회사 인천로보틱스)',
+    date: 'Aug 2026 - present',
+    slug: 'incheon-robotics',
+    logo: '/Images/incheon-robotics.png',
+    detail: [
+      'Incheon Robotics builds ASRS — automated storage and retrieval systems — for warehouse logistics: a grid of bins, a fleet of low-power robots that each carry up to 30 kg, a modular elevator that scales the rack vertically, and a kiosk where an operator calls for a bin the way you would order from a vending machine. Its Deep-N AI retrieval, patented in Korea, reaches a bin stacked ten layers deep in about 36 seconds and cuts the floor space a warehouse needs by roughly 80%. The first full deployment — a logistics hub in Gwangju — went live in December 2025 and took the site from eighteen operators to six. The company is headquartered at the Incheon Global Campus in Songdo, with an R&D centre in Mapo, Seoul.',
+      'I joined on August 10, 2026, working under the direct supervision of the CEO. My main assignment is the voice layer on that kiosk: an operator speaks, an AI works out what was actually asked for, and the robots on the floor are dispatched to go get it — speech, to intent, to a machine that moves. Alongside it I work on the robot build itself, on the hardware.',
+      'The company is foreign-founded and operating in Korea, so the role has a second half. As a fluent Korean speaker I work directly on the company website and on its communication outward — the partners and customers who have to understand the machine before they can trust it.',
+    ],
+  },
+  {
     prefix: 'The Greenstone Grind',
     suffix: ' — mine-life immersion with the Ontario Mining Association × Equinox Gold',
     date: 'Feb 2026',

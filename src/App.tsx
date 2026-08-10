@@ -14,6 +14,7 @@ import { GyroscopeWand } from './pages/GyroscopeWand';
 import { HolyBridge } from './pages/HolyBridge';
 import { Pendulum } from './pages/Pendulum';
 import { Aps105Labs } from './pages/Aps105Labs';
+import { IncheonRobotics } from './pages/IncheonRobotics';
 import { GreenstoneGrind } from './pages/GreenstoneGrind';
 import { Utkesa } from './pages/Utkesa';
 import { Essays } from './pages/Essays';
@@ -34,6 +35,8 @@ const HASH_ROUTES: Record<string, string> = {
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Henry Kim',
   '/projects': 'Projects — Henry Kim',
+  '/projects/incheon-robotics': 'Incheon ASRS — Henry Kim',
+  '/extra-curricular/incheon-robotics': 'Incheon ASRS — Henry Kim',
   '/projects/campus-pulse': 'Campus Pulse — Henry Kim',
   '/projects/mono': 'MONO — Henry Kim',
   '/projects/gyroscope-wand': 'Gyroscope Wand — Henry Kim',
@@ -220,6 +223,7 @@ export default function App() {
     { label: 'Extra-Curricular', hint: '4', run: () => navigate('/extra-curricular') },
     { label: 'Education', hint: '5', run: () => navigate('/education') },
     { label: 'Colophon', run: () => navigate('/colophon') },
+    { label: 'Incheon ASRS — the story', run: () => navigate('/projects/incheon-robotics') },
     { label: 'Campus Pulse — the story', run: () => navigate('/projects/campus-pulse') },
     { label: 'MONO — the story', run: () => navigate('/projects/mono') },
     { label: 'Gyroscope Wand — the story', run: () => navigate('/projects/gyroscope-wand') },
@@ -314,6 +318,9 @@ export default function App() {
             <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/projects" element={<Projects />} />
+            {/* The Incheon ASRS story is reachable from both timelines it belongs to. */}
+            <Route path="/projects/incheon-robotics" element={<IncheonRobotics />} />
+            <Route path="/extra-curricular/incheon-robotics" element={<IncheonRobotics />} />
             <Route path="/projects/campus-pulse" element={<CampusPulse />} />
             <Route path="/projects/mono" element={<Mono />} />
             <Route path="/projects/gyroscope-wand" element={<GyroscopeWand />} />

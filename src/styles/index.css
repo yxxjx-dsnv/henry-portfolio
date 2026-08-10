@@ -186,6 +186,176 @@ body.dark-mode .story-figure video { border-color: #333333; }
 .content-wrapper .story-figure > a[href][target="_blank"]::after { content: none; }
 .story-figure figcaption { font-size: 13px; color: #787878; margin-top: 8px; }
 body.dark-mode .story-figure img { border-color: #333333; opacity: 0.9; }
+
+/* ── The kiosk voice chain (Incheon ASRS) ────────────────────────────────
+   An inline SVG that reads in both themes: boxes are hairline, type is the
+   page's own, and the connecting lines flow left-to-right unless the visitor
+   asked for less motion. Narrow screens scroll it rather than shrink it to
+   illegibility. */
+.ir-pipe-fig { margin: 10px 0 30px; }
+/* The diagram scales with the column, but an SVG scales its type too — below
+   this floor the labels stop being readable, so a phone scrolls it instead. */
+.ir-pipe-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.ir-pipe { width: 100%; min-width: 460px; height: auto; display: block; }
+.ir-pipe-box { fill: none; stroke: #dcdcdc; stroke-width: 1; }
+.ir-pipe-idx { font-size: 11px; font-weight: 700; fill: #b4b4b4; letter-spacing: 0.08em; }
+.ir-pipe-sub { font-size: 11px; fill: #909090; letter-spacing: 0.06em; text-transform: uppercase; }
+.ir-pipe-title { font-size: 15px; font-weight: 600; fill: #1a1a1a; }
+.ir-pipe-note { font-size: 12px; fill: #8a8a8a; }
+.ir-pipe-caption { font-size: 10.5px; fill: #b4b4b4; letter-spacing: 0.14em; }
+.ir-pipe-quote { font-size: 18px; fill: #1a1a1a; }
+.ir-pipe-quote-small { font-size: 15px; }
+.ir-pipe-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; fill: #6f6f6f; }
+.ir-pipe-flow { stroke: #c4c4c4; stroke-width: 1.2; fill: none; stroke-dasharray: 4 4; }
+.ir-pipe-flow-back { stroke-dasharray: 3 5; }
+.ir-pipe-head { stroke: #b0b0b0; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ir-pipe-back-label { font-size: 12px; fill: #9a9a9a; }
+
+body.dark-mode .ir-pipe-box { stroke: #333333; }
+body.dark-mode .ir-pipe-title { fill: #e8e8e8; }
+body.dark-mode .ir-pipe-quote { fill: #e8e8e8; }
+body.dark-mode .ir-pipe-idx { fill: #5a5a5a; }
+body.dark-mode .ir-pipe-sub,
+body.dark-mode .ir-pipe-note,
+body.dark-mode .ir-pipe-back-label { fill: #8f8f8f; }
+body.dark-mode .ir-pipe-caption { fill: #5a5a5a; }
+body.dark-mode .ir-pipe-code { fill: #9a9a9a; }
+body.dark-mode .ir-pipe-flow { stroke: #3d3d3d; }
+body.dark-mode .ir-pipe-head { stroke: #4a4a4a; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ir-pipe-flow { animation: ir-flow 1.6s linear infinite; }
+  .ir-pipe-flow-back { animation-direction: reverse; animation-duration: 2.4s; }
+}
+@keyframes ir-flow {
+  to { stroke-dashoffset: -8; }
+}
+
+/* Robot spec table — the same hairline card the Campus Pulse table uses. */
+.ir-spec { margin: 4px 0 26px; overflow-x: auto; }
+.ir-spec table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
+.ir-spec th {
+  text-align: left; font-weight: 500; font-size: 11.5px; color: #8a8a8a;
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 8px 12px 8px 0;
+  border-bottom: 1px solid #e3e3e3;
+}
+.ir-spec td { padding: 9px 12px 9px 0; border-top: 1px solid #f0f0f0; color: #4d4d4d; }
+.ir-spec td:first-child { color: #1a1a1a; }
+.ir-spec tr td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.ir-spec th:not(:first-child) { text-align: right; }
+.ir-spec .ir-spec-ours { font-weight: 600; color: #1a1a1a; }
+body.dark-mode .ir-spec th { color: #8f8f8f; border-color: #2e2e2e; }
+body.dark-mode .ir-spec td { color: #c6c4c4; border-color: #252525; }
+body.dark-mode .ir-spec td:first-child,
+body.dark-mode .ir-spec .ir-spec-ours { color: #f1f1f1; }
+
+/* ── The 3D robot viewer & live ASRS simulation ──────────────────────────
+   A viewport with an engineering-tool telemetry panel over it and a spare
+   control row beneath — the MATLAB-figure register, in the site's own type. */
+.asrs-frame { border: 1px solid #e3e3e3; border-radius: 10px; overflow: hidden; }
+body.dark-mode .asrs-frame { border-color: #333333; }
+.asrs-mount { position: relative; width: 100%; height: 400px; background: #c7c9cc; }
+.asrs-mount-tall { height: 460px; }
+.asrs-mount canvas { display: block; }
+body.dark-mode .asrs-mount { background: #141414; }
+.asrs-hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    margin: 0;
+    padding: 8px 11px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #1c1c1c;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    border-radius: 6px;
+    pointer-events: none;
+    white-space: pre;
+    max-width: calc(100% - 20px);
+    overflow: hidden;
+}
+body.dark-mode .asrs-hud {
+    color: #d8d8d8;
+    background: rgba(16, 16, 16, 0.78);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+.asrs-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    border-top: 1px solid #e3e3e3;
+    background: #fafafa;
+}
+body.dark-mode .asrs-controls { border-color: #333333; background: #1a1a1a; }
+.asrs-btn {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    padding: 5px 12px;
+    color: #1c1c1c;
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.asrs-btn:hover { border-color: #8a8a8a; }
+body.dark-mode .asrs-btn { color: #e6e6e6; background: #222222; border-color: #3d3d3d; }
+body.dark-mode .asrs-btn:hover { border-color: #6a6a6a; }
+.asrs-hint { font-size: 11.5px; color: #8a8a8a; margin-left: auto; }
+.asrs-btn-on { border-color: #2f7bff; color: #1f5fd0; }
+body.dark-mode .asrs-btn-on { border-color: #2f7bff; color: #8ab4ff; }
+.asrs-hud-focus { color: #1f5fd0; font-weight: 700; }
+body.dark-mode .asrs-hud-focus { color: #8ab4ff; }
+
+/* the step rail under the mechanism viewer */
+.asrs-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px 0;
+    border-top: 1px solid #e3e3e3;
+}
+body.dark-mode .asrs-steps { border-color: #333333; }
+.asrs-step {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    padding: 4px 9px;
+    color: #6a6a6a;
+    background: transparent;
+    border: 1px solid #dcdcdc;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.asrs-step:hover { border-color: #9a9a9a; color: #1c1c1c; }
+.asrs-step-on { border-color: #2f7bff; color: #1f5fd0; background: rgba(47, 123, 255, 0.07); }
+body.dark-mode .asrs-step { color: #8f8f8f; border-color: #3a3a3a; }
+body.dark-mode .asrs-step:hover { color: #e6e6e6; border-color: #666666; }
+body.dark-mode .asrs-step-on { color: #8ab4ff; border-color: #2f7bff; background: rgba(47, 123, 255, 0.12); }
+.asrs-note {
+    margin: 0;
+    padding: 10px 12px 12px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #4d4d4d;
+    background: #fafafa;
+}
+body.dark-mode .asrs-note { color: #c6c4c4; background: #1a1a1a; }
+@media (max-width: 640px) {
+    .asrs-mount { height: 320px; }
+    .asrs-mount-tall { height: 360px; }
+    .asrs-hud { font-size: 9.5px; }
+}
+
+/* A number worth stopping on, set as its own line. */
+.ir-figure-line { margin: 26px 0 28px; padding-left: 16px; border-left: 2px solid #e3e3e3; }
+.ir-figure-line b { display: block; font-size: 30px; font-weight: 600; line-height: 1.15; color: #1a1a1a; }
+.ir-figure-line span { font-size: 13.5px; color: #787878; }
+body.dark-mode .ir-figure-line { border-left-color: #2e2e2e; }
+body.dark-mode .ir-figure-line b { color: #f1f1f1; }
+body.dark-mode .ir-figure-line span { color: #9a9a9a; }
 /* Story-page document shelf: quiet rows that open each document on the page. */
 .doc-list { list-style: none; margin: 10px 0 8px; border-top: 1px solid #e3e3e3; padding: 0; }
 .doc-list li { border-bottom: 1px solid #e3e3e3; }
@@ -740,6 +910,11 @@ body.dark-mode .activity-item.in-view::before {
   background-color: #dad9e2;
   border-color: #dad9e2;
 }
+
+/* an org mark at the head of a timeline detail — black artwork, so dark mode
+   inverts it rather than shipping a second file */
+.activity-logo { display: block; width: 132px; height: auto; margin: 0 0 12px; }
+body.dark-mode .activity-logo { filter: invert(1); }
 
 body.dark-mode .detail-box { color: #c6c4c4; border-left-color: #2e2e2e; }
 body.dark-mode .activity-item:hover .date p { color: #c6c4c4; }

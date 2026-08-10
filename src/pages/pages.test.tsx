@@ -14,7 +14,7 @@ const renderExtraCurricular = () =>
     </MemoryRouter>,
   );
 
-// Home links to the Projects page from the Branphic bullet, so it needs a router too.
+// Home links to the Extra-Curricular page from the Incheon Robotics bullet, so it needs a router too.
 const renderHome = () =>
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

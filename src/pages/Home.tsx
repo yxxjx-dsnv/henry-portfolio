@@ -25,10 +25,22 @@ export function Home() {
             </li>
             <br />
             <li>
-              Currently, I'm working as a freelance developer at Branphic Inc., building
-              AI-automation tools that run its e-commerce operations — an auto review-reply engine,
-              customer-service bots, and sourcing &amp; settlement workflows. Several of them live
-              on the <Link to="/projects">Projects</Link> page.
+              As of August 2026 I've joined{' '}
+              <a href="https://incheonrobotics.com" target="_blank" rel="noopener noreferrer">
+                Incheon Robotics
+              </a>{' '}
+              (주식회사 인천로보틱스) as an <b>AI/Robotics Engineering Intern</b>. They build
+              grid-based warehouse robots. My job is implementing AI/ML voice recognition that lets
+              an operator control the whole system without touching the screen. I work on the robot
+              build too. It all lives on{' '}
+              <Link to="/projects/incheon-robotics">its own page</Link>.
+            </li>
+            <br />
+            <li>
+              Before that I spent about three months as a freelance <b>AX engineer</b> at Branphic
+              Inc., where I designed, built, deployed, and maintained 9+ internal automation tools
+              end to end — working across Claude, ChatGPT, and Codex — moving the
+              company's day-to-day operations onto AI automation.
             </li>
             <br />
             <li>

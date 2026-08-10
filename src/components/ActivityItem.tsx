@@ -5,7 +5,7 @@ import { durationLabel } from '../utils/duration';
 import type { Activity } from '../types';
 
 export function ActivityItem({ item }: { item: Activity }) {
-  const { prefix, link, suffix, date, detail, slug } = item;
+  const { prefix, link, suffix, date, detail, slug, logo } = item;
   const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
     <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
@@ -32,6 +32,7 @@ export function ActivityItem({ item }: { item: Activity }) {
       {detail && detail.length > 0 && (
         <div className="detail-wrap" id={detailId}>
           <div className="detail-box">
+            {logo && <img className="activity-logo" src={logo} alt="" loading="lazy" />}
             {detail.map((para, i) => (
               <Fragment key={i}>
                 <p>{para}</p>

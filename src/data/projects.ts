@@ -3,6 +3,16 @@ import type { Project } from '../types';
 // Brief project archive drawn from the resume. Hover a row for a one-line detail.
 export const projects: Project[] = [
   {
+    name: 'Incheon ASRS — AI/ML Voice Recognition for Grid-Based Warehouse Robots',
+    date: 'Aug 2026 - present',
+    stack: ['AI/ML', 'Voice Recognition', 'Robotics', 'Embedded', 'Fleet Control'],
+    link: { label: 'Incheon Robotics', url: 'https://incheonrobotics.com' },
+    slug: 'incheon-robotics',
+    detail: [
+      'My work as an AI/Robotics Engineering Intern at Incheon Robotics: implementing the AI/ML voice recognition that lets an operator control the whole grid-based ASRS without touching the screen, plus the robot build itself. The machine, the Deep-N fleet scheduling behind it, the Gwangju deployment, and an interactive 3D simulation of the system all live on its own page.',
+    ],
+  },
+  {
     name: 'Campus Pulse — Live Campus Occupancy Dashboard',
     date: 'Mar 2026',
     stack: ['AWS Rekognition', 'DynamoDB', 'Lambda', 'API Gateway', 'React', 'Python'],

@@ -15,6 +15,11 @@ Henry's portfolio/
 # original photo/video sources (web versions live in public/media/)
 _media-originals/
 
+# Incheon Robotics working files — pitch decks, presentation scripts, raw CAD
+# renders and lab footage. Company material, kept local. Only the compressed
+# web versions under public/media/incheon-robotics/ are ever published.
+src-incheon-robotics/
+
 # archived earlier project (kept locally, not part of the live site)
 _archive/
 
@@ -24,3 +29,9 @@ Labs/
 
 # tool-generated analysis cache
 .understand-anything/
+
+# signed personal documents dropped at the repo root (offer letters, agreements —
+# they carry a home address, phone number, and signature). Site PDFs live in
+# public/media/ and are unaffected by these root-anchored rules.
+/*.pdf
+/*.docx
