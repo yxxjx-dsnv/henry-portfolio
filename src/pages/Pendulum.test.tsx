@@ -19,7 +19,7 @@ test('credits Henry with his LinkedIn', () => {
   renderPage();
   expect(screen.getByRole('link', { name: 'Henry Kim' })).toHaveAttribute(
     'href',
-    'https://www.linkedin.com/in/henry-kim-85b554336/',
+    'https://www.linkedin.com/in/henry-kim-uoft/',
   );
 });
 

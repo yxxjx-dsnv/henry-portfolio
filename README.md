@@ -128,4 +128,4 @@ Set in [Libre Baskerville](https://fonts.google.com/specimen/Libre+Baskerville).
 ---
 
 Henry (Yeonjun) Kim — Electrical & Computer Engineering, University of Toronto.
-[henrykim.ca](https://henrykim.ca) · [GitHub](https://github.com/yxxjx-dsnv) · [LinkedIn](https://www.linkedin.com/in/henry-kim-85b554336/)
+[henrykim.ca](https://henrykim.ca) · [GitHub](https://github.com/yxxjx-dsnv) · [LinkedIn](https://www.linkedin.com/in/henry-kim-uoft/)

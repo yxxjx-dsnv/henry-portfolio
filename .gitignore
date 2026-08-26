@@ -35,3 +35,7 @@ Labs/
 # public/media/ and are unaffected by these root-anchored rules.
 /*.pdf
 /*.docx
+
+# CV / resume sources (LaTeX + originals) — personal documents with phone number
+# and work-evidence reports, managed alongside the site but never published
+/Resume/

@@ -20,7 +20,7 @@ test('credits Team 107 and links Henry', () => {
   expect(screen.getByText(/Alan W\., Luyu VK\./)).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Henry Kim' })).toHaveAttribute(
     'href',
-    'https://www.linkedin.com/in/henry-kim-85b554336/',
+    'https://www.linkedin.com/in/henry-kim-uoft/',
   );
 });
 

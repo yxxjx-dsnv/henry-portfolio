@@ -129,7 +129,7 @@ export function Pendulum() {
             <p>
               A solo project by{' '}
               <a
-                href="https://www.linkedin.com/in/henry-kim-85b554336/"
+                href="https://www.linkedin.com/in/henry-kim-uoft/"
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -27,7 +27,7 @@ test('credits the team and the client with their links', () => {
   );
   expect(screen.getByRole('link', { name: 'Henry Kim' })).toHaveAttribute(
     'href',
-    'https://www.linkedin.com/in/henry-kim-85b554336/',
+    'https://www.linkedin.com/in/henry-kim-uoft/',
   );
   expect(screen.getByRole('link', { name: 'Skule™ Kup' })).toHaveAttribute(
     'href',

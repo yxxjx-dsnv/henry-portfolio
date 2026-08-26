@@ -145,7 +145,7 @@ export function CampusPulse() {
                 </span>
               ))}
               and{' '}
-              <a href="https://www.linkedin.com/in/henry-kim-85b554336/" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.linkedin.com/in/henry-kim-uoft/" target="_blank" rel="noopener noreferrer">
                 Henry Kim
               </a>{' '}
               (me)
