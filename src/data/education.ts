@@ -19,7 +19,7 @@ export const education: EducationGroup[] = [
     ],
     entries: [
       {
-        program: 'Electrical & Computer Engineering (ECE) - BASc',
+        program: 'Electrical & Computer Engineering (ECE) - BASc + PEY Co-op',
         date: 'Sep 2028 - 2031',
         //term: 'Year 2 – 4',
       },
