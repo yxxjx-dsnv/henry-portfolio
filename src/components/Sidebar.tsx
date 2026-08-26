@@ -125,7 +125,7 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
         <li>
           <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer">
             <i className="fa-brands fa-linkedin-in" aria-hidden="true" />
-            Linkedin
+            LinkedIn
           </a>
         </li>
         <li>
