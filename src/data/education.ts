@@ -25,7 +25,7 @@ export const education: EducationGroup[] = [
       },
       {
         program: 'Mandatory Military Service @ S.Korea',
-        date: 'Oct 2026 - Apr 2028',
+        date: 'Jan 2027 - Jul 2028',
         term: 'Leave of absence',
         muted: true,
       },
