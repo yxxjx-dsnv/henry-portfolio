@@ -492,8 +492,7 @@ export function HolyBridge() {
               eight diaphragms standing inside it. Here it is built from the assembly drawing,
               every piece, blue side out. Drag the slider and the bridge lays itself back onto the
               one sheet it was cut from; X-ray shows the diaphragms and the splice patches —
-              and that there is no patch on the top sheet. Test day rolls the handout's 400 N
-              train across it, the way it happened, until the lead car reaches that splice.
+              and that there is no patch on the top sheet.
             </p>
             <br />
             <BridgeStudio />
@@ -563,6 +562,12 @@ export function HolyBridge() {
                 not at the weakest point the math had named.
               </figcaption>
             </figure>
+            <p>
+              And here is the run itself, on the model: the rig from the handout, the train, and
+              the one seam the analysis was never told about.
+            </p>
+            <br />
+            <BridgeStudio variant="testday" />
             <p>
               So the number the research produced was real, but it was the failure load of the
               bridge we designed, not the bridge we built. The two differed at exactly one place:

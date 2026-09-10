@@ -22,7 +22,7 @@ model-x-studio (explode slider with damping, camera pull-back on smoothstep(e, 0
 | Piece(s) | Size / placement |
 |---|---|
 | Soffit_A / Soffit_B | 100 wide, X 0–1016 / 1016–1256, Z 0–t |
-| Web_L_A/B, Web_R_A/B | 77.5 tall × t, outer faces at Y ±50, Z t–78.77; splices staggered — left web at X 1016, right web at X 240 (mirrored so the seams never line up) |
+| Web_R_A/B, Web_L_A/B/C | 77.5 tall × t, outer faces at Y ±50, Z t–78.77; splices staggered — the near (−Y, camera-side) web glued at X 1016, the far (+Y) web glued at X 240 and torn at 1016 on test day (a shared jagged edge, no bevel, so it reads as one strip until the break) |
 | Top_A / Top_B | 120 wide sheet on the webs, Z 78.77–80.04, spliced at X 1016 — **the splice that failed; no patch** |
 | L1_A / L1_B / L1_C | 97.46 wide (between webs) under the top sheet, Z 77.5–78.77, X 45–770 / 770–1016 / 1016–1211 (cut as 725 + 441 like the plan, the 441 bisected at the splice for phase B) |
 | L2 | 97.46 wide, Z 76.23–77.5, X 265.5–990.5 |
@@ -82,7 +82,7 @@ bench, two A-frames with the steel beam, and the 400 N three-car train (axles 0,
 right web torn at 1016 (`Web_R_C`) exist for the break. Web splices are staggered — left web
 at 1016, right web at 240 — as built.
 
-`▶ Test day` in BridgeStudio: the bridge assembles, the rig appears, the train rolls in from
+`BridgeStudio variant="testday"` is its own figure after the failure photo (the rig on show, Run / Reset / X-ray only; A-frames straddle each support so the train passes between the legs): press Run and the train rolls in from
 the 0 end at 0.15 m/s (HUD: load case 1 · 400 N train · N on the span). When the lead car
 sits on the 1016 splice — 133 N, one car — the halves hinge about their supports (70 mm sag
 at the splice, 1.4 s ease), the flap folds up 0.45 rad, the cars follow the sagging deck.

@@ -27,9 +27,9 @@ test('credits Team 107 and links Henry', () => {
 test('shows the hero photo and every carousel with reserved dimensions', () => {
   renderPage();
   // analysis 7 + marking 5 + gluing 6 + assembly 4 + finished 7 + test day 3 = 32 carousel slides,
-  // plus hero + layer-heatmap + BridgeStudio poster + failure photo = 36.
+  // plus hero + layer-heatmap + two BridgeStudio posters + failure photo = 37.
   const images = screen.getAllByRole('img');
-  expect(images).toHaveLength(36);
+  expect(images).toHaveLength(37);
   for (const img of images) {
     expect(img.getAttribute('alt')!.length).toBeGreaterThan(0);
     expect(img).toHaveAttribute('loading', 'lazy');
@@ -62,6 +62,7 @@ test('reports the honest test-day failure at the splice', () => {
 test('offers the box girder as an interactive 3D model behind a poster', () => {
   renderPage();
   expect(screen.getByRole('button', { name: /View in 3D/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Run test day/ })).toBeInTheDocument();
   expect(document.querySelector('canvas')).toBeNull();
 });
 

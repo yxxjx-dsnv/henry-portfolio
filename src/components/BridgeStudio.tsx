@@ -24,7 +24,10 @@ const FLAP_LIFT = 0.45; // rad
 // slider lays the box girder back onto the sheet it was cut from. Same lazy
 // import, cleanup, resize and dark-mode pattern as ModelViewer; `?3d`
 // activates immediately for screenshots.
-export function BridgeStudio({ className }: { className?: string }) {
+// Two figures share this component: the studio (explode/assemble/X-ray) and the
+// test-day run, which starts with the rig on show and only knows Run/Reset/X-ray.
+export function BridgeStudio({ className, variant = 'studio' }: { className?: string; variant?: 'studio' | 'testday' }) {
+  const testday = variant === 'testday';
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -181,7 +184,7 @@ export function BridgeStudio({ className }: { className?: string }) {
         if (!pieces.length || !sheet || !train) throw new Error('bridge.glb has no pieces');
         setCount(pieces.length);
         const trainNode: Object3D = train;
-        for (const n of rigTop) n.visible = false;
+        for (const n of rigTop) n.visible = testday;
         const carRest = cars.map((c) => c.position.x);
         // build run: like bricks — one piece at a time, each owning its own slice
         // of the travel, in build order (soffit first, top sheet last), ~0.5 s each
@@ -237,9 +240,11 @@ export function BridgeStudio({ className }: { className?: string }) {
         const fov = (camera.fov * Math.PI) / 180;
         const fit = (maxDim: number) =>
           (maxDim / (2 * Math.tan(fov / 2)) / Math.min(1, camera.aspect)) * 1.15;
-        const dAssembled = () => fit(Math.max(size.x, size.y, size.z));
+        const dAssembled = () => fit(testday ? 1.9 : Math.max(size.x, size.y, size.z)); // the rig is wider than the bridge
         const dFlat = () => fit(Math.max(SHEET_W, SHEET_H));
-        camera.position.set(0.75, 0.45, 1.05).normalize().multiplyScalar(dAssembled());
+        if (testday) camera.position.set(0.08, 0.32, 1);
+        else camera.position.set(0.75, 0.45, 1.05);
+        camera.position.normalize().multiplyScalar(dAssembled());
 
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
@@ -301,7 +306,14 @@ export function BridgeStudio({ className }: { className?: string }) {
             e = 0;
           } else if (test) {
             test = null;
-            for (const n of rigTop) n.visible = false;
+            for (const n of rigTop) n.visible = testday;
+            if (testday) {
+              trainNode.position.x = TRAIN_START;
+              cars.forEach((car) => {
+                car.position.y = 0;
+                car.rotation.z = 0;
+              });
+            }
           }
           if (f.playing && !test) {
             if (!play) play = { dir: e >= 50 ? -1 : 1, e };
@@ -392,17 +404,24 @@ export function BridgeStudio({ className }: { className?: string }) {
   }, [active]);
 
   return (
-    <figure className={`story-figure model-viewer bridge-studio${className ? ` ${className}` : ''}`}>
+    <figure
+      className={`story-figure model-viewer bridge-studio${className ? ` ${className}` : ''}`}
+      id={testday ? 'bridge-testday' : 'bridge-studio'}
+    >
       {!active ? (
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
-            src={`${MEDIA}/fig-bridge-render.jpg`}
-            alt="Render of the assembled Holy Bridge: a blue matboard box girder, blue side out, in soft studio light."
+            src={`${MEDIA}/${testday ? 'fig-testday-render.jpg' : 'fig-bridge-render.jpg'}`}
+            alt={
+              testday
+                ? 'Rendered model of test day: the blue box girder on its supports between two wooden A-frames under a steel beam, the three-car train part-way across.'
+                : 'Rendered model of the Holy Bridge: a blue matboard box girder seen from its open end, the white interior and a diaphragm visible inside.'
+            }
             width={1600}
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">View in 3D</span>
+          <span className="model-cta">{testday ? 'Run test day' : 'View in 3D'}</span>
         </button>
       ) : (
         <div className="asrs-frame">
@@ -427,47 +446,56 @@ export function BridgeStudio({ className }: { className?: string }) {
             </span>
             {status === 'ready' && (
               <pre className="asrs-hud" aria-hidden="true">
-                {testing ? hud : target === 100 ? `${count} pieces · one 1016 × 813 mm sheet` : `explode ${target}%`}
+                {testing
+                  ? hud
+                  : testday
+                    ? 'load case 1 · 400 N train · ready'
+                    : target === 100
+                      ? `${count} pieces · one 1016 × 813 mm sheet`
+                      : `explode ${target}%`}
               </pre>
             )}
           </div>
           {status === 'ready' && (
             <div className="asrs-controls">
-              <button
-                type="button"
-                className={`asrs-btn${playing ? ' asrs-btn-on' : ''}`}
-                onClick={() => setPlaying((v) => !v)}
-                title="One piece at a time: from the sheet to the bridge, or back again"
-                disabled={testing}
-              >
-                {playing ? '■ Stop' : target >= 50 ? '▶ Assemble' : '▶ Take apart'}
-              </button>
-              <button type="button" className="asrs-btn" onClick={() => setTarget(100)} disabled={testing}>
-                Lay flat
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={target}
-                aria-label="Explode"
-                onChange={(ev) => setTarget(Number(ev.target.value))}
-                disabled={testing}
-              />
+              {testday ? (
+                <button
+                  type="button"
+                  className={`asrs-btn${testing ? ' asrs-btn-on' : ''}`}
+                  onClick={() => setTesting((v) => !v)}
+                  title="The 400 N train rolls in until the top-flange splice lets go"
+                >
+                  {testing ? '■ Reset' : '▶ Run'}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={`asrs-btn${playing ? ' asrs-btn-on' : ''}`}
+                    onClick={() => setPlaying((v) => !v)}
+                    title="One piece at a time: from the sheet to the bridge, or back again"
+                  >
+                    {playing ? '■ Stop' : target >= 50 ? '▶ Assemble' : '▶ Take apart'}
+                  </button>
+                  <button type="button" className="asrs-btn" onClick={() => setTarget(100)}>
+                    Lay flat
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={target}
+                    aria-label="Explode"
+                    onChange={(ev) => setTarget(Number(ev.target.value))}
+                  />
+                </>
+              )}
               <button
                 type="button"
                 className={`asrs-btn${inside ? ' asrs-btn-on' : ''}`}
                 onClick={() => setInside((v) => !v)}
               >
                 ⦿ X-ray
-              </button>
-              <button
-                type="button"
-                className={`asrs-btn${testing ? ' asrs-btn-on' : ''}`}
-                onClick={() => setTesting((v) => !v)}
-                title="Test day: the 400 N train rolls until the top-flange splice lets go"
-              >
-                {testing ? '■ Reset' : '▶ Test day'}
               </button>
 
               <span className="asrs-hint">drag to orbit · scroll to zoom</span>
@@ -476,9 +504,9 @@ export function BridgeStudio({ className }: { className?: string }) {
         </div>
       )}
       <figcaption>
-        The box girder from the engineering assembly, every piece coloured as cut. Slide it flat
-        and it lands back on the one sheet; X-ray shows the diaphragms and the splice
-        patches — none on the top sheet.
+        {testday
+          ? "Test day, replayed: the handout's 400 N train rolls in from the left until its lead car — 133 N — sits on the top-flange splice at 1,016 mm. The near web's glued splice lets go cleanly; the far web, continuous there, tears."
+          : 'The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet; X-ray shows the diaphragms and the splice patches — none on the top sheet.'}
       </figcaption>
     </figure>
   );

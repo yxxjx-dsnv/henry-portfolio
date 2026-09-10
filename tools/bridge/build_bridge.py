@@ -53,13 +53,15 @@ def pieces():
     half = lambda x0, x1: "A" if x1 <= SPLICE + 1e-6 else ("B" if x0 >= SPLICE - 1e-6 else "A")
     P.append(("Soffit_A", "soffit", "A", (0, SPLICE, -50, 50, 0, T), "-z"))
     P.append(("Soffit_B", "soffit", "B", (SPLICE, LEN, -50, 50, 0, T), "-z"))
-    # the two webs are spliced at opposite ends (1016 | 240 on the left, 240 | 1016
-    # on the right) so the seams never line up across the section
-    P.append(("Web_L_A", "web", "A", (0, SPLICE, 50 - T, 50, T, TOP_Z), "+y"))
-    P.append(("Web_L_B", "web", "B", (SPLICE, LEN, 50 - T, 50, T, TOP_Z), "+y"))
-    P.append(("Web_R_A", "web", "A", (0, LEN - SPLICE, -50, -50 + T, T, TOP_Z), "-y"))
-    P.append(("Web_R_B", "web", "A", (LEN - SPLICE, SPLICE, -50, -50 + T, T, TOP_Z), "-y"))
-    P.append(("Web_R_C", "web", "B", (SPLICE, LEN, -50, -50 + T, T, TOP_Z), "-y"))  # one 1016 strip, torn here on test day
+    # the webs are spliced at opposite ends so the seams never line up: the near (−Y,
+    # camera-side) web is glued at 1016, the far (+Y) web at 240. On test day the near
+    # web's glue let go cleanly; the far web, continuous there, tore at 1016 — so it is
+    # cut there too, with no bevel, and reads as one strip until the break.
+    P.append(("Web_R_A", "web", "A", (0, SPLICE, -50, -50 + T, T, TOP_Z), "-y"))
+    P.append(("Web_R_B", "web", "B", (SPLICE, LEN, -50, -50 + T, T, TOP_Z), "-y"))
+    P.append(("Web_L_A", "web", "A", (0, LEN - SPLICE, 50 - T, 50, T, TOP_Z), "+y"))
+    P.append(("Web_L_B", "web", "A", (LEN - SPLICE, SPLICE, 50 - T, 50, T, TOP_Z), "+y"))
+    P.append(("Web_L_C", "web", "B", (SPLICE, LEN, 50 - T, 50, T, TOP_Z), "+y"))
     # Top_A's last 80 mm is its own piece: on test day it folded up at the splice
     P.append(("Top_A", "top", "A", (0, FLAP, -60, 60, TOP_Z, TOP_Z + T), "+z"))
     P.append(("Top_Flap", "top", "A", (FLAP, SPLICE, -60, 60, TOP_Z, TOP_Z + T), "+z"))
@@ -76,8 +78,8 @@ def pieces():
                   (x - T / 2, x + T / 2, -h, h, T, top), "+x"))
     # splice backers on soffit and webs — none on the top sheet (that is the story)
     P.append(("Patch_Soffit", "patch", "A", (998, 1034, -18, 18, T, 2 * T), None))
-    P.append(("Patch_WebL", "patch", "A", (998, 1034, 50 - 2 * T, 50 - T, 22, 58), None))
-    P.append(("Patch_WebR", "patch", "A", (222, 258, -50 + T, -50 + 2 * T, 22, 58), None))
+    P.append(("Patch_WebR", "patch", "A", (998, 1034, -50 + T, -50 + 2 * T, 22, 58), None))
+    P.append(("Patch_WebL", "patch", "A", (222, 258, 50 - 2 * T, 50 - T, 22, 58), None))
     for k, x in enumerate((160, 628, 1100)):
         P.append((f"Tab_{2 * k}", "tab", half(x - 30, x + 30), (x - 30, x + 30, 50 - T - 12, 50 - T, T, 2 * T), None))
         P.append((f"Tab_{2 * k + 1}", "tab", half(x - 30, x + 30), (x - 30, x + 30, -50 + T, -50 + T + 12, T, 2 * T), None))
@@ -148,6 +150,31 @@ def srgb(h):
                   else (((int(h[i:i + 2], 16) / 255) + 0.055) / 1.055) ** 2.4) for i in (0, 2, 4))
 
 
+TEAR = [(SPLICE + dx, z) for dx, z in ((-6, T), (5, 14), (-4, 27), (7, 40), (-5, 53), (4, 66), (-6, TOP_Z))]  # x, z along the tear
+
+
+def prism_mesh(name, poly_xz, y0, y1, blue, mats):
+    """An XZ polygon extruded from y0 to y1 — the torn web halves. Blue on the face `blue` (+y/−y)."""
+    n = len(poly_xz)
+    verts = [(x, y0, z) for x, z in poly_xz] + [(x, y1, z) for x, z in poly_xz]
+    faces = [list(range(n))[::-1], [n + i for i in range(n)]]  # −y cap, +y cap
+    faces += [[i, (i + 1) % n, n + (i + 1) % n, n + i] for i in range(n)]
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.validate()
+    me.materials.append(mats["white"])
+    me.materials.append(mats["blue"])
+    me.polygons[0].material_index = 1 if blue == "-y" else 0
+    me.polygons[1].material_index = 1 if blue == "+y" else 0
+    xs, zs = [x for x, _ in poly_xz], [z for _, z in poly_xz]
+    cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2  # bbox centre, like the boxes, so the sheet layout lines up
+    for v in me.vertices:
+        v.co.x -= cx
+        v.co.y -= (y0 + y1) / 2
+        v.co.z -= cz
+    return me, Vector((cx, (y0 + y1) / 2, cz))
+
+
 def box_mesh(name, ext, blue, mats):
     x0, x1, y0, y1, z0, z1 = ext
     cx, cy, cz = (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2
@@ -180,7 +207,12 @@ def build(mats):
     sheet_h = max(sheet_h, SHEET_H)
     sx0, sy0 = LEN / 2 - SHEET_W / 2, -sheet_h / 2  # sheet origin under the bridge
     for (name, part, half, ext, _), (_, along, across, up, long_axis, blue) in zip(pieces(), plan):
-        me, centre = box_mesh(name, ext, blue, mats)
+        if name == "Web_L_B":  # torn halves of the far web share one jagged edge
+            me, centre = prism_mesh(name, [(ext[0], T)] + TEAR + [(ext[0], TOP_Z)], ext[2], ext[3], blue, mats)
+        elif name == "Web_L_C":
+            me, centre = prism_mesh(name, [(ext[1], T), (ext[1], TOP_Z)] + TEAR[::-1], ext[2], ext[3], blue, mats)
+        else:
+            me, centre = box_mesh(name, ext, blue, mats)
         ob = bpy.data.objects.new(name, me)
         bpy.context.scene.collection.objects.link(ob)
         ob.parent = root
@@ -191,8 +223,9 @@ def build(mats):
         pos = Vector((sx0 + x0 + along / 2, sy0 + y0 + across / 2, T / 2))
         q = flat_rotation(up, long_axis)
         ob["sheet"] = [pos.x / 1000, pos.z / 1000, -pos.y / 1000, q.x, q.z, -q.y, q.w]
-        mod = ob.modifiers.new("Bevel", "BEVEL")
-        mod.width, mod.segments, mod.limit_method = 0.2, 1, "ANGLE"
+        if name not in ("Web_L_B", "Web_L_C"):  # the tear line must not show as a seam
+            mod = ob.modifiers.new("Bevel", "BEVEL")
+            mod.width, mod.segments, mod.limit_method = 0.2, 1, "ANGLE"
     # the sheet itself: blue on top, centred under the bridge, top face at Z = 0
     me, centre = box_mesh("Sheet", (sx0, sx0 + SHEET_W, sy0, sy0 + sheet_h, -T, 0), "+z",
                           {"white": mats["white"], "blue": mats["sheet"]})
@@ -234,11 +267,11 @@ def build_rig(root):
         rig_box(f"Support_{i}", (x - 25, x + 25, -60, 60, -6, 0), M["steel"], root)
         rig_box(f"Stack_{i}", (x - 45, x + 45, -75, 75, -110, -6), M["ply"], root)
     rig_box("Table", (-420, LEN + 420, -360, 360, -145, -110), M["table"], root)
-    for i, x in enumerate((-120.0, LEN + 120.0)):  # A-frames: legs spread along the span, meeting under the beam
-        for lean in (-0.28, 0.28):
-            cx = x - 375 * math.sin(lean)  # 750 mm leg, apex at x
-            rig_box(f"Leg_{i}{'+' if lean > 0 else '-'}", (cx - 19, cx + 19, -45, 45, -110, 640), M["wood"], root, rot=(0, lean, 0))
-        rig_box(f"Cap_{i}", (x - 60, x + 60, -30, 30, 620, 660), M["wood"], root)
+    for i, x in enumerate(SUPPORT):  # A-frames straddle each support: legs spread across the bench, the bridge and train pass between
+        for lean in (-0.38, 0.38):
+            cy = 375 * math.sin(lean)  # 750 mm leg; rotation about X moves its top to −Y, so the apex lands at y = 0
+            rig_box(f"Leg_{i}{'+' if lean > 0 else '-'}", (x - 19, x + 19, cy - 45, cy + 45, -110, 640), M["wood"], root, rot=(lean, 0, 0))
+        rig_box(f"Cap_{i}", (x - 45, x + 45, -60, 60, 620, 660), M["wood"], root)
     rig_box("Beam", (-260, LEN + 260, -22, 22, 660, 700), M["steel"], root)
     train = bpy.data.objects.new("Train", None)
     bpy.context.scene.collection.objects.link(train)
@@ -394,6 +427,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", required=True)
     ap.add_argument("--poster")
+    ap.add_argument("--testday-poster")
     ap.add_argument("--preview")
     args = ap.parse_args(argv)
 
@@ -406,7 +440,7 @@ def main():
     export_glb(root, args.out)
     check_glb(args.out)
 
-    if args.poster or args.preview:
+    if args.poster or args.preview or args.testday_poster:
         sheet = next(ob for ob in root.children if ob.get("part") == "sheet")
         sheet.hide_render = True
         rig = [ob for ob in root.children_recursive if ob.get("part") == "rig"]
@@ -415,6 +449,15 @@ def main():
         cam = studio((1.02, 0.0, 0.04), 0.78, -38, 20, lens=40)
         if args.poster:
             shoot(args.poster, 1600, 1000, "JPEG")
+        if args.testday_poster:
+            for ob in rig:
+                ob.hide_render = False
+            bpy.data.objects["Train"].location.x = 0.45  # mid-run, so the poster shows the train on the span
+            aim(cam, (0.628, 0.0, 0.20), 2.4, -96, 12)
+            shoot(args.testday_poster, 1600, 1000, "JPEG")
+            bpy.data.objects["Train"].location.x = -0.15
+            for ob in rig:
+                ob.hide_render = True
         if args.preview:
             os.makedirs(args.preview, exist_ok=True)
             aim(cam, (0.628, 0.0, 0.04), 1.45, -128, 30)
