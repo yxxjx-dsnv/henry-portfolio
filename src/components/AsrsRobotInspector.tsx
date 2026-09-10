@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { makeKit, makeRobot } from './asrsScene';
+import { loadRobotAsset, makeRobot } from './asrsRobot';
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -36,12 +36,11 @@ export function AsrsRobotInspector() {
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }] =
-          await Promise.all([
-            import('three/examples/jsm/controls/OrbitControls.js'),
-            import('three/examples/jsm/environments/RoomEnvironment.js'),
-            import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-          ]);
+        const [{ OrbitControls }, { RoomEnvironment }, asset] = await Promise.all([
+          import('three/examples/jsm/controls/OrbitControls.js'),
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
+          loadRobotAsset(),
+        ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
 
@@ -78,7 +77,7 @@ export function AsrsRobotInspector() {
           0.01,
           40,
         );
-        camera.position.set(0.62, 0.4, 0.7);
+        camera.position.set(0.55, 0.32, 0.62);
 
         if (typeof ResizeObserver === 'function') {
           const ro = new ResizeObserver(() => {
@@ -102,8 +101,8 @@ export function AsrsRobotInspector() {
         key.position.set(1.4, 2.4, 1.6);
         key.castShadow = true;
         key.shadow.mapSize.set(2048, 2048);
-        key.shadow.camera.left = key.shadow.camera.bottom = -0.8;
-        key.shadow.camera.right = key.shadow.camera.top = 0.8;
+        key.shadow.camera.left = key.shadow.camera.bottom = -0.5;
+        key.shadow.camera.right = key.shadow.camera.top = 0.5;
         key.shadow.bias = -0.001;
         scene.add(key);
         const rim = new THREE.DirectionalLight(0xd8e4ff, 0.6);
@@ -124,19 +123,17 @@ export function AsrsRobotInspector() {
         scene.add(ground);
         cleanupExtra.push(() => ground.geometry.dispose());
 
-        const kit = makeKit(THREE, RoundedBoxGeometry);
-        cleanupExtra.push(() => kit.dispose());
         const turntable = new THREE.Group();
         scene.add(turntable);
-        const robot = makeRobot(THREE, kit);
+        const robot = makeRobot(asset);
         turntable.add(robot.group);
         cleanupExtra.push(() => robot.dispose());
 
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
         orbit.enableDamping = true;
-        orbit.target.set(0, 0.12, 0);
-        orbit.minDistance = 0.25;
+        orbit.target.set(0, 0.05, 0);
+        orbit.minDistance = 0.2;
         orbit.maxDistance = 2.5;
         orbit.maxPolarAngle = Math.PI / 2 - 0.02;
         // grabbing the model takes over from the turntable
@@ -151,7 +148,6 @@ export function AsrsRobotInspector() {
 
         let lift = 0;
         let grip = 0;
-        let hubSpin = 0;
         let last = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
@@ -162,18 +158,17 @@ export function AsrsRobotInspector() {
           if (f.spin) turntable.rotation.y += dt * 0.35;
           const ease = (v: number, t: number) => v + (t - v) * Math.min(1, dt * 3);
           lift = ease(lift, f.deckUp ? 1 : 0);
-          const g = ease(grip, f.tabsOut ? 1 : 0);
-          if (Math.abs(g - grip) > 1e-4) hubSpin += (g > grip ? 1 : -1) * dt * 2.4;
-          grip = g;
+          grip = ease(grip, f.tabsOut ? 1 : 0);
           robot.setLift(lift);
-          robot.setGrip(grip, hubSpin);
+          robot.setGrip(grip);
           robot.setXray(f.xray);
           orbit.update();
           webgl.render(scene, camera);
         };
         raf = requestAnimationFrame(animate);
         setStatus('ready');
-      } catch {
+      } catch (e) {
+        console.error('AsrsRobotInspector:', e);
         if (!disposed) setStatus('error');
       }
     })();
@@ -214,7 +209,7 @@ export function AsrsRobotInspector() {
             aria-label="The ASRS robot alone on a turntable. Drag to orbit, scroll to zoom; toggles run the deck, the tabs, and the x-ray shell."
           >
             <span className="model-status" role="status" aria-live="polite">
-              {status === 'loading' && 'building the model…'}
+              {status === 'loading' && 'loading the model…'}
               {status === 'error' && "3D isn't available in this browser."}
             </span>
             {status === 'ready' && (
@@ -259,9 +254,10 @@ export function AsrsRobotInspector() {
         </div>
       )}
       <figcaption>
-        The machine itself, on a turntable — every part modelled: the brushed deck with its slot
-        cross and screws, the bolt-circle hub, the mecanum rollers, the pinned scissor. Run the
-        deck and the tabs yourself, and X-ray the shell to see the drivetrain.
+        The machine itself, on a turntable — the Blender model, built to the company's robot
+        description and photographs: the plate with its slot cross, the blue hub and its cam
+        links, the mecanum rollers, the pinned scissor. Run the deck and the tabs yourself, and
+        X-ray the shell to see the drivetrain.
       </figcaption>
     </figure>
   );

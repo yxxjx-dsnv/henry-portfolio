@@ -12,7 +12,7 @@
 // each trip take a slightly different line. Levels are joined by the elevator.
 
 export const PITCH = 0.62; // tile pitch, metres (one 600×400 Euro bin per cell)
-export const LEVEL_H = 0.46; // vertical pitch between decks
+export const LEVEL_H = 0.408; // vertical pitch between decks
 export const SPEED = 0.85; // m/s, cruise
 export const ACCEL = 1.9; // m/s² — the trapezoidal profile's ramp
 export const CORNER_V = 0.28; // m/s through a 90° direction change
@@ -200,16 +200,30 @@ export class Fleet {
       .filter((n) => this.walkable(n));
   }
 
+  /** True while this robot's bin is on its deck (a stored bin sits too low to pass under). */
+  private loaded(id: number): boolean {
+    const b = this.bin(this.robots[id].binId);
+    return !!b && b.cell === null;
+  }
+
   /**
    * A* across one level, treating squares held by other robots as walls. The
    * search state is (cell, arrival direction) with a small cost on turning,
    * so routes come out as straight runs with deliberate corners — the way a
    * real traffic controller would lay them — instead of staircases.
+   *
+   * A loaded robot cannot really pass under a stored bin (cradle 88 mm, its
+   * own bin tops out near 250 mm), so those squares carry a heavy cost: the
+   * route detours round them whenever one exists, and only drives through
+   * when the layout leaves no other way — a wall there would deadlock the
+   * dead-end cells of the storage grid.
    */
   private findPath(from: Cell, to: Cell, id: number): Cell[] | null {
     if (same(from, to)) return [];
     const lv = from[2];
     const TURN = 0.4;
+    const UNDER_BIN = 10;
+    const stored = new Set(this.loaded(id) ? this.bins.flatMap((b) => (b.cell ? [key(b.cell)] : [])) : []);
     const DIRS = [
       [1, 0],
       [-1, 0],
@@ -240,7 +254,8 @@ export class Fleet {
         const nb: Cell = [cur.c[0] + dx, cur.c[1] + dz, lv];
         if (!this.walkable(nb)) continue;
         if (this.blockedBy(nb, id) && !same(nb, to)) continue;
-        const g = cur.g + 1 + (cur.d !== -1 && cur.d !== di ? TURN : 0);
+        const g =
+          cur.g + 1 + (cur.d !== -1 && cur.d !== di ? TURN : 0) + (stored.has(key(nb)) ? UNDER_BIN : 0);
         const nk = skey(nb, di);
         if (g >= (best.get(nk) ?? Infinity)) continue;
         best.set(nk, g);

@@ -411,8 +411,9 @@ export function IncheonRobotics() {
               boxes.
             </p>
             <p>
-              Here is that machine on a turntable — every part of it modelled, close enough to
-              read the screws. Spin it, run the deck and the tabs, and X-ray the shell:
+              Here is that machine on a turntable — modelled in Blender to the company's robot
+              description and photographs, close enough to read the screws. Spin it, run the deck
+              and the tabs, and X-ray the shell:
             </p>
             <br />
             <AsrsRobotInspector />

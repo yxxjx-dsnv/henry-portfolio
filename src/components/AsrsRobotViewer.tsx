@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  makeKit,
-  makeFloor,
-  makeRobot,
-  makeBin,
-  makeCradleField,
-  CRADLE_H,
-  DECK_REST,
-  DECK_LIFT,
-} from './asrsScene';
+import { makeKit, makeFloor, makeBin, makeCradleField, CRADLE_H, DECK_REST } from './asrsScene';
+import { loadRobotAsset, makeRobot, liftPose } from './asrsRobot';
 import { PITCH } from './asrsFleet';
 
 const MEDIA = '/media/incheon-robotics';
@@ -141,11 +133,12 @@ export function AsrsRobotViewer() {
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }] =
+        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }, asset] =
           await Promise.all([
             import('three/examples/jsm/controls/OrbitControls.js'),
             import('three/examples/jsm/environments/RoomEnvironment.js'),
             import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
+            loadRobotAsset(),
           ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
@@ -183,7 +176,7 @@ export function AsrsRobotViewer() {
           0.01,
           60,
         );
-        camera.position.set(0.88, 0.5, 0.98);
+        camera.position.set(0.8, 0.45, 0.9);
 
         if (typeof ResizeObserver === 'function') {
           const ro = new ResizeObserver(() => {
@@ -220,7 +213,7 @@ export function AsrsRobotViewer() {
         scene.add(makeFloor(THREE, kit, 7));
         for (const mesh of makeCradleField(THREE, kit, [[0, 0]])) scene.add(mesh);
 
-        const robot = makeRobot(THREE, kit);
+        const robot = makeRobot(asset);
         scene.add(robot.group);
         cleanupExtra.push(() => robot.dispose());
         const bin = makeBin(THREE, kit);
@@ -230,7 +223,7 @@ export function AsrsRobotViewer() {
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
         orbit.enableDamping = true;
-        orbit.target.set(0, 0.22, 0);
+        orbit.target.set(0, 0.12, 0);
         orbit.minDistance = 0.35;
         orbit.maxDistance = 4;
         orbit.maxPolarAngle = Math.PI / 2 - 0.03;
@@ -261,7 +254,6 @@ export function AsrsRobotViewer() {
         let slide = 0;
         let grip = 0;
         let lift = 0;
-        let spin = 0;
         let hold = 0;
         let carried = false;
         let last = 0;
@@ -280,7 +272,6 @@ export function AsrsRobotViewer() {
           slide = ease(slide, s.slide, 1.6);
           grip = ease(grip, s.grip, 3);
           lift = ease(lift, s.lift, 3);
-          if (Math.abs(s.grip - grip) > 0.002) spin += (s.grip > grip ? 1 : -1) * dt * 2.4;
 
           const pt = pointAt(Math.min(1, Math.max(0, slide)));
           robot.group.position.set(pt.x, 0, pt.z);
@@ -288,13 +279,13 @@ export function AsrsRobotViewer() {
           px = pt.x;
           pz = pt.z;
           robot.setLift(lift);
-          robot.setGrip(grip, spin);
+          robot.setGrip(grip);
 
           // the handoff matches the fleet: the bin moves onto the deck only
           // when the tabs are spread and the deck reaches it, and it lands
           // only when spread again with the deck back below the arms
           const atCell = Math.hypot(pt.x, pt.z) < 0.02;
-          const deckTop = DECK_REST + lift * (DECK_LIFT - DECK_REST);
+          const deckTop = DECK_REST + liftPose(lift).rise;
           if (!carried && atCell && grip > 0.9 && deckTop >= ATTACH_Y) carried = true;
           if (carried && atCell && grip > 0.9 && deckTop < ATTACH_Y) carried = false;
           if (carried) bin.position.set(pt.x, deckTop, pt.z);
@@ -320,7 +311,8 @@ export function AsrsRobotViewer() {
         };
         raf = requestAnimationFrame(animate);
         setStatus('ready');
-      } catch {
+      } catch (e) {
+        console.error('AsrsRobotViewer:', e);
         if (!disposed) setStatus('error');
       }
     })();
@@ -363,7 +355,7 @@ export function AsrsRobotViewer() {
             aria-label="Interactive 3D model of the ASRS robot running its retrieval cycle. Drag to orbit, scroll to zoom."
           >
             <span className="model-status" role="status" aria-live="polite">
-              {status === 'loading' && 'building the model…'}
+              {status === 'loading' && 'loading the model…'}
               {status === 'error' && "3D isn't available in this browser."}
             </span>
             {status === 'ready' && (
@@ -415,9 +407,10 @@ export function AsrsRobotViewer() {
         </div>
       )}
       <figcaption>
-        The full handling cycle, modelled in three.js from the CAD renders — no mesh files, just
-        geometry and materials. Drive in along the lanes, spread, lift, lock, travel low, and set
-        the bin back on its cradle. Step through it or let it run; X-ray strips the shell off.
+        The full handling cycle. The robot is the Blender model, built to the company's robot
+        description and photographs; the cradle and floor around it are generated geometry. Drive
+        in along the lanes, spread, lift, lock, travel low, and set the bin back on its cradle.
+        Step through it or let it run; X-ray strips the shell off.
       </figcaption>
     </figure>
   );

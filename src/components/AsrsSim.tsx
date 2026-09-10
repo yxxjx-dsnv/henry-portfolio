@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   makeKit,
   makeFloor,
-  makeRobot,
   makeBin,
   makeCradleField,
   makeDeck,
@@ -11,9 +10,8 @@ import {
   makeKiosk,
   CRADLE_H,
   DECK_REST,
-  DECK_LIFT,
-  type Robot,
 } from './asrsScene';
+import { loadRobotAsset, makeRobot, liftPose, liftFraction, type Robot } from './asrsRobot';
 import { Fleet, PITCH, LEVEL_H, PHASE_LABEL, cellPos, type FleetOpts } from './asrsFleet';
 
 const MEDIA = '/media/incheon-robotics';
@@ -22,7 +20,8 @@ const MEDIA = '/media/incheon-robotics';
 // asrsFleet.ts (and is unit-tested there); this file is only the picture of it:
 // build the world once, then copy fleet state onto meshes every frame.
 
-const ATTACH = (CRADLE_H - DECK_REST) / (DECK_LIFT - DECK_REST);
+// the lift fraction at which the deck top reaches a cradled bin's underside
+const ATTACH = liftFraction(CRADLE_H - DECK_REST);
 
 const OPTS: FleetOpts = {
   cols: 6,
@@ -81,11 +80,12 @@ export function AsrsSim() {
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }] =
+        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }, asset] =
           await Promise.all([
             import('three/examples/jsm/controls/OrbitControls.js'),
             import('three/examples/jsm/environments/RoomEnvironment.js'),
             import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
+            loadRobotAsset(),
           ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
@@ -186,7 +186,7 @@ export function AsrsSim() {
         }
 
         const views: Robot[] = fleet.robots.map(() => {
-          const api = makeRobot(THREE, kit);
+          const api = makeRobot(asset);
           world.add(api.group);
           cleanupExtra.push(() => api.dispose());
           return api;
@@ -290,7 +290,7 @@ export function AsrsSim() {
             const v = views[i];
             v.group.position.set(r.pos.x, r.pos.y, r.pos.z);
             v.setLift(r.lift);
-            v.setGrip(r.grip, r.spin);
+            v.setGrip(r.grip);
             v.roll(r.pos.x - prevPos[i].x, r.pos.z - prevPos[i].z);
             prevPos[i] = { ...r.pos };
           });
@@ -302,7 +302,7 @@ export function AsrsSim() {
               mesh.position.set(p.x, p.y + CRADLE_H, p.z);
             } else if (b.carriedBy !== null) {
               const r = fleet.robots[b.carriedBy];
-              const deckTop = DECK_REST + r.lift * (DECK_LIFT - DECK_REST);
+              const deckTop = DECK_REST + liftPose(r.lift).rise;
               mesh.position.set(r.pos.x, r.pos.y + deckTop, r.pos.z);
             }
           }
@@ -375,7 +375,8 @@ export function AsrsSim() {
         };
         raf = requestAnimationFrame(animate);
         setStatus('ready');
-      } catch {
+      } catch (e) {
+        console.error('AsrsSim:', e);
         if (!disposed) setStatus('error');
       }
     })();

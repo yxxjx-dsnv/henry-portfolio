@@ -193,12 +193,12 @@ test('the carriage recalls to the boarder before a ride begins', () => {
   for (let i = 0; i < 60 * 240; i++) {
     f.step(dt);
     // the carriage itself may never jump a level in one tick either
-    expect(Math.abs(f.elevLevel - prevElev)).toBeLessThanOrEqual((0.6 * dt) / 0.46 + 1e-6);
+    expect(Math.abs(f.elevLevel - prevElev)).toBeLessThanOrEqual((0.6 * dt) / LEVEL_H + 1e-6);
     prevElev = f.elevLevel;
     for (const r of f.robots) {
       if (r.phase === 'riding') {
         // a rider is always at the carriage's height — it boarded it for real
-        expect(Math.abs(r.pos.y - f.elevLevel * 0.46)).toBeLessThan(0.001);
+        expect(Math.abs(r.pos.y - f.elevLevel * LEVEL_H)).toBeLessThan(0.001);
       }
     }
   }
@@ -232,4 +232,26 @@ test('request() queues a shelved bin and refuses when none are free', () => {
     b.carriedBy = 0;
   });
   expect(f.request()).toBe(false);
+});
+
+// A loaded robot's bin rides at deck height, far too tall to pass under a
+// stored bin on its 88 mm cradle — so with the bin aboard the route detours
+// round stored cells, and the same trip unloaded cuts straight through.
+test('a loaded robot routes round stored bins', () => {
+  const f = makeFleet();
+  const stored = new Set(f.bins.filter((b) => b.cell).map((b) => b.cell!.join(',')));
+  const r = f.robots[0];
+  r.cell = [3, 3, 1]; // a bin column, two stored bins between it and the aisle
+  r.pos = cellPos(r.cell);
+  const b = f.bins[0];
+  r.binId = b.id;
+  b.carriedBy = r.id;
+  // private, but this is the one place the routing rule is observable
+  const findPath = (f as unknown as { findPath: Fleet['findPath'] }).findPath.bind(f);
+  const through = findPath(r.cell, [5, 0, 1], r.id)!;
+  expect(through.some((c) => stored.has(c.join(',')))).toBe(true);
+  b.cell = null; // now on the deck
+  const around = findPath(r.cell, [5, 0, 1], r.id)!;
+  expect(around.some((c) => stored.has(c.join(',')))).toBe(false);
+  expect(around.length).toBeGreaterThan(through.length);
 });
