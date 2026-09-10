@@ -1,6 +1,6 @@
 # Holy Bridge — Bridge Studio (explode/assemble viewer) 
 
-**Date:** 2026-09-10 · **Page:** `/projects/civ102-bridge` · **Status:** phase A built 2026-09-10; phase B (test-day collapse) follows after review
+**Date:** 2026-09-10 · **Page:** `/projects/civ102-bridge` · **Status:** built 2026-09-10 (studio + test day), awaiting owner review
 
 ## Why
 
@@ -73,9 +73,20 @@ the Sheet mesh is drawn 1016 × 874 in a darker blue; the HUD quotes the real 10
 the construction photos (blue outside, white inside, proportions); browser check of the
 viewer on `?3d`-less click: slider both ways, Assemble/Lay flat, See inside, dark mode.
 
-## Phase B (after A is reviewed)
+## Test day (built)
 
-Test-day mode in the same viewer: a CIV102 three-car train (axles at 0, 176, 340, 516, 680,
-856 mm) rolls the 1200 mm span while the HUD shows position and load; at 133 N the top-sheet
-splice folds into a V and the two halves hinge about the soffit, as in `photo-failure.jpg`.
-Scripted keyframes on the A/B halves — no physics engine.
+The GLB also carries the apparatus from the handout §1.5–1.6 and the test-day photos, tagged
+`part: rig` and hidden until the run: 50 mm support plates on plywood stacks at 1200 c/c, the
+bench, two A-frames with the steel beam, and the 400 N three-car train (axles 0, 176, 340,
+516, 680, 856 mm; car bodies 280 × 75 mm with rods and wheels). `Top_Flap` (936–1016) and the
+right web torn at 1016 (`Web_R_C`) exist for the break. Web splices are staggered — left web
+at 1016, right web at 240 — as built.
+
+`▶ Test day` in BridgeStudio: the bridge assembles, the rig appears, the train rolls in from
+the 0 end at 0.15 m/s (HUD: load case 1 · 400 N train · N on the span). When the lead car
+sits on the 1016 splice — 133 N, one car — the halves hinge about their supports (70 mm sag
+at the splice, 1.4 s ease), the flap folds up 0.45 rad, the cars follow the sagging deck.
+Scripted, no physics engine. Reset restores the studio; X-ray works throughout.
+
+Later, if wanted: the Assemble run could follow the real gluing order (top layers first);
+`ORDER` in BridgeStudio.tsx is the one line to change.
