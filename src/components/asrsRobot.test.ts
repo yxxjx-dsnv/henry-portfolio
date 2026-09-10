@@ -58,7 +58,7 @@ test('robot.glb rig matches the kinematics table', () => {
   for (const t of TABS) rig.push(`Tab_${t.name}`, `Link_${t.name}`);
   for (const w of WHEELS) rig.push(`Wheel_${w.name}`);
   for (const name of rig) byName(name);
-  expect(gltf.nodes.filter((n) => n.extras?.xray === 'shell')).toHaveLength(7);
+  expect(gltf.nodes.filter((n) => n.extras?.xray === 'shell')).toHaveLength(8);
 
   const CLOSED = (G.hub_angle_closed_deg * Math.PI) / 180;
   for (const t of TABS) {

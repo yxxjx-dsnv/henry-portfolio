@@ -51,7 +51,7 @@ LAYOUT = {
     "hub_motor": (0.040, 0.040, 0.013), "hub_motor_z": 0.018,
     "screw_z": 0.013, "screw_x": (-0.09, 0.17), "nut_x": 0.165, "screw_motor_x": -0.11,
     "battery": (0.09, 0.06, 0.030), "battery_at": (-0.18, 0.0, 0.020),
-    "pcb_at": (0.09, 0.09, 0.008),
+    "pcb_at": (0.10, 0.076, 0.0088),  # board centre; 3 mm standoffs on the tray floor
     "motor_r": 0.012, "motor_len": 0.058, "motor_y": 0.079, "pillow_y": 0.114,
     "channel_x": (0.10, 0.19),
     "panel_y": -DIMS["body"]["width"] / 2,
@@ -62,6 +62,7 @@ MATERIALS = {  # name: (hex, metallic, roughness, emission strength)
     "BlueAnodized": ("2e5596", 0.4, 0.55, 0), "Rubber": ("0e0e0e", 0.0, 0.9, 0),
     "Steel": ("c9ccd0", 1.0, 0.28, 0), "MotorBlack": ("25272b", 0.6, 0.4, 0),
     "PCB": ("1d5d38", 0.0, 0.6, 0), "Plastic": ("0a0a0b", 0.0, 0.35, 0),
+    "White": ("eeece6", 0.0, 0.5, 0), "Terminal": ("2f9e44", 0.0, 0.55, 0),
     "LED": ("35d07f", 0.0, 0.4, 4),
 }
 MAT = {}
@@ -314,11 +315,65 @@ def build_drive(body):
     P.box((0.016, 0.024, 0.010), (L["nut_x"], 0, L["screw_z"]), MAT["Steel"])  # top 0.018 < slot-pin bottom 0.019
     P.cyl(0.008, 0.040, (L["screw_motor_x"], 0, L["screw_z"]), MAT["MotorBlack"], axis="X")
     P.box((*L["battery"],), L["battery_at"], MAT["Plastic"])
-    px, py, pz = L["pcb_at"]
-    P.box((0.06, 0.04, 0.0016), (px, py, pz), MAT["PCB"])
-    for cx, cy, s in ((-0.012, 0.005, 0.012), (0.010, -0.008, 0.008), (0.018, 0.010, 0.006)):
-        P.box((s, s, 0.003), (px + cx, py + cy, pz + 0.0023), MAT["Plastic"])
     P.obj("Drive", body, smooth=30, bevel=True)
+
+
+def build_pcb(body):
+    """The v11 controller board: the two photographs mapped onto a 93 × 65 mm board
+    (front up, back underneath), the tall parts raised as blocks so it reads in 3D."""
+    px, py, pz = LAYOUT["pcb_at"]
+    W, D, T = 0.093, 0.065, 0.0016
+    node = empty("PCB", body, (px, py, pz))
+    media = os.path.join(HERE, "..", "..", "public", "media", "incheon-robotics")
+    mats = []
+    for side, fn in (("front", "pcb-front.jpg"), ("back", "pcb-back.jpg")):
+        m = bpy.data.materials.new(f"PCB_{side}")
+        m.use_nodes = True
+        nt = m.node_tree
+        tex = nt.nodes.new("ShaderNodeTexImage")
+        tex.image = bpy.data.images.load(os.path.join(media, fn))
+        nt.links.new(tex.outputs["Color"], nt.nodes["Principled BSDF"].inputs["Base Color"])
+        nt.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.55
+        mats.append(m)
+    mats.append(MAT["PCB"])
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Diagonal((W, D, T, 1.0)))
+    uv = bm.loops.layers.uv.new()
+    for f in bm.faces:
+        n = f.normal
+        f.material_index = 0 if n.z > 0.5 else (1 if n.z < -0.5 else 2)
+        for lp in f.loops:
+            x, y = lp.vert.co.x, lp.vert.co.y
+            lp[uv].uv = (x / W + 0.5, y / D + 0.5) if n.z > 0.5 else (0.5 - x / W, y / D + 0.5)
+    me = bpy.data.meshes.new("PCBBoard")
+    bm.to_mesh(me)
+    bm.free()
+    for m in mats:
+        me.materials.append(m)
+    link("PCBBoard", me, node)
+    # the tall parts, in board coordinates (x right, y up on the front photo), from the photo
+    P = Part()
+    top = T / 2
+    def part(size, at, mat):
+        P.box((*size,), (at[0], at[1], top + size[2] / 2), MAT[mat])
+    part((0.020, 0.020, 0.0016), (-0.0015, 0.0007), "Plastic")  # STM32F446 LQFP144
+    part((0.016, 0.011, 0.002), (-0.021, -0.016), "Steel")  # nRF52840 module can
+    for x in (-0.014, -0.0067, 0.0009, 0.0084):  # four A4950 H-bridges along the top
+        part((0.005, 0.004, 0.0015), (x, 0.0236), "Plastic")
+    for x, y in ((-0.040, 0.014), (-0.040, 0.008), (0.036, 0.014), (0.036, 0.008)):  # JST wheel plugs
+        part((0.006, 0.015, 0.007), (x, y), "White")
+    for x, y in ((-0.0385, 0.025), (-0.033, 0.025), (0.030, 0.025), (0.037, 0.025), (-0.0385, -0.031), (-0.006, -0.031), (0.0005, -0.031)):
+        part((0.006, 0.009, 0.008), (x, y), "Plastic")  # 2×5 IDC sensor headers
+    for x, y, sz in ((-0.045, -0.0075, (0.008, 0.030, 0.009)), (-0.036, -0.0075, (0.008, 0.030, 0.009)),
+                     (-0.0235, 0.017, (0.008, 0.008, 0.009)), (0.013, -0.028, (0.012, 0.008, 0.009))):
+        part(sz, (x, y), "Terminal")  # screw terminals: encoders, GRIP, LIFT
+    part((0.009, 0.014, 0.011), (0.038, -0.003), "MotorBlack")  # 3S battery jack
+    part((0.007, 0.007, 0.004), (0.021, -0.018), "MotorBlack")  # 4R7 inductor
+    part((0.007, 0.007, 0.004), (0.013, -0.018), "MotorBlack")
+    for sx in (1, -1):
+        for sy in (1, -1):
+            P.cyl(0.0025, 0.003, (sx * 0.042, sy * 0.028, -T / 2 - 0.0015), MAT["Steel"], segs=10)  # standoffs
+    P.obj("PCBParts", node, smooth=30, bevel=True)
 
 
 def build_front_panel(body):
@@ -413,7 +468,9 @@ def build_hub(deck):
     P = Part()
     cz0, cz1 = L["cam_z"]
     P.cyl(0.020, top - 0.004 - cz1, (0, 0, (top - 0.004 + cz1) / 2), MAT["BlackPowder"])
-    P.cyl(0.075, cz1 - cz0, (0, 0, (cz0 + cz1) / 2), MAT["BlackPowder"], segs=96)
+    C = Part()
+    C.cyl(0.075, cz1 - cz0, (0, 0, (cz0 + cz1) / 2), MAT["BlackPowder"], segs=96)
+    link("CamPlate", C.mesh("CamPlate", 30), hub, xray="shell")
     pz0 = L["pin_z"][0]
     for tab in TABS:  # hub pins end at the cam-plate bottom so nothing steel shows through the ring gap
         x, y = hub_pin_xy(tab)
@@ -525,6 +582,7 @@ def build_robot(meshes_dir):
     link("Tray", meshes["tray"], body, xray="shell")
     build_wheels(body)
     build_drive(body)
+    build_pcb(body)
     build_front_panel(body)
     for side in (1, -1):
         build_scissor(body, "A", side)
@@ -555,7 +613,7 @@ def check_glb(path):
     missing = [n for n in RIG_NODES if names.count(n) != 1]
     assert not missing, f"rig nodes missing/duplicated: {missing}"
     shells = [n["name"] for n in g["nodes"] if n.get("extras", {}).get("xray") == "shell"]
-    assert len(shells) == 7, f"expected 7 xray shells, got {shells}"
+    assert len(shells) == 8, f"expected 8 xray shells, got {shells}"
     assert "KHR_draco_mesh_compression" in g.get("extensionsRequired", []), "Draco not required"
     size = len(data)
     assert size < 2_000_000, f"GLB too big: {size}"

@@ -169,6 +169,26 @@ const SCALE: CarouselSlide[] = [
 ];
 
 // The same machine with its shell made transparent.
+// The controller board, v11 — the one board the robot runs on, both sides.
+const BOARD: CarouselSlide[] = [
+  {
+    src: `${MEDIA}/pcb-front.jpg`,
+    alt: 'The front of the green Incheon Robotics PCB v11: an STM32F446 microcontroller at the centre, four small motor-driver chips along the top, an nRF52840 radio module at the bottom left, white JST plugs on the left and right edges labelled WHEEL RR, RL, FR, FL, black IDC headers labelled SENSOR, green screw terminals labelled ENC, GRIP and LIFT, and a barrel jack labelled BATTERY 3S.',
+    caption:
+      'The controller, v11. Centre: an STM32F446 (ARM Cortex-M4). Top row: four A4950 H-bridges, one per wheel. Bottom left: an nRF52840 radio module. White JST plugs for the four wheel motors, IDC headers for the IR sensor arrays, screw terminals for the encoders, gripper and lift, and a 3S battery jack.',
+    width: 1400,
+    height: 980,
+  },
+  {
+    src: `${MEDIA}/pcb-back.jpg`,
+    alt: 'The back of the same PCB: the Incheon Robotics wordmark and logo in white silkscreen, and lines of text in Chinese characters, Sanskrit, Malayalam and Korean around the edges.',
+    caption:
+      'The back, which is not engineering: the company mark, the four-line verse of impermanence from the Nirvana Sutra, a Sanskrit prayer, a dedication in Malayalam, and in Korean, "after hardship comes joy".',
+    width: 1400,
+    height: 980,
+  },
+];
+
 const GHOST: CarouselSlide[] = [
   {
     src: `${MEDIA}/robot-ghost.jpg`,
@@ -421,6 +441,8 @@ export function IncheonRobotics() {
               And it is worth watching it go together, because there is so little to it: a board,
               two axle assemblies, a scissor, four tab arms, one control board, and a deck on top.
             </p>
+            <br />
+            <FigureCarousel slides={BOARD} label="The controller board" />
             <br />
             <FigureCarousel slides={BUILD} label="The robot, from a bare board to a loaded bin" />
             <p>
