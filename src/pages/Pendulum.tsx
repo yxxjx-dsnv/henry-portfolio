@@ -5,6 +5,7 @@ import { ReadProgress } from '../components/ReadProgress';
 import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel';
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfFlow } from '../components/PdfFlow';
+import { PendulumLab } from '../components/PendulumLab';
 
 const MEDIA = '/media/pendulum';
 
@@ -197,6 +198,13 @@ export function Pendulum() {
               tracking software could hold.
             </p>
             <br />
+            <p>
+              The rig lives on below as a digital twin: the same apparatus, swinging to the
+              report's damped model with an exact restoring force, and each of the four
+              experiments re-run on it with the measured points laid over the result.
+            </p>
+            <br />
+            <PendulumLab />
             <p className="story-head">Where the small-angle story ends</p>
             <p>
               The first experiment sweeps the release angle across ±1.4 radians and measures

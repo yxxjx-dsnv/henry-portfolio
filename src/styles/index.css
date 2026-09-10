@@ -2177,3 +2177,26 @@ body.dark-mode .cursor-burst { border-color: #c6c4c4; }
     /* the switchboard sits comfortably above the keyboard */
     .cmdk { top: 10vh; }
 }
+
+/* pendulum lab: the live chart under the 3D rig */
+.lab-field { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6a6a6a; }
+.lab-field input[type='range'] { width: 150px; }
+.lab-chart { padding: 10px 12px 4px; border-top: 1px solid #e3e3e3; background: #fafafa; }
+body.dark-mode .lab-chart { border-color: #333333; background: #161616; }
+.lab-chart svg { display: block; width: 100%; height: auto; }
+.lab-grid { stroke: rgba(128, 128, 128, 0.22); stroke-width: 1; }
+.lab-axis { stroke: currentColor; stroke-opacity: 0.5; stroke-width: 1; }
+.lab-tick { font: 11px ui-monospace, Menlo, monospace; fill: currentColor; fill-opacity: 0.7; }
+.lab-label { font: 12px ui-monospace, Menlo, monospace; fill: currentColor; fill-opacity: 0.8; }
+.lab-report { fill: none; stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.lab-twin { fill: none; stroke: #2f7bff; stroke-width: 2; }
+.lab-twin-dot { fill: #2f7bff; stroke: #fafafa; stroke-width: 1.5; }
+body.dark-mode .lab-twin-dot { stroke: #161616; }
+.lab-measured { fill: currentColor; }
+.lab-err { stroke: currentColor; stroke-opacity: 0.6; stroke-width: 1; }
+.lab-tip { font: 11px ui-monospace, Menlo, monospace; fill: currentColor; }
+.lab-legend { display: flex; gap: 16px; font-size: 11.5px; color: #6a6a6a; padding: 4px 4px 6px; }
+.lab-key { display: inline-block; width: 14px; height: 0; border-top: 2px solid currentColor; vertical-align: middle; margin-right: 6px; }
+.lab-key-measured { border-top: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.lab-key-report { border-top-style: dashed; opacity: 0.6; }
+.lab-key-twin { border-top-color: #2f7bff; }

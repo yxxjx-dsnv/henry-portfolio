@@ -27,7 +27,7 @@ test('shows the rig carousel and all five result graphs with reserved dimensions
   renderPage();
   // 6 build/rig slides + 5 graph figures = 11 images
   const images = screen.getAllByRole('img');
-  expect(images).toHaveLength(11);
+  expect(images).toHaveLength(12);
   for (const img of images) {
     expect(img.getAttribute('alt')!.length).toBeGreaterThan(0);
     expect(img).toHaveAttribute('loading', 'lazy');
