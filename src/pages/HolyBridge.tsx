@@ -5,7 +5,7 @@ import { ReadProgress } from '../components/ReadProgress';
 import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel';
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfFlow } from '../components/PdfFlow';
-import { ModelViewer } from '../components/ModelViewer';
+import { BridgeStudio } from '../components/BridgeStudio';
 
 const MEDIA = '/media/civ102-bridge';
 
@@ -266,6 +266,30 @@ const FINISHED: CarouselSlide[] = [
     height: 1200,
   },
 ];
+// Test day, November 24: the apparatus from the handout, and the bridge in it.
+const TESTDAY: CarouselSlide[] = [
+  {
+    src: `${MEDIA}/testday-1625.jpg`,
+    alt: 'The three-car test train on a wooden stand: black steel cars with two wheels a side, a threaded rod rising from each, cables looping up to a steel beam overhead, and photos of the teaching staff taped to the sides.',
+    caption: 'The train: three cars, 400 N together, cabled to the beam above so nothing falls with a bridge.',
+    width: 1600,
+    height: 1200,
+  },
+  {
+    src: `${MEDIA}/testday-1626.jpg`,
+    alt: 'The full testing rig along a row of benches: two wooden A-frames carrying a steel beam, the train parked at the near end, plywood support stacks and weight plates on the benches, and other teams\' bridges waiting behind.',
+    caption: 'The rig: A-frames, a beam, plywood support stacks 1,200 mm apart. Three bridges are tested in a row.',
+    width: 1600,
+    height: 1200,
+  },
+  {
+    src: `${MEDIA}/testday-1642.jpg`,
+    alt: 'The blue Holy Bridge box girder seated on the support stacks between the A-frames, a teaching assistant in a hard hat and gloves checking it before the run.',
+    caption: 'Seated on the supports, minutes before the run.',
+    width: 1600,
+    height: 1200,
+  },
+];
 
 export function HolyBridge() {
   useEffect(() => () => document.body.classList.remove('reading-focus'), []);
@@ -465,22 +489,14 @@ export function HolyBridge() {
             <FigureCarousel slides={ASSEMBLY} label="Assembling the box girder" />
             <p>
               The finished section is a closed box: a soffit, two webs, a layered top flange, and
-              eight diaphragms standing inside it. Here it is built from the assembly drawing's
-              dimensions, with the top flange dropped to translucent so the diaphragms read. Drag
-              to orbit, scroll to zoom.
+              eight diaphragms standing inside it. Here it is built from the assembly drawing,
+              every piece, blue side out. Drag the slider and the bridge lays itself back onto the
+              one sheet it was cut from; X-ray shows the diaphragms and the splice patches —
+              and that there is no patch on the top sheet. Test day rolls the handout's 400 N
+              train across it, the way it happened, until the lead car reaches that splice.
             </p>
             <br />
-            <ModelViewer
-              src={`${MEDIA}/box-girder.glb`}
-              poster={{
-                src: `${MEDIA}/fig-cad-section.jpg`,
-                alt: 'Poster for the interactive 3D box girder: the dimensioned CAD cross-section.',
-                width: 1545,
-                height: 1600,
-              }}
-              caption="The box girder in 3D, from the engineering assembly."
-              label="Interactive 3D model of the box girder"
-            />
+            <BridgeStudio />
             <p className="story-head">The Bible test</p>
             <p>
               Before we closed the box, we gave it our own test: the bridge suspended over the
@@ -520,6 +536,7 @@ export function HolyBridge() {
               project taught me.
             </p>
             <br />
+            <FigureCarousel slides={TESTDAY} label="Test day" />
             <p>
               It did not fail anywhere the analysis pointed. It failed at a splice. To reach the
               full length from one sheet, we had joined shorter pieces end to end, and one of those

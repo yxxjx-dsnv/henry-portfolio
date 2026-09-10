@@ -26,10 +26,10 @@ test('credits Team 107 and links Henry', () => {
 
 test('shows the hero photo and every carousel with reserved dimensions', () => {
   renderPage();
-  // analysis 7 + marking 5 + gluing 6 + assembly 4 + finished 7 = 29 carousel slides,
-  // plus hero + layer-heatmap + 3D-model poster + failure photo = 33.
+  // analysis 7 + marking 5 + gluing 6 + assembly 4 + finished 7 + test day 3 = 32 carousel slides,
+  // plus hero + layer-heatmap + BridgeStudio poster + failure photo = 36.
   const images = screen.getAllByRole('img');
-  expect(images).toHaveLength(33);
+  expect(images).toHaveLength(36);
   for (const img of images) {
     expect(img.getAttribute('alt')!.length).toBeGreaterThan(0);
     expect(img).toHaveAttribute('loading', 'lazy');
