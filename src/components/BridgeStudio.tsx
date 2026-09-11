@@ -1,23 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Material, Mesh, Object3D, Quaternion, Vector3 } from 'three';
+import type { AnimationAction, AnimationMixer, Material, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 
 const MEDIA = '/media/civ102-bridge';
 const GLB = `${MEDIA}/bridge.glb`;
 const SHEET_W = 1.016; // the one matboard sheet, metres
 const SHEET_H = 0.813;
-// test day, in Bridge-local metres (handout §1.5–1.6): 50 mm support plates at
-// 1200 c/c, a 400 N three-car train, and the splice that let go under its lead car
-const SUP = [0.028, 1.228];
-const SPLICE = 1.016;
-const FLAP_X = 0.936;
-const DECK_TOP = 0.08004;
-const AXLES = [0, -0.176, -0.34, -0.516, -0.68, -0.856]; // from the lead axle
+// test day: the GLB carries the whole run as one animation clip, `testday`, keyframed in
+// Blender (train, wheels, the halves hinging, the flap, the cars, the tethers). The web
+// only plays it and reads the train's position back for the HUD.
+const SUP = [0.028, 1.228]; // support centres, Bridge-local metres (handout §1.5)
 const AXLE_N = 400 / 6;
-const TRAIN_START = -0.15;
-const TRAIN_SPEED = 0.15; // m/s
-const LEAD_BREAK = SPLICE + 0.088; // lead axle when the lead car sits on the splice
-const DROP = 0.07; // how far the splice sags in the break
-const FLAP_LIFT = 0.45; // rad
 
 // Explode/assemble studio for the Holy Bridge. Every piece from the assembly
 // drawing carries its laid-flat pose in the GLB (`userData.sheet`), so one
@@ -59,10 +51,11 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ GLTFLoader }, { DRACOLoader }, { OrbitControls }] = await Promise.all([
+        const [{ GLTFLoader }, { DRACOLoader }, { OrbitControls }, { RoomEnvironment }] = await Promise.all([
           import('three/examples/jsm/loaders/GLTFLoader.js'),
           import('three/examples/jsm/loaders/DRACOLoader.js'),
           import('three/examples/jsm/controls/OrbitControls.js'),
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
         ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
@@ -109,10 +102,17 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
         cleanupExtra.push(() => mo.disconnect());
 
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 2.6));
-        const key = new THREE.DirectionalLight(0xffffff, 2.2);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 1.3));
+        const key = new THREE.DirectionalLight(0xffffff, 2.0);
         key.position.set(3, 5, 4);
         scene.add(key);
+        // a room to reflect: the galvanized beam, wheels and rods read as metal instead of soot
+        const pmrem = new THREE.PMREMGenerator(webgl);
+        const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+        pmrem.dispose();
+        scene.environment = env;
+        scene.environmentIntensity = 0.4;
+        cleanupExtra.push(() => env.dispose());
 
         const draco = new DRACOLoader();
         draco.setDecoderPath('/draco/');
@@ -137,13 +137,12 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         // both in Bridge-local space — centring the whole model keeps them valid.
         // A piece is the tagged node: two materials (blue face, white core) make
         // GLTFLoader wrap its two primitives in a Group, so look at nodes, not meshes.
-        type Piece = { node: Object3D; rest: [Vector3, Quaternion]; flat: [Vector3, Quaternion]; hop: number; start: number; part: string; half: string };
+        type Piece = { node: Object3D; rest: [Vector3, Quaternion]; flat: [Vector3, Quaternion]; hop: number; start: number; part: string };
         const pieces: Piece[] = [];
         const seeThrough: Mesh[] = [];
         let sheet: Object3D | undefined;
         const rigTop: Object3D[] = []; // test-day apparatus, hidden until the run
         let train: Object3D | undefined;
-        const cars: Object3D[] = [];
         const meshesUnder = (node: Object3D) => {
           const out: Mesh[] = [];
           node.traverse((o) => {
@@ -161,7 +160,6 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
           if (part === 'rig') {
             if (!node.parent?.userData?.part) rigTop.push(node);
             if (node.name === 'Train') train = node;
-            if (node.name.startsWith('Car_')) cars.push(node);
             return;
           }
           const s = node.userData.sheet as number[] | undefined;
@@ -177,15 +175,22 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             hop: 0.04 + 0.05 * node.position.distanceTo(flat[0]),
             start: 0,
             part,
-            half: String(node.userData.half ?? 'A'),
           });
-          seeThrough.push(...meshesUnder(node));
+          for (const m of meshesUnder(node)) {
+            if (m.name === 'Decal') m.renderOrder = 1; // always drawn over its (ghosted) web, not by load order
+            seeThrough.push(m);
+          }
         });
-        if (!pieces.length || !sheet || !train) throw new Error('bridge.glb has no pieces');
+        if (!pieces.length || !sheet || !train || !gltf.animations.length) throw new Error('bridge.glb has no pieces');
         setCount(pieces.length);
         const trainNode: Object3D = train;
         for (const n of rigTop) n.visible = testday;
-        const carRest = cars.map((c) => c.position.x);
+        const axles = (trainNode.userData.axles as number[]) ?? [];
+        const tBreak = Number(trainNode.userData.t_break);
+        const mixer: AnimationMixer = new THREE.AnimationMixer(model);
+        const run: AnimationAction = mixer.clipAction(gltf.animations[0]);
+        run.loop = THREE.LoopOnce;
+        run.clampWhenFinished = true;
         // build run: like bricks — one piece at a time, each owning its own slice
         // of the travel, in build order (soffit first, top sheet last), ~0.5 s each
         const ORDER = ['soffit', 'web', 'diaphragm', 'patch', 'tab', 'layer', 'top'];
@@ -240,9 +245,9 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         const fov = (camera.fov * Math.PI) / 180;
         const fit = (maxDim: number) =>
           (maxDim / (2 * Math.tan(fov / 2)) / Math.min(1, camera.aspect)) * 1.15;
-        const dAssembled = () => fit(testday ? 1.9 : Math.max(size.x, size.y, size.z)); // the rig is wider than the bridge
+        const dAssembled = () => fit(testday ? 1.75 : Math.max(size.x, size.y, size.z)); // frames, bridge and train, benches cropped
         const dFlat = () => fit(Math.max(SHEET_W, SHEET_H));
-        if (testday) camera.position.set(0.08, 0.32, 1);
+        if (testday) camera.position.set(0.22, 0.26, 1);
         else camera.position.set(0.75, 0.45, 1.05);
         camera.position.normalize().multiplyScalar(dAssembled());
 
@@ -264,21 +269,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         const dir = new THREE.Vector3();
         let e = 0; // damped explode, 0–100
         let play: { dir: -1 | 1; e: number } | null = null; // one run from where the slider is
-        let test: { x: number; t: number; hud: string } | null = null; // test day: lead-axle x, break progress
-        const zAxis = new THREE.Vector3(0, 0, 1);
-        const hingeQ = new THREE.Quaternion();
-        const pivot = new THREE.Vector3();
-        const tmp = new THREE.Vector3();
-        // rotate a piece about a hinge line parallel to Z through (px, py), from its rest pose
-        const hinge = (p: Piece, px: number, py: number, th: number) => {
-          hingeQ.setFromAxisAngle(zAxis, th);
-          pivot.set(px, py, 0);
-          p.node.position.copy(tmp.copy(p.rest[0]).sub(pivot).applyQuaternion(hingeQ).add(pivot));
-          p.node.quaternion.copy(hingeQ).multiply(p.rest[1]);
-        };
-        // deck drop under a point once the splice has let go
-        const sag = (x: number, thA: number, thB: number) =>
-          x <= SUP[0] || x >= SUP[1] ? 0 : x < SPLICE ? (x - SUP[0]) * Math.tan(thA) : -(SUP[1] - x) * Math.tan(thB);
+        let test: { hud: string } | null = null; // test day: the clip is playing
         // the explode re-frames the view by nudging the orbit, never by overwriting
         // it, so the visitor's own wheel zoom and drag survive every frame
         let prevFit = dAssembled();
@@ -294,26 +285,22 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
           // the build run drives e itself, one piece after another: from the flat
           // side it assembles down to 0, from the assembled side it takes apart to 100
           if (f.testing) {
-            // test day drives everything: assembled bridge, rig on, train rolling
+            // test day: the clip drives everything — assembled bridge, rig on, train rolling, the break
             if (!test) {
-              test = { x: TRAIN_START, t: 0, hud: '' };
+              test = { hud: '' };
               play = null;
               for (const n of rigTop) n.visible = true;
               if (f.target !== 0) setTarget(0);
+              run.reset().play();
             }
-            if (test.x < LEAD_BREAK) test.x = Math.min(LEAD_BREAK, test.x + dt * TRAIN_SPEED);
-            else test.t = Math.min(1, test.t + dt / 1.4);
+            mixer.update(dt);
             e = 0;
           } else if (test) {
             test = null;
             for (const n of rigTop) n.visible = testday;
-            if (testday) {
-              trainNode.position.x = TRAIN_START;
-              cars.forEach((car) => {
-                car.position.y = 0;
-                car.rotation.z = 0;
-              });
-            }
+            run.reset(); // back to the first frame: train at the start, halves level, tethers slack
+            mixer.update(0);
+            run.stop();
           }
           if (f.playing && !test) {
             if (!play) play = { dir: e >= 50 ? -1 : 1, e };
@@ -327,36 +314,21 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
           }
           const s = e / 100;
 
-          for (const p of pieces) {
-            const si = play ? Math.min(1, Math.max(0, (s - p.start) / SPAN)) : s;
-            p.node.position.lerpVectors(p.rest[0], p.flat[0], si).addScaledVector(up, Math.sin(Math.PI * si) * p.hop);
-            p.node.quaternion.slerpQuaternions(p.rest[1], p.flat[1], si);
-          }
           if (test) {
-            const k = test.t * test.t * (3 - 2 * test.t);
-            const thA = -Math.asin((DROP * k) / (SPLICE - SUP[0]));
-            const thB = Math.asin((DROP * k) / (SUP[1] - SPLICE));
-            if (k > 0)
-              for (const p of pieces) {
-                if (p.node.name === 'Top_Flap') hinge(p, FLAP_X, DECK_TOP, FLAP_LIFT * k);
-                else if (p.half === 'A') hinge(p, SUP[0], 0, thA);
-                else hinge(p, SUP[1], 0, thB);
-              }
-            trainNode.position.x = test.x;
-            cars.forEach((car, i) => {
-              const x1 = test!.x + carRest[i] - 0.088;
-              const x2 = x1 + 0.176;
-              const y1 = sag(x1, thA, thB);
-              const y2 = sag(x2, thA, thB);
-              car.position.y = (y1 + y2) / 2;
-              car.rotation.z = Math.atan2(y2 - y1, 0.176);
-            });
-            const onSpan = AXLES.filter((a) => test!.x + a > SUP[0] && test!.x + a < SUP[1]).length * AXLE_N;
+            // the clip owns the pieces while it plays; the HUD reads the train back
+            const x = trainNode.position.x;
+            const onSpan = axles.filter((a) => x + a > SUP[0] && x + a < SUP[1]).length * AXLE_N;
             const text =
-              test.t > 0
+              run.time >= tBreak
                 ? '133 N over the splice — the top sheet folds, the web tears'
                 : `load case 1 · 400 N train · ${Math.round(onSpan)} N on the span`;
             if (text !== test.hud) setHud((test.hud = text));
+          } else {
+            for (const p of pieces) {
+              const si = play ? Math.min(1, Math.max(0, (s - p.start) / SPAN)) : s;
+              p.node.position.lerpVectors(p.rest[0], p.flat[0], si).addScaledVector(up, Math.sin(Math.PI * si) * p.hop);
+              p.node.quaternion.slerpQuaternions(p.rest[1], p.flat[1], si);
+            }
           }
           const sheetOpacity = smooth(s, 0.9, 1); // only once the pieces are settling
           for (const m of sheetMats) m.opacity = sheetOpacity;
@@ -414,7 +386,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             src={`${MEDIA}/${testday ? 'fig-testday-render.jpg' : 'fig-bridge-render.jpg'}`}
             alt={
               testday
-                ? 'Rendered model of test day: the blue box girder on its supports between two wooden A-frames under a steel beam, the three-car train part-way across.'
+                ? 'Rendered model of test day: the blue box girder through two wooden A-frames on the lab bench, resting on plywood stacks under the steel beam, the three-car train part-way across on its tethers.'
                 : 'Rendered model of the Holy Bridge: a blue matboard box girder seen from its open end, the white interior and a diaphragm visible inside.'
             }
             width={1600}
@@ -505,7 +477,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
       )}
       <figcaption>
         {testday
-          ? "Test day, replayed: the handout's 400 N train rolls in from the left until its lead car — 133 N — sits on the top-flange splice at 1,016 mm. The near web's glued splice lets go cleanly; the far web, continuous there, tears."
+          ? "Test day, replayed from the photos: the handout's 400 N train rolls off the staging board and across until its lead car — 133 N — sits on the top-flange splice at 1,016 mm. The near web's glued splice lets go cleanly; the far web, continuous there, tears; the cars drop with the deck onto their tethers."
           : 'The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet; X-ray shows the diaphragms and the splice patches — none on the top sheet.'}
       </figcaption>
     </figure>

@@ -36,7 +36,7 @@ const DATA: Record<Exp, string> = {
 
 /** The report's data files: whitespace columns x y dx dy, comments and headers skipped. */
 async function loadData(file: string): Promise<Point[]> {
-  const text = await fetch(`${MEDIA}/data/${file}`).then((r) => r.text());
+  const text = await fetch(`${MEDIA}/data/${file}`).then((r) => r.text()).catch(() => ''); // no data (tests, offline): the twin still runs
   const out: Point[] = [];
   for (const line of text.split('\n')) {
     const t = line.trim().split(/\s+/).map(Number);

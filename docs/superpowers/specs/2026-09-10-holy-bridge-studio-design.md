@@ -1,6 +1,6 @@
 # Holy Bridge — Bridge Studio (explode/assemble viewer) 
 
-**Date:** 2026-09-10 · **Page:** `/projects/civ102-bridge` · **Status:** built 2026-09-10 (studio + test day), awaiting owner review
+**Date:** 2026-09-10 · **Page:** `/projects/civ102-bridge` · **Status:** built 2026-09-10; rebuilt the same evening with real materials, the photographed rig and a baked animation (see *Test day, rebuilt* below), awaiting owner review
 
 ## Why
 
@@ -31,6 +31,7 @@ model-x-studio (explode slider with damping, camera pull-back on smoothstep(e, 0
 | Patch_Soffit, Patch_WebL, Patch_WebR | 36 × 36 × t splice backers centred on X 1016, inside the box |
 | Tab_0..5 | glue tabs 60 × 12 × t on the soffit against each web at X 160, 628, 1100 |
 | Sheet | the matboard sheet 1016 × 813 × t, blue, lying flat centred under the bridge; visible only as the model spreads |
+| Decal | the pencil title from the photo, an alpha quad 0.15 mm outside the near web, X 90–1160, child of Web_R_A |
 
 Matboard: blue face outward (`Board_Blue` #34619e, roughness 0.85), white core/back
 (`Board_White` #ece9e2, roughness 0.9). Face material chosen by outward normal per piece.
@@ -73,20 +74,64 @@ the Sheet mesh is drawn 1016 × 874 in a darker blue; the HUD quotes the real 10
 the construction photos (blue outside, white inside, proportions); browser check of the
 viewer on `?3d`-less click: slider both ways, Assemble/Lay flat, See inside, dark mode.
 
-## Test day (built)
+## Test day, rebuilt (2026-09-10 evening)
 
-The GLB also carries the apparatus from the handout §1.5–1.6 and the test-day photos, tagged
-`part: rig` and hidden until the run: 50 mm support plates on plywood stacks at 1200 c/c, the
-bench, two A-frames with the steel beam, and the 400 N three-car train (axles 0, 176, 340,
-516, 680, 856 mm; car bodies 280 × 75 mm with rods and wheels). `Top_Flap` (936–1016) and the
-right web torn at 1016 (`Web_R_C`) exist for the break. Web splices are staggered — left web
-at 1016, right web at 240 — as built.
+The owner asked for the test-day scene to be modelled properly in Blender first, animation
+included, and the bridge itself given real materials. `tools/bridge/build_bridge.py` now does
+all of it; the web only plays back.
 
-`BridgeStudio variant="testday"` is its own figure after the failure photo (the rig on show, Run / Reset / X-ray only; A-frames straddle each support so the train passes between the legs): press Run and the train rolls in from
-the 0 end at 0.15 m/s (HUD: load case 1 · 400 N train · N on the span). When the lead car
-sits on the 1016 splice — 133 N, one car — the halves hinge about their supports (70 mm sag
-at the splice, 1.4 s ease), the flap folds up 0.45 rad, the cars follow the sagging deck.
-Scripted, no physics engine. Reset restores the studio; X-ray works throughout.
+**Materials.** Generated, tileable textures (numpy inside Blender, saved as PNG, embedded as
+JPEG in the GLB): blue and white paper grain at 1 tile / 120 mm on every piece (planar UVs in
+absolute mm so tiles line up across pieces), SPF lumber with 6 mm growth rings, maple butcher
+block for the benches (37.5 mm strips), plywood edge stripes (6 plies / 108 mm). Constant
+PBR for the steel, black car bodies, wheels, cables, tapes. The pencil title on the near web
+("HOLY ✝ BRIDGE" and the doodles) is lifted from IMG_1642 by `tools/bridge/make_decal.py`
+into `tools/bridge/decal-web.png`, an alpha-blended quad riding on `Web_R_A` — the owner
+rates it unimportant, so it is left as is.
+
+**Rig, after the photos** (`part: rig`, under one `Rig` empty): three maple lab benches
+(top at Z = −330, front edge at Y = −330); two A-frames standing square across the bench
+(`FRAME_YAW` = 90°, the owner's call — the photos read as ~45°, one constant to change),
+2×4 legs splayed 10° (`LEG_LEAN`) as prisms in the frame's own plane (`Frame_i` empties at
+the supports): the front leg runs up to a plywood pad under the beam (underside Z = 495), the
+back leg butts its side 60 mm lower; a sill beside the legs runs out to the bench edge where
+the C-clamp grips it; a crossbar (2×4 on edge + one flat) carries the 180 × 90 × 108 plywood
+stack whose top is the support at Z = 0; a plywood kicker on the back foot. The bridge and
+train pass through the frame opening between the legs. Galvanized 50 mm beam on the pads
+with the 22 mm black tether bar clipped tight under it, travelling with the train; the staging
+board (2×6 on two 2×4 posts, green tape) the train waits on, level with the deck; three cars
+per the handout (280 × 75 × 75 black boxes, Ø45 wheels on Ø8 axles, the threaded rod with
+washer and nut, a flat-bar tether post on the rear end with its eye at 195, links between
+cars) and three tether cables (Ø6 tube meshes with ferrules and yellow tape) looping forward
+from each post up to the rail.
+
+**Animation.** One glTF clip, `testday`, keyframed in Blender at 30 fps: the train rolls from
+X = −150 at 0.15 m/s (LINEAR keys), wheels turning, until its lead axle reaches 1104 mm
+(`t_break` = 8.36 s); then 1.4 s of collapse — `Half_A`/`Half_B` (the empties the pieces
+hang under) rotate about their supports so the splice sags 70 mm (empty location = P − R·P
+keeps the pieces' rest poses Bridge-local for the studio), `Top_Flap` folds up 0.45 rad about
+X = 936, the cars follow the deck's sag and pitch, and each cable's `drop` shape key moves
+its car end to where the eye lands on the sagged, pitched car. `Train` extras: `t_break`
+(stamped as f_break / FPS, the exporter's own time for that frame), `speed`, `axles`. The
+pieces are scaled mm → m by hand (`to_metres`), not `transform_apply`, which mangled the
+Train → Car parent inverses. Generated tiles are written as raw sRGB bytes (a byte image's
+`pixels` are not colour-managed); `prism_mesh` flips its normals outward.
+
+**Web.** `BridgeStudio` plays the clip with an `AnimationMixer` (Run = `reset().play()`,
+Reset = `reset()`, `update(0)`, `stop()`), skips its own piece lerp while the clip runs, and
+reads the train's X back for the HUD load count; a `RoomEnvironment` map so the metals read;
+the Decal mesh gets `renderOrder` 1 so X-ray draws it over its ghosted web deterministically.
+The studio variant never plays the clip. A `.blend` of the whole scene (textures packed) is
+saved beside the originals: `_media-originals/civ102-bridge/holy-bridge-testday.blend`.
+
+Rebuild:
+```
+Blender -b -P tools/bridge/build_bridge.py -- --out public/media/civ102-bridge/bridge.glb \
+  --poster public/media/civ102-bridge/fig-bridge-render.jpg \
+  --testday-poster public/media/civ102-bridge/fig-testday-render.jpg \
+  --blend _media-originals/civ102-bridge/holy-bridge-testday.blend [--preview DIR]
+```
 
 Later, if wanted: the Assemble run could follow the real gluing order (top layers first);
-`ORDER` in BridgeStudio.tsx is the one line to change.
+`ORDER` in BridgeStudio.tsx is the one line to change. Team photos on the cars and the blue
+weight plates on the bench are deliberately left out.
