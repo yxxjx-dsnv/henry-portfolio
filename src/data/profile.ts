@@ -11,6 +11,6 @@ export const profile = {
     essays: '2025/01/02',
     extraCurricular: '2026/08/10',
     education: '2026/07/20',
-    projects: '2026/08/10',
+    projects: '2026/09/15',
   },
 } as const;
