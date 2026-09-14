@@ -6,7 +6,7 @@ Run headless:
 
 After the company's renders and the N09 prototype photo: white tube posts on flanged feet, a
 cast cross joint under every tile corner, laminated deck tiles with the dark seam the robots
-follow, a cradle cross with pads at every post that a Euro bin (600 × 400 × 220) rests on,
+follow, a four-arm cradle star at every post that a Euro bin (600 × 400 × 220) rests on by its corners,
 the elevator tower of black extrusion with a red hoist, and the kiosk.
 
 The site instances the single-mesh parts per cell (`Post`, `Foot`, `DeckJoint`, `Cradle`,
@@ -16,7 +16,7 @@ tiles at the top face centre; cradles and deck joints on the post axis at deck l
 joint hangs below, the cradle stands above); bins at their bottom centre.
 
 Units: mm here, metres in the GLB (Y-up). Scene frame: X across the columns, Y toward the
-front of the rack (three.js −Z), Z up. Level pitch 408, tile pitch 620, cradle pads at 88.
+front of the rack (three.js −Z), Z up. Level pitch 408, tile pitch 620, cradle arms top out at 88.
 """
 import argparse
 import math
@@ -86,6 +86,7 @@ def materials(tiles):
         "bin_blue": material("Bin_Blue", srgb("2434a4"), 0.32),
         "bin_black": material("Bin_Black", srgb("17181c"), 0.4),
         "anodised": material("Anodised", srgb("141416"), 0.4, metallic=0.6),
+        "alu": material("Aluminium", srgb("c9ccd0"), 0.38, metallic=0.75),
         "red": material("Hoist_Red", srgb("a8332c"), 0.42),
         "steel": material("Steel", srgb("9a9ea3"), 0.45, metallic=0.6),
         "dark": material("Dark_Steel", srgb("3a3d43"), 0.4, metallic=0.7),
@@ -135,13 +136,20 @@ def build_parts(root, M):
     p.box((240, 40, 12), (0, 0, -6), M["white"])
     p.box((40, 240, 12), (0, 0, -6), M["white"])
     parts["DeckJoint"] = link("DeckJoint", p.mesh("DeckJoint"), root)
-    # the cradle: a collar and a cross of arms with rubber-height pads the bin sits on
+    # the cradle, after the company's render: a square hub cap on the post and a tapered
+    # four-arm star turned 45° to the grid, so each arm reaches under the corner of the bin in
+    # that cell (the bin's underside starts 32 × 122 mm in from the post). The tips stop short
+    # of the robot's deck (81 × 144 mm in from the post) so a lift passes them.
     p = Part()
-    p.cyl(27, 36, (0, 0, CRADLE_H - 18), M["white"], segs=24)
-    p.box((320, 34, 14), (0, 0, CRADLE_H - 15), M["white"])
-    p.box((34, 320, 14), (0, 0, CRADLE_H - 15), M["white"])
-    for dx, dy in ((155, 0), (-155, 0), (0, 155), (0, -155)):
-        p.box((30, 34, 8) if dy == 0 else (34, 30, 8), (dx, dy, CRADLE_H - 4), M["white"])
+    p.box((60, 60, 46), (0, 0, 23), M["steel"])  # one material: the site instances it as one primitive
+    p.cyl(28, 30, (0, 0, 61), M["steel"], segs=24)
+    star = []
+    for k in range(4):
+        a = math.radians(45 + 90 * k)
+        d, n = (math.cos(a), math.sin(a)), (-math.sin(a), math.cos(a))
+        star += [(184 * d[0] - 12 * n[0], 184 * d[1] - 12 * n[1]), (184 * d[0] + 12 * n[0], 184 * d[1] + 12 * n[1]),
+                 (45 * math.cos(a + math.pi / 4), 45 * math.sin(a + math.pi / 4))]
+    p.prism(star, CRADLE_H - 12, CRADLE_H, M["steel"])
     parts["Cradle"] = link("Cradle", p.mesh("Cradle"), root)
     # the deck tile, corners notched round the posts, top face at the origin
     h, n = PITCH / 2, 45.0
@@ -151,7 +159,8 @@ def build_parts(root, M):
     # Euro bins, blue and black
     for name, mat in (("Bin_Blue", M["bin_blue"]), ("Bin_Black", M["bin_black"])):
         parts[name] = link(name, bin_mesh(name, mat), root)
-    # the elevator tower for two storage levels, its carriage and a unit cable
+    # the elevator tower for two storage levels (after the prototype: black corner extrusions,
+    # silver ring frames at every deck, a hoist sub-frame on top), its lift module and a unit cable
     elev = empty("Elevator", root)
     top = 2 * LEVEL_H + 450
     p = Part()
@@ -159,18 +168,45 @@ def build_parts(root, M):
         p.box((40, 40, top - FLOOR_Z), (sx, sy, (top + FLOOR_Z) / 2), M["anodised"])
     for z in [lv * LEVEL_H - TILE_T - 40 for lv in range(3)] + [top]:
         for sy in (-270, 270):
-            p.box((710, 20, 40), (0, sy, z - 20), M["anodised"])
+            p.box((710, 20, 40), (0, sy, z - 20), M["alu"])
         for sx in (-335, 335):
-            p.box((20, 580, 40), (sx, 0, z - 20), M["anodised"])
-    for s in (1, -1):  # diagonal braces on the back face
+            p.box((20, 580, 40), (sx, 0, z - 20), M["alu"])
+    for s_ in (1, -1):  # diagonal braces on the back face
         L = math.hypot(670, top - FLOOR_Z)
-        p.box((14, 14, L), (0, 270, (top + FLOOR_Z) / 2), M["anodised"], rot=Matrix.Rotation(s * math.atan2(670, top - FLOOR_Z), 4, "Y"))
-    p.box((200, 120, 140), (0, 0, top + 70), M["red"])  # the hoist
-    p.cyl(30, 100, (0, 0, top - 40), M["dark"], axis="X", segs=16)  # its drum
+        p.box((14, 14, L), (0, 270, (top + FLOOR_Z) / 2), M["anodised"], rot=Matrix.Rotation(s_ * math.atan2(670, top - FLOOR_Z), 4, "Y"))
+    for sx, sy in ((-200, -150), (200, -150), (-200, 150), (200, 150)):  # the hoist sub-frame
+        p.box((20, 20, 260), (sx, sy, top + 130), M["alu"])
+    for sy in (-150, 150):
+        p.box((420, 20, 20), (0, sy, top + 250), M["alu"])
+    for sx in (-200, 200):
+        p.box((20, 320, 20), (sx, 0, top + 250), M["alu"])
+    p.box((200, 120, 140), (0, 0, top + 170), M["red"])  # the hoist, hung under the sub-frame
+    p.cyl(30, 100, (0, 0, top + 80), M["dark"], axis="X", segs=16)  # its drum, the cable leaves it downward
     link("Frame", p.mesh("Frame"), elev)
+    # the lift module: a truss of 25 mm extrusion under a floor plate, a vertical plate on each
+    # long side carrying a lifting ring, a triangular yoke above joined to both rings — the hoist
+    # cable takes the yoke's apex, so the deck stays clear for the robot
     p = Part()
-    p.box((540, 420, TILE_T), (0, 0, -TILE_T / 2), M["steel"])
-    p.box((100, 60, 50), (0, 0, 25), M["dark"])
+    p.box((540, 420, 6), (0, 0, -3), M["steel"])
+    for sy in (-207.5, 207.5):
+        p.box((560, 25, 25), (0, sy, -18.5), M["alu"])
+    for sx in (-267.5, 267.5):
+        p.box((25, 440, 25), (sx, 0, -18.5), M["alu"])
+    for sx, sy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):  # corner → centre diagonals
+        L = math.hypot(255, 195)
+        p.box((L - 30, 25, 25), (sx * 127.5, sy * 97.5, -18.5), M["alu"], rot=Matrix.Rotation(math.atan2(sy * 195, sx * 255), 4, "Z"))
+    p.box((510, 25, 25), (0, 0, -18.5), M["alu"])  # centre spine
+    p.box((90, 90, 4), (0, 0, -8), M["steel"])  # the hub plate the diagonals meet under
+    for sy in (-1, 1):
+        p.box((140, 6, 215), (0, sy * 217, 76.5), M["steel"])  # end plates
+        p.cyl(18, 6, (0, sy * 217, 200), M["steel"], axis="Y", segs=20)  # the lifting ring
+        p.cyl(9, 8, (0, sy * 217, 200), M["dark"], axis="Y", segs=16)  # its eye (the hole)
+        p.cyl(2.5, 118, (0, sy * 217 - sy * 34, 260), M["dark"], axis="Y", segs=6)  # short line to the yoke corner
+    for sy in (-1, 1):  # the yoke: two bars up to the apex, a bar across the bottom
+        L = math.hypot(150, 110)
+        p.box((14, L, 14), (0, sy * 75, 375), M["steel"], rot=Matrix.Rotation(sy * math.atan2(150, 110), 4, "X"))
+    p.box((14, 300, 14), (0, 0, 320), M["steel"])
+    p.cyl(12, 10, (0, 0, 440), M["dark"], axis="Y", segs=16)  # the hook's ring at the apex
     link("Carriage", p.mesh("Carriage"), elev)
     p = Part()
     p.cyl(4, 1000, (0, 0, 500), M["dark"], segs=8)
@@ -275,10 +311,11 @@ def demo(parts, robot_glb):
     for ch in parts["Elevator"].children:
         ob = instance(ch, "e", elev, ch.location * 1000)  # the parts sit in metres now
         if ch.name == "Cable":
-            ob.scale = (1, 1, (2 * LEVEL_H + 450 - 40 - 50) / 1000)
-            ob.location = (0, 0, 50)
+            ob.scale = (1, 1, (2 * LEVEL_H + 450 + 80 - 440) / 1000)
+            ob.location = (0, 0, 440)
     kx, ky = -1.35 * PITCH, 1.05 * PITCH
-    kiosk = instance(parts["Kiosk"], "k", root, (kx, ky, FLOOR_Z))  # its screen faces −Y, the viewer's side
+    kiosk = instance(parts["Kiosk"], "k", root, (kx, ky, FLOOR_Z))
+    kiosk.rotation_euler = (0, 0, math.pi)  # turned to face the rack and its stations, as the owner asked
     for ch in parts["Kiosk"].children:
         instance(ch, "ks", kiosk, ch.location * 1000).rotation_euler = ch.rotation_euler
     me, c = box_mesh("DemoGround", (-4000, 6000, -4000, 3000, FLOOR_Z - 2, FLOOR_Z), [parts["Ground"].data.materials[0]], uv=1000)

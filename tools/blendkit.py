@@ -139,6 +139,17 @@ class Part:
         bmesh.ops.translate(self.bm, verts=vs + vt, vec=Vector(at))
         self._tag(mat)
 
+    def prism(self, poly, z0, z1, mat):
+        """A polygon in XY (counter-clockwise, concave allowed) extruded from z0 to z1."""
+        vb = [self.bm.verts.new((x, y, z0)) for x, y in poly]
+        vt = [self.bm.verts.new((x, y, z1)) for x, y in poly]
+        self.bm.faces.new(vb[::-1])
+        self.bm.faces.new(vt)
+        for i in range(len(poly)):
+            j = (i + 1) % len(poly)
+            self.bm.faces.new((vb[i], vb[j], vt[j], vt[i]))
+        self._tag(mat)
+
     def cyl(self, r, h, at, mat, axis="Z", segs=32, r2=None, smooth=True):
         rot = {"Z": Matrix.Identity(4), "X": Matrix.Rotation(math.pi / 2, 4, "Y"), "Y": Matrix.Rotation(math.pi / 2, 4, "X")}[axis]
         m = Matrix.Translation(Vector(at)) @ rot

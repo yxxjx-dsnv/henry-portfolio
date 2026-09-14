@@ -41,7 +41,8 @@ const OPTS: FleetOpts = {
   sideAisle: true,
   fillEvery: 3,
 };
-const ELEV_TOP = OPTS.levels * LEVEL_H + 0.45; // the tower's top ring; the drum sits 40 mm under it
+const ELEV_TOP = OPTS.levels * LEVEL_H + 0.45; // the tower's top ring; the hoist drum sits 80 mm above it
+const YOKE = 0.44; // the lift module's yoke apex, where the hoist cable takes it, above its deck
 
 type Snapshot = {
   t: number;
@@ -220,8 +221,9 @@ export function AsrsSim() {
         elevator.group.position.set(OPTS.elevator[0] * PITCH, 0, OPTS.elevator[1] * PITCH);
         world.add(elevator.group);
 
-        const kiosk = makeKiosk(sys); // its screen already faces the viewer's side
+        const kiosk = makeKiosk(sys);
         kiosk.position.set(-1.35 * PITCH, FLOOR_Y, -1.05 * PITCH);
+        kiosk.rotation.y = Math.PI; // screen toward the rack and its stations
         world.add(kiosk);
 
         // a soft highlight ring that follows the focused robot
@@ -301,9 +303,9 @@ export function AsrsSim() {
           }
           const carY = fleet.elevLevel * LEVEL_H; // the carriage's top face is the deck it serves
           elevator.carriage.position.y = carY;
-          const cableLen = Math.max(0.02, ELEV_TOP - 0.04 - (carY + 0.05)); // yoke top to the drum
+          const cableLen = Math.max(0.02, ELEV_TOP + 0.08 - (carY + YOKE)); // yoke apex to the drum
           elevator.cable.scale.y = cableLen;
-          elevator.cable.position.y = carY + 0.05;
+          elevator.cable.position.y = carY + YOKE;
 
           if (focus !== null) {
             const r = fleet.robots[focus];

@@ -112,8 +112,8 @@ the picking-station geometry, and the story text of the cycle viewer.
 `tools/asrs/build_system.py` (helpers in `tools/blendkit.py`) models the rack after the
 company renders and the N09 prototype photo and exports `public/media/incheon-robotics/
 asrs-system.glb` (76 KB): single-mesh parts the site instances per cell — `Post` (1 m, scaled
-to height), `Foot`, `DeckJoint` (the cross casting under a tile corner), `Cradle` (cross arms
-with pads at 88 mm), `Tile` (620 × 620 × 16, corners notched, laminate texture whose dark edge
+to height), `Foot`, `DeckJoint` (the cross casting under a tile corner), `Cradle` (a hub cap and a
+four-arm star turned 45°, arms topping out at 88 mm under the bin corners, tips clear of the deck), `Tile` (620 × 620 × 16, corners notched, laminate texture whose dark edge
 strip becomes the guide line), `Bin_Blue`/`Bin_Black` (Euro 600 × 400 × 220, drafted, ribbed,
 hollow) — and groups dropped in whole: `Elevator` (black extrusion tower, red hoist, `Carriage`
 whose top is the deck it serves, unit `Cable`), `Kiosk` (with its emissive `Screen`), `Ground`
