@@ -331,7 +331,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             const lead = trainNode.position.x + (cars[0]?.position.x ?? 0);
             const text =
               t >= tBreak
-                ? '267 N on the span — the splice lets go · failure load 133 N, the pass before'
+                ? '267 N on the span — the splice lets go · failure load 133 N'
                 : t >= tPass2
                   ? `pass 2 · two cars, 267 N · ${Math.round(onSpan)} N on the span`
                   : t >= tBack || lead > SUP[1] + axle
