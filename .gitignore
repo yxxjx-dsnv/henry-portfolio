@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.vite/
 __pycache__/
 .DS_Store
 *.local
@@ -17,8 +18,10 @@ Henry's portfolio/
 _media-originals/
 
 # Incheon Robotics working files — pitch decks, presentation scripts, raw CAD
-# renders and lab footage. Company material, kept local. Only the compressed
-# web versions under public/media/incheon-robotics/ are ever published.
+# renders, lab footage, PCB photos, .blend scenes. Company material; it lives in
+# ~/Documents/Henry Kim/Work-Incheon Robotics/src-incheon-robotics/ and this rule
+# guards against a copy being dropped here. Only the compressed web versions
+# under public/media/incheon-robotics/ are ever published.
 src-incheon-robotics/
 
 # archived earlier project (kept locally, not part of the live site)
@@ -36,7 +39,6 @@ Labs/
 # public/media/ and are unaffected by these root-anchored rules.
 /*.pdf
 /*.docx
-/image.png
 
 # CV / resume sources (LaTeX + originals) — personal documents with phone number
 # and work-evidence reports, managed alongside the site but never published

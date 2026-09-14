@@ -108,7 +108,10 @@ Everything is mouse-first with keyboard and touch fallbacks, and everything resp
 │   ├── data/                       # typed content, incl. aps105Labs.ts (labs + writeups)
 │   ├── assets/                     # raw lab/firmware/analysis sources shown in code panels
 │   ├── hooks/  utils/  styles/index.css   # the one stylesheet
-└── docs/superpowers/specs/         # design specs (incl. the C-lab IDE design)
+├── tools/                          # headless Blender builds of the 3D assets (blendkit.py +
+│                                   #   asrs/, bridge/, pendulum/, robot/ → public/media/*.glb)
+├── scripts/spa-fallback.mjs        # copies index.html to 404.html for GitHub Pages routing
+└── docs/superpowers/specs/         # design specs (C-lab IDE, ASRS robot, Holy Bridge, pendulum)
 ```
 
 ## Running locally
