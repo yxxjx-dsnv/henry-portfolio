@@ -18,7 +18,7 @@
   "deck": {
     "plate_bottom_z": 0.0475,
     "plate_top_z": 0.0495,
-    "stroke": 0.05,
+    "stroke": 0.08,
     "bore_r": 0.065,
     "long_half": 0.2288,
     "short_half": 0.166

@@ -28,7 +28,7 @@ type RoundedBoxCtor = new (
 export { PITCH, LEVEL_H };
 export const CRADLE_H = 0.088; // cradle arms — a stored bin's underside
 export const DECK_REST = 0.0495; // deck top surface, deck down
-export const DECK_LIFT = 0.0995; // deck top surface, deck up (11 mm over the cradle arms)
+export const DECK_LIFT = 0.1295; // deck top surface, deck up (41 mm over the cradle arms)
 export const WHEEL_R = 0.03;
 
 export type Kit = ReturnType<typeof makeKit>;
@@ -133,7 +133,7 @@ export function makeKit(THREE: ThreeNS, RoundedBox?: RoundedBoxCtor) {
   const kioskMap = kioskTexture(THREE);
 
   const mats = {
-    floor: std(0xffffff, 0.55, 0.02),
+    floor: std(0xaeb2b8, 0.55, 0.02), // grey, so the white posts and cradles read against it
     post: std(0xf6f4f0, 0.32, 0.03),
     cradle: std(0xf1efe9, 0.4, 0.03),
     slab: std(0xe9e6df, 0.58, 0.02),

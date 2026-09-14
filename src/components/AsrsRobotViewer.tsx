@@ -1,7 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
 import { makeKit, makeFloor, makeBin, makeCradleField, CRADLE_H, DECK_REST } from './asrsScene';
-import { loadRobotAsset, makeRobot, liftPose } from './asrsRobot';
+import { loadRobotAsset, makeRobot, liftPose, gripPose } from './asrsRobot';
 import { PITCH } from './asrsFleet';
+
+// The bin the viewer handles (asrsScene.makeBin): 555 × 375 body. Locking means the tabs
+// close in until they meet its sides — not all the way, which would put them through it.
+// One hub drives both pairs, so it stops at the first contact; the other pair sits a few mm off.
+const BIN_HALF = { long: 0.555 / 2 + 0.002, short: 0.375 / 2 + 0.002 };
+const clampFraction = () => {
+  const tips = { long: 0.2288, short: 0.166 }; // tab tips with the hub closed (tools/robot/dims.json)
+  const need = (axis: 'long' | 'short') => {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (tips[axis] + gripPose(mid).slide[axis] < BIN_HALF[axis]) lo = mid;
+      else hi = mid;
+    }
+    return hi;
+  };
+  return Math.max(need('long'), need('short'));
+};
+const CLAMP = clampFraction();
+// `?fast` runs the easing 12× — for screenshots from a throttled headless browser, not for people
+const TEMPO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fast') ? 12 : 1;
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -20,7 +42,7 @@ type Stage = {
 const STAGES: Stage[] = [
   {
     name: 'Park',
-    note: 'At rest the deck is down and the tabs are pulled in — the whole machine is flat enough to drive underneath a stored bin.',
+    note: 'Between orders the machine runs flat — deck down, tabs in, low enough to pass under stored bins. Here it heads for its next pick.',
     slide: 0,
     grip: 0,
     lift: 0,
@@ -41,58 +63,44 @@ const STAGES: Stage[] = [
   },
   {
     name: 'Lift',
-    note: 'The scissor extends. The deck meets the bin\u2019s underside and takes it off its cradle — up to 30 kg on an 8 kg machine.',
+    note: 'The scissor extends. The deck meets the bin\u2019s underside and takes it clear off its cradle — up to 30 kg on an 8 kg machine.',
     slide: 1,
     grip: 1,
     lift: 1,
   },
   {
     name: 'Lock',
-    note: 'The hub turns back: the tabs close in and clamp the bin to the deck. It is now held, not just carried.',
+    note: 'The hub turns back until the tabs meet the bin\u2019s sides and clamp it to the deck. It is now held, not just carried.',
     slide: 1,
-    grip: 0,
+    grip: CLAMP,
     lift: 1,
   },
   {
-    name: 'Settle',
-    note: 'The deck comes back down. Loaded machines always travel with the bin low — under the stored bins above, and stable at speed.',
-    slide: 1,
-    grip: 0,
-    lift: 0,
-  },
-  {
     name: 'Carry',
-    note: 'Out the way it came, load riding low on the deck. In the warehouse this leg ends at the picking station.',
+    note: 'Out the way it came with the bin held high, clear of the cradle arms. In the warehouse this leg ends at the picking station.',
     slide: 0,
-    grip: 0,
-    lift: 0,
-  },
-  {
-    name: 'Return',
-    note: 'And back in — the same lanes, the same corner, the bin still clamped.',
-    slide: 1,
-    grip: 0,
-    lift: 0,
-  },
-  {
-    name: 'Raise',
-    note: 'Under the cradle again, the deck lifts the bin up over the arms.',
-    slide: 1,
-    grip: 0,
+    grip: CLAMP,
     lift: 1,
   },
   {
     name: 'Release',
-    note: 'The hub turns: tabs spread clear of the cradle arms, and the bin is free to land.',
-    slide: 1,
+    note: 'Over the next cradle the hub turns again: the tabs spread clear of the arms, and the bin is free to land.',
+    slide: 0,
     grip: 1,
     lift: 1,
   },
   {
     name: 'Set down',
-    note: 'The deck lowers through the arms and the cradle catches the bin. The cycle closes: tabs in, drive away, next order.',
-    slide: 1,
+    note: 'The deck lowers through the arms and the cradle takes the bin.',
+    slide: 0,
     grip: 1,
+    lift: 0,
+  },
+  {
+    name: 'Retract',
+    note: 'Tabs in, deck down: the machine is free, and the next order sends it straight back for the bin.',
+    slide: 0,
+    grip: 0,
     lift: 0,
   },
 ];
@@ -176,7 +184,7 @@ export function AsrsRobotViewer() {
           0.01,
           60,
         );
-        camera.position.set(0.8, 0.45, 0.9);
+        camera.position.set(1.35, 0.62, 1.5);
 
         if (typeof ResizeObserver === 'function') {
           const ro = new ResizeObserver(() => {
@@ -211,31 +219,28 @@ export function AsrsRobotViewer() {
         const kit = makeKit(THREE, RoundedBoxGeometry);
         cleanupExtra.push(() => kit.dispose());
         scene.add(makeFloor(THREE, kit, 7));
-        for (const mesh of makeCradleField(THREE, kit, [[0, 0]])) scene.add(mesh);
+        // two cradles a lane apart: the storage cell and, diagonally, the station it delivers to
+        for (const mesh of makeCradleField(THREE, kit, [[0, 0], [1, 1]])) scene.add(mesh);
 
         const robot = makeRobot(asset);
         scene.add(robot.group);
         cleanupExtra.push(() => robot.dispose());
         const bin = makeBin(THREE, kit);
-        bin.position.set(0, CRADLE_H, 0);
         scene.add(bin);
 
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
         orbit.enableDamping = true;
-        orbit.target.set(0, 0.12, 0);
+        orbit.target.set(PITCH / 2, 0.1, PITCH / 2);
         orbit.minDistance = 0.35;
         orbit.maxDistance = 4;
         orbit.maxPolarAngle = Math.PI / 2 - 0.03;
 
-        // The approach path runs the guide lines, exactly like the fleet:
-        // down the z-lane at x = 1 cell, a 90° corner, then in along the
-        // x-lane — never cutting between the posts.
-        const W = [
-          { x: 1 * PITCH, z: 1.25 * PITCH },
-          { x: 1 * PITCH, z: 0 },
-          { x: 0, z: 0 },
-        ];
+        // The path between the two cells runs the guide lines, exactly like the fleet:
+        // along the x-lane, a 90° corner, then down the z-lane — never cutting between
+        // the posts. u = 0 is cell A (storage), u = 1 is cell B (the station).
+        const CELL = { A: { x: 0, z: 0 }, B: { x: PITCH, z: PITCH } };
+        const W = [CELL.A, { x: PITCH, z: 0 }, CELL.B];
         const seg1 = Math.hypot(W[1].x - W[0].x, W[1].z - W[0].z);
         const seg2 = Math.hypot(W[2].x - W[1].x, W[2].z - W[1].z);
         const total = seg1 + seg2;
@@ -248,17 +253,25 @@ export function AsrsRobotViewer() {
           const t = (d - seg1) / seg2;
           return { x: W[1].x + (W[2].x - W[1].x) * t, z: W[1].z + (W[2].z - W[1].z) * t };
         };
+        const cellAt = (pt: { x: number; z: number }): 'A' | 'B' | null =>
+          Math.hypot(pt.x - CELL.A.x, pt.z - CELL.A.z) < 0.02 ? 'A' : Math.hypot(pt.x - CELL.B.x, pt.z - CELL.B.z) < 0.02 ? 'B' : null;
 
-        // eased state, chasing the current stage's targets
+        // eased state, chasing the current stage's targets. slide 1 = under the bin,
+        // slide 0 = the other cell; each cycle the bin changes cells, so the mapping flips
+        // at Park (with slide mirrored so the machine stays where it is) and it drives
+        // back for the bin the other way round — a delivery, then the return trip.
         const ATTACH_Y = CRADLE_H - 0.004;
         let slide = 0;
         let grip = 0;
         let lift = 0;
         let hold = 0;
         let carried = false;
+        let binCell: 'A' | 'B' = 'A';
+        let legBin: 'A' | 'B' = 'A';
         let last = 0;
-        let px = W[0].x;
-        let pz = W[0].z;
+        const toU = (v: number) => (legBin === 'A' ? 1 - v : v);
+        let px = pointAt(toU(0)).x;
+        let pz = pointAt(toU(0)).z;
 
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
@@ -266,14 +279,19 @@ export function AsrsRobotViewer() {
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;
 
-          const s = STAGES[stageRef.current] ?? STAGES[0];
+          const idx = stageRef.current;
+          const s = STAGES[idx] ?? STAGES[0];
+          if (idx === 0 && legBin !== binCell) {
+            legBin = binCell;
+            slide = 1 - slide;
+          }
           const ease = (v: number, target: number, rate: number) =>
-            v + (target - v) * Math.min(1, dt * rate);
-          slide = ease(slide, s.slide, 1.6);
-          grip = ease(grip, s.grip, 3);
-          lift = ease(lift, s.lift, 3);
+            v + (target - v) * Math.min(1, dt * rate * TEMPO);
+          slide = ease(slide, s.slide, 0.9);
+          grip = ease(grip, s.grip, 1.6);
+          lift = ease(lift, s.lift, 1.5);
 
-          const pt = pointAt(Math.min(1, Math.max(0, slide)));
+          const pt = pointAt(Math.min(1, Math.max(0, toU(slide))));
           robot.group.position.set(pt.x, 0, pt.z);
           robot.roll(pt.x - px, pt.z - pz); // per-wheel mecanum spin from the real delta
           px = pt.x;
@@ -281,15 +299,18 @@ export function AsrsRobotViewer() {
           robot.setLift(lift);
           robot.setGrip(grip);
 
-          // the handoff matches the fleet: the bin moves onto the deck only
-          // when the tabs are spread and the deck reaches it, and it lands
-          // only when spread again with the deck back below the arms
-          const atCell = Math.hypot(pt.x, pt.z) < 0.02;
+          // the handoff matches the fleet: the bin moves onto the deck only when the
+          // tabs are spread and the deck reaches it, and it lands only when spread
+          // again with the deck back below the arms — on whichever cradle it is over
+          const cell = cellAt(pt);
           const deckTop = DECK_REST + liftPose(lift).rise;
-          if (!carried && atCell && grip > 0.9 && deckTop >= ATTACH_Y) carried = true;
-          if (carried && atCell && grip > 0.9 && deckTop < ATTACH_Y) carried = false;
+          if (!carried && cell === binCell && grip > 0.9 && deckTop >= ATTACH_Y) carried = true;
+          if (carried && cell && grip > 0.9 && deckTop < ATTACH_Y) {
+            carried = false;
+            binCell = cell;
+          }
           if (carried) bin.position.set(pt.x, deckTop, pt.z);
-          else bin.position.set(0, CRADLE_H, 0);
+          else bin.position.set(CELL[binCell].x, CRADLE_H, CELL[binCell].z);
 
           robot.setXray(xrayRef.current);
 
@@ -300,7 +321,7 @@ export function AsrsRobotViewer() {
               Math.abs(grip - s.grip) < 0.02 &&
               Math.abs(lift - s.lift) < 0.02;
             hold = settled ? hold + dt : 0;
-            if (hold > 1.7) {
+            if (hold > 2.0) {
               hold = 0;
               setStage((i) => (i + 1) % STAGES.length);
             }
@@ -409,8 +430,8 @@ export function AsrsRobotViewer() {
       <figcaption>
         The full handling cycle. The robot is the Blender model, built to the company's robot
         description and photographs; the cradle and floor around it are generated geometry. Drive
-        in along the lanes, spread, lift, lock, travel low, and set the bin back on its cradle.
-        Step through it or let it run; X-ray strips the shell off.
+        in along the lanes, spread, lift, clamp, carry the bin high to the next cradle and set it
+        down — then back for it. Step through it or let it run; X-ray strips the shell off.
       </figcaption>
     </figure>
   );

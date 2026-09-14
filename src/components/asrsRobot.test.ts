@@ -11,7 +11,7 @@ test('tabs are flush when closed and run out the full stroke when open', () => {
   expect(Math.abs(gripPose(1).slide.short - G.short.stroke)).toBeLessThan(0.0005);
 });
 
-test('the deck rises the real 50 mm', () => {
+test('the deck rises its full stroke', () => {
   expect(liftPose(0).rise).toBe(0);
   expect(liftPose(1).rise).toBeCloseTo(dims.deck.stroke, 10);
 });
