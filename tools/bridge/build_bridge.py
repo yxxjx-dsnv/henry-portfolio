@@ -17,10 +17,11 @@ The pieces hang under two empties, Half_A and Half_B, that stay at identity unti
 Test day (part = rig, after the photos and the handout §1.5–1.6): the lab benches, two A-frames
 set square across the bench with the bridge passing through them and resting on a plywood
 stack on each crossbar, the steel beam on the apexes with the tether rail under it, the staging
-board the train waits on, and the 400 N three-car train. One glTF animation, `testday`: the
-train rolls in at 0.15 m/s, wheels turning, until its lead car sits on the splice; then the
-halves hinge about their supports, the top sheet folds, the cars drop with the deck and the
-tether cables take up (a shape key). Train extras: t_break (s), speed (m/s), axles (m).
+board the train waits on, and the 400 N three-car train. One glTF animation, `testday`, runs
+load case 1 the way it was run: one car alone across and back (pass 1, 133 N — held), then two
+cars together (pass 2, 267 N) until the lead car sits on the splice; then the halves hinge
+about their supports, the top sheet folds, the cars drop with the deck and their tethers take
+up (a shape key). Train extras: t_back, t_pass2, t_break (s), speed (m/s), axle (m).
 
 Units: modelled in mm, exported in metres (glTF Y-up). X runs along the span, Y across, Z up,
 soffit underside at Z = 0. Design spec: docs/superpowers/specs/2026-09-10-holy-bridge-studio-design.md.
@@ -29,6 +30,7 @@ import argparse
 import json
 import math
 import os
+import random
 import struct
 import sys
 import tempfile
@@ -60,14 +62,18 @@ APEX_Z = 495.0  # beam underside: the rail bottom sits ~393 above the deck in IM
 RAIL_Z = APEX_Z  # the black tether bar is clipped tight under the beam
 LUMBER = (38.0, 89.0)  # 2×4
 STACK = (180.0, 90.0, 108.0)  # plywood stack on the crossbar: along the frame, across, tall
-TRAIN_START = -150.0  # lead axle, on the staging board
-TRAIN_SPEED = 150.0  # mm/s
-LEAD_BREAK = SPLICE + 88.0  # lead axle when the lead car's centre is on the splice
+# load case 1 is run in stages: one car alone, then cars 1+2 together, then all three (400 N,
+# the pass mark). This bridge carried the single car across and let go under the second pass.
+CAR_X0 = (-238.0, -578.0, -918.0)  # car centres at the start, on the staging board (lead axle at −150)
+PARK_X = 1600.0  # where the lone car parks on the exit board after pass 1
+TRAIN_SPEED = 300.0  # mm/s, pushed across
+RETURN_SPEED = 350.0  # mm/s, pushed back for the next pass (the handout allows reverse runs)
+BREAK_X = SPLICE  # the lead car's centre when the splice lets go (its lead axle at 1104)
 DROP = 70.0  # how far the splice sags in the break
 FLAP_LIFT = 0.45  # rad
 BREAK_T, HOLD_T, FPS = 1.4, 0.7, 30
 WHEEL_R = 22.5
-AXLES = (0.0, -176.0, -340.0, -516.0, -680.0, -856.0)  # from the lead axle (handout §1.6)
+AXLE = 88.0  # each car's axles sit ±88 from its centre (handout §1.6)
 
 AXIS = {"+x": Vector((1, 0, 0)), "-x": Vector((-1, 0, 0)), "+y": Vector((0, 1, 0)),
         "-y": Vector((0, -1, 0)), "+z": Vector((0, 0, 1)), "-z": Vector((0, 0, -1))}
@@ -294,7 +300,20 @@ def box_mesh(name, ext, mats, face_mat=None, uv=None, along="x"):
     return me, centre
 
 
-TEAR = [(SPLICE + dx, z) for dx, z in ((-6, T), (5, 14), (-4, 27), (7, 40), (-5, 53), (4, 66), (-6, TOP_Z))]  # x, z along the tear
+def tear_line(seed=3, n=30):
+    """The far web's tear at the splice, bottom to top: a random walk that wanders a few mm
+    either way with a slight lean, serrated at fibre scale so the white core reads as torn
+    paper rather than a cut."""
+    rng = random.Random(seed)
+    x, pts = SPLICE - 3.0, []
+    for i in range(n + 1):
+        z = T + (TOP_Z - T) * i / n
+        x += rng.uniform(-1.4, 1.4) + (0.3 if i < n / 2 else -0.3)
+        pts.append((x + (0.5 if i % 2 else -0.5), z))
+    return pts
+
+
+TEAR = tear_line()  # x, z along the tear
 
 
 def prism_mesh(name, poly_xz, y0, y1, mats, face_mat=None, uv=None):
@@ -501,30 +520,30 @@ def wheel_mesh(M):
 
 
 def build_train(root, M):
-    train = empty("Train", root, (TRAIN_START, 0, DECK), part="rig")  # lead axle on the staging board, wheels on the deck
+    train = empty("Train", root, (0, 0, DECK), part="rig")  # wheels on the deck; the cars carry their own X
     wheel = wheel_mesh(M)
-    for k, front in enumerate((0.0, -340.0, -680.0)):  # lead axle of each car, from the train origin
-        car = empty(f"Car_{k}", train, (front - 88, 0, 0), part="rig")
+    rz = RAIL_Z - DECK
+    for k, cx in enumerate(CAR_X0):
+        car = empty(f"Car_{k}", train, (cx, 0, 0), part="rig")
         body = Part()
         body.box((280, 75, 75), (0, 0, 49.5), M["black"])  # welded steel box, 280 × 75 × 75
-        body.cyl(4, 98, (88, 0, WHEEL_R), M["nut"], axis="Y", segs=12)
-        body.cyl(4, 98, (-88, 0, WHEEL_R), M["nut"], axis="Y", segs=12)
+        body.cyl(4, 98, (AXLE, 0, WHEEL_R), M["nut"], axis="Y", segs=12)
+        body.cyl(4, 98, (-AXLE, 0, WHEEL_R), M["nut"], axis="Y", segs=12)
         body.cyl(6, 198, (0, 0, 87 + 99), M["black"], segs=16)  # the threaded rod
         body.cyl(17, 3, (0, 0, 151.5), M["nut"], segs=24)  # washer
         body.cyl(10.5, 9, (0, 0, 157.5), M["nut"], segs=6)  # nut
         body.box((16, 6, 108), (-125, 0, 87 + 54), M["black"])  # the tether post: flat bar on the rear end
         body.cyl(5, 6, (-125, 0, 195), M["black"], axis="Y", segs=12)  # its eye
-        if k < 2:  # the link to the car behind
+        if k < 2:  # the coupling bar to the car behind
             body.box((80, 12, 5), (-170, 0, 50), M["black"])
         link(f"Body_{k}", body.mesh(f"Body_{k}"), car)
-        for ax in (88, -88):
+        for ax in (AXLE, -AXLE):
             for side in (1, -1):
-                link(f"Wheel_{k}_{ax}_{side}", wheel.copy(), car, (ax, side * 45.5, WHEEL_R), (math.pi / 2, 0, 0))  # own copy: the scale apply refuses shared meshes
-    # the tether rail hangs under the beam and travels with the train (the cables are added after scaling)
-    rz = RAIL_Z - DECK
-    rig_box("Rail", (-930, 70, -12.5, 12.5, rz - 22, rz), M["black"], train)  # 22 mm flat bar against the beam
-    for j, hx in enumerate((-900, -460, 40)):  # its clips
-        rig_box(f"Clip_{j}", (hx - 8, hx + 8, -27, 27, rz - 26, rz - 4), M["black"], train)
+                link(f"Wheel_{k}_{int(ax)}_{side}", wheel.copy(), car, (ax, side * 45.5, WHEEL_R), (math.pi / 2, 0, 0))  # own copy: the scale apply refuses shared meshes
+        # each car's tether hangs from a clip that slides along the rail with it (the cable is added after scaling)
+        carrier = empty(f"Carrier_{k}", train, (cx, 0, 0), part="rig")
+        rig_box(f"Clip_{k}", (-33, -17, -27, 27, rz - 26, rz - 4), M["black"], carrier)
+    rig_box("Rail", (-1000, 1650, -12.5, 12.5, rz - 22, rz), M["black"], train)  # 22 mm flat bar against the beam
     return train
 
 
@@ -550,6 +569,9 @@ def build_rig(root, M):
         rig_box(f"Post_{j}", (px - LUMBER[1] / 2, px + LUMBER[1] / 2, -LUMBER[0] / 2, LUMBER[0] / 2, BENCH_Z, DECK - LUMBER[0]), M["lumber"], rig, uv=TILE_MM["lumber"], along="z")
     for j, (ta, tb) in enumerate(((-620, -470), (-250, -140))):
         rig_box(f"Tape_{j}", (ta, tb, -40, 70, DECK, DECK + 0.3), M["tape_green"], rig)
+    rig_box("Exit", (LEN + 8, 2090, -70, 70, DECK - LUMBER[0], DECK), M["lumber"], rig, uv=TILE_MM["lumber"])  # where a car that made it rolls off to
+    for j, px in enumerate((1380, 1980)):
+        rig_box(f"ExitPost_{j}", (px - LUMBER[1] / 2, px + LUMBER[1] / 2, -LUMBER[0] / 2, LUMBER[0] / 2, BENCH_Z, DECK - LUMBER[0]), M["lumber"], rig, uv=TILE_MM["lumber"], along="z")
     build_train(rig, M)
 
 
@@ -592,10 +614,10 @@ def tube(pts, r, segs, verts, faces, mat, caps=False):
         faces.append(([base + (len(pts) - 1) * segs + k for k in range(segs)], mat))
 
 
-def cable_mesh(name, p0, p3, p0_drop, M):
-    """One tether as a mesh in Train-local metres, with a `drop` shape key for the break:
-    the car end moves to p0_drop (where the eye ends up on the sagging, pitched car), the rail
-    end stays. Sleeves and tape at both ends."""
+def cable_mesh(name, p0, p3, p0_drop, parent, M):
+    """One tether as a mesh in its carrier's frame (metres), optionally with a `drop` shape key
+    for the break: the car end moves to p0_drop (where the eye ends up on the sagging, pitched
+    car), the rail end stays. Sleeves and tape at both ends."""
     def geometry(p0):
         verts, faces = [], []
         pts = cable_points(p0, p3)
@@ -606,7 +628,6 @@ def cable_mesh(name, p0, p3, p0_drop, M):
             tube(_slice(pts, lo, hi), 5.5, 12, verts, faces, "tape", caps=True)
         return [v * 0.001 for v in verts], faces
     verts, faces = geometry(p0)
-    verts_drop, _ = geometry(p0_drop)
     me = bpy.data.meshes.new(name)
     me.from_pydata(verts, [], [f for f, _ in faces])
     me.validate()
@@ -616,7 +637,10 @@ def cable_mesh(name, p0, p3, p0_drop, M):
     for poly, (_, m) in zip(me.polygons, faces):
         poly.material_index = mats.index(m)
         poly.use_smooth = True
-    ob = link(name, me, bpy.data.objects["Train"])
+    ob = link(name, me, parent)
+    if p0_drop is None:
+        return ob, None
+    verts_drop, _ = geometry(p0_drop)
     ob.shape_key_add(name="Basis", from_mix=False)
     key = ob.shape_key_add(name="drop", from_mix=False)
     for i, v in enumerate(verts_drop):
@@ -629,22 +653,38 @@ def _slice(pts, lo, hi):
     return pts[int(lo * (n - 1)):int(hi * (n - 1)) + 1]
 
 
+def car_at_break(k):
+    """Where car k's centre is when the splice lets go: the lead car on the splice, the second
+    340 behind it; the third never left the staging board."""
+    return BREAK_X - 340.0 * k if k < 2 else CAR_X0[k]
+
+
+def car_pose(cx, k=1.0):
+    """(z, pitch) of a car centred at cx on the sagged deck, k = break progress — the same
+    numbers animate() keys, so the tethers land on the eyes."""
+    z1, z2 = sag(cx - AXLE) * k, sag(cx + AXLE) * k
+    return (z1 + z2) / 2, math.atan2(z1 - z2, 2 * AXLE)
+
+
 def build_cables(M):
-    """After scaling: the three tethers, each from its car's post to the rail, in Train-local mm → m."""
-    train = bpy.data.objects["Train"]
+    """After scaling: one tether per car from its post up to its clip on the rail, in the
+    carrier's frame (mm → m). The two cars on the span at the break get a `drop` key."""
     rz = RAIL_Z - DECK
-    keys = []
+    keys = {}
     eye = Vector((-125, 0, 195))  # car-local
-    for k, front in enumerate((0.0, -340.0, -680.0)):
-        cx = front - 88
-        p0 = Vector((cx, 0, 0)) + eye
-        p3 = Vector((cx - 25, 0, rz - 22))
-        z1, z2 = sag(LEAD_BREAK + cx - 88), sag(LEAD_BREAK + cx + 88)  # the car on the sagged deck, as animate() poses it
-        eye_drop = Vector((cx, 0, (z1 + z2) / 2)) + Matrix.Rotation(math.atan2(z1 - z2, 176), 3, "Y") @ eye
-        _, key = cable_mesh(f"Cable_{k}", p0, p3, eye_drop, M)
-        keys.append(key)
+    for k in range(3):
+        carrier = bpy.data.objects[f"Carrier_{k}"]
+        p3 = Vector((-25, 0, rz - 22))
+        eye_drop = None
+        if k < 2:
+            zc, pitch = car_pose(car_at_break(k))
+            eye_drop = Vector((0, 0, zc)) + Matrix.Rotation(pitch, 3, "Y") @ eye
+        _, key = cable_mesh(f"Cable_{k}", eye, p3, eye_drop, carrier, M)
+        if key:
+            keys[k] = key
+    train = bpy.data.objects["Train"]
     train["speed"] = TRAIN_SPEED / 1000
-    train["axles"] = [a / 1000 for a in AXLES]
+    train["axle"] = AXLE / 1000
     return keys
 
 
@@ -659,35 +699,57 @@ def linear(ob):
 
 
 def animate(keys):
-    """Keyframe the run: the train rolls in, then the break. Everything in metres (after scaling)."""
+    """Keyframe the staged run in metres (after scaling): car 0 crosses alone and is pushed
+    back; cars 0+1 cross together until the lead car sits on the splice; then the break."""
     sc = bpy.context.scene
     sc.render.fps = FPS
-    t_run = (LEAD_BREAK - TRAIN_START) / TRAIN_SPEED
-    f_break = 1 + round(t_run * FPS)
-    f_end = f_break + round(BREAK_T * FPS) + round(HOLD_T * FPS)
-    sc.frame_start, sc.frame_end = 1, f_end
     O = bpy.data.objects
+    x0 = [x / 1000 for x in CAR_X0]
+    park, brk = PARK_X / 1000, BREAK_X / 1000
+    f1a = 1 + round((PARK_X - CAR_X0[0]) / TRAIN_SPEED * FPS)  # the lone car is off the far end
+    f1b = f1a + round(0.5 * FPS)
+    f1c = f1b + round((PARK_X - CAR_X0[0]) / RETURN_SPEED * FPS)  # and back at the start
+    f2 = f1c + round(0.6 * FPS)
+    f_break = f2 + round((BREAK_X - CAR_X0[0]) / TRAIN_SPEED * FPS)
+    nb = round(BREAK_T * FPS)
+    f_end = f_break + nb + round(HOLD_T * FPS)
+    sc.frame_start, sc.frame_end = 1, f_end
     train = O["Train"]
-    train["t_break"] = f_break / FPS  # the exporter stamps frame f at f/FPS, so this is where the clip breaks
-    for f, x in ((1, TRAIN_START), (f_break, LEAD_BREAK)):
-        train.location.x = x / 1000
-        train.keyframe_insert("location", frame=f)
-    wheels = [ob for ob in train.children_recursive if ob.name.startswith("Wheel_")]
+    for name, f in (("t_back", f1b), ("t_pass2", f2), ("t_break", f_break)):
+        train[name] = f / FPS  # the exporter stamps frame f at f/FPS
+    cars = [O[f"Car_{k}"] for k in range(3)]
+    carriers = [O[f"Carrier_{k}"] for k in range(3)]
+    xkeys = {0: [(1, x0[0]), (f1a, park), (f1b, park), (f1c, x0[0]), (f2, x0[0]), (f_break, brk)],
+             1: [(1, x0[1]), (f2, x0[1]), (f_break, x0[1] + brk - x0[0])],
+             2: [(1, x0[2])]}
+    for k in range(3):
+        for f, x in xkeys[k]:
+            for ob in (cars[k], carriers[k]):
+                ob.location = (x, 0, 0)
+                ob.keyframe_insert("location", frame=f)
+        cars[k].rotation_euler = (0, 0, 0)
+        cars[k].keyframe_insert("rotation_euler", frame=1)
+
+    def x_at(k, f):  # the piecewise-linear x the keys above give
+        ks = xkeys[k]
+        for (fa, xa), (fb, xb) in zip(ks, ks[1:]):
+            if fa <= f <= fb:
+                return xa + (xb - xa) * (f - fa) / (fb - fa)
+        return ks[-1][1]
+
     tilt = Quaternion((1, 0, 0), math.pi / 2)
-    for ob in wheels:
-        ob.rotation_mode = "QUATERNION"
-    for f in range(1, f_break + 1):
-        x = TRAIN_START + (f - 1) / FPS * TRAIN_SPEED
-        spin = (x - TRAIN_START) / WHEEL_R
-        for ob in wheels:
-            ob.rotation_quaternion = tilt @ Quaternion((0, 0, 1), -spin)  # local Z is the axle, pointing −Y
-            ob.keyframe_insert("rotation_quaternion", frame=f)
+    wheels = []
+    for k in range(2):  # car 2 never moves
+        for ob in [o for o in cars[k].children if o.name.startswith("Wheel_")]:
+            ob.rotation_mode = "QUATERNION"
+            wheels.append(ob)
+            for f in range(1, f_break + 1):
+                spin = (x_at(k, f) - x0[k]) * 1000 / WHEEL_R
+                ob.rotation_quaternion = tilt @ Quaternion((0, 0, 1), -spin)  # local Z is the axle, pointing −Y
+                ob.keyframe_insert("rotation_quaternion", frame=f)
     halves = {"A": (O["Half_A"], SUPPORT[0]), "B": (O["Half_B"], SUPPORT[1])}
     flap = O["Top_Flap"]
     flap_rest = flap.location.copy()
-    cars = [O[f"Car_{k}"] for k in range(3)]
-    car_rest = [c.location.copy() for c in cars]
-    nb = round(BREAK_T * FPS)
     for f in list(range(f_break, f_break + nb + 1)) + [1]:
         t = 0 if f == 1 else min(1, (f - f_break) / nb)
         k = t * t * (3 - 2 * t)
@@ -705,21 +767,21 @@ def animate(keys):
         flap.rotation_euler = (0, -FLAP_LIFT * k, 0)
         flap.keyframe_insert("location", frame=f)
         flap.keyframe_insert("rotation_euler", frame=f)
-        for car, rest in zip(cars, car_rest):
-            x1 = LEAD_BREAK + rest.x * 1000 - 88
-            x2 = x1 + 176
-            z1, z2 = sag(x1) * k, sag(x2) * k
-            car.location = (rest.x, 0, (z1 + z2) / 2 / 1000)
-            car.rotation_euler = (0, math.atan2(z1 - z2, 176), 0)
-            car.keyframe_insert("location", frame=f)
-            car.keyframe_insert("rotation_euler", frame=f)
-        for key in keys:
-            key.value = k
-            key.keyframe_insert("value", frame=f)
-    for ob in [train, flap, *wheels, *cars] + [h for h, _ in halves.values()]:
+        if f == 1:
+            continue
+        for c in range(2):  # the two cars on the span ride the sag
+            cx = car_at_break(c)
+            zc, pitch = car_pose(cx, k)
+            cars[c].location = (cx / 1000, 0, zc / 1000)
+            cars[c].rotation_euler = (0, pitch, 0)
+            cars[c].keyframe_insert("location", frame=f)
+            cars[c].keyframe_insert("rotation_euler", frame=f)
+            keys[c].value = k
+            keys[c].keyframe_insert("value", frame=f)
+    for ob in [flap, *wheels, *cars, *carriers] + [h for h, _ in halves.values()]:
         linear(ob)
     sc.frame_set(1)
-    return f_break, f_end
+    return f2, f_break, f_end
 
 
 # --------------------------------------------------------------------------- export
@@ -768,7 +830,7 @@ def check_glb(path):
     assert len(pieces_) == 32 and len(set(names)) == 32, f"expected 32 pieces, got {len(pieces_)}"
     assert sum(n["extras"]["part"] == "sheet" for n in nodes) == 1, "no sheet"
     train = next(n for n in nodes if n["name"] == "Train")
-    assert "t_break" in train["extras"] and sum(n["name"].startswith("Car_") for n in nodes) == 3, "no train"
+    assert all(k in train["extras"] for k in ("t_back", "t_pass2", "t_break", "axle")) and sum(n["name"].startswith("Car_") for n in nodes) == 3, "no train"
     for n in pieces_:
         assert n["extras"]["half"] in ("A", "B"), n["name"]
         assert len(n["extras"]["sheet"]) == 7, n["name"]
@@ -776,7 +838,7 @@ def check_glb(path):
     anims = js.get("animations", [])
     assert len(anims) == 1 and anims[0]["name"] == "testday", f"animations: {[a.get('name') for a in anims]}"
     paths = [c["target"]["path"] for c in anims[0]["channels"]]
-    assert paths.count("translation") >= 6 and paths.count("rotation") >= 15 and "weights" in paths, paths
+    assert paths.count("translation") >= 8 and paths.count("rotation") >= 12 and paths.count("weights") == 2, paths
     assert "KHR_draco_mesh_compression" in js.get("extensionsRequired", []), "no draco"
     size = os.path.getsize(path)
     assert size < 1_800_000, f"GLB too big: {size}"
@@ -907,7 +969,8 @@ def main():
     to_metres(root)
     bpy.context.view_layer.update()
     keys = build_cables(mats)
-    f_break, f_end = animate(keys)
+    f2, f_break, f_end = animate(keys)
+    f_two = f2 + round((600 - CAR_X0[0]) / TRAIN_SPEED * FPS)  # pass 2, both cars on the span
     export_glb(root, args.out)
     check_glb(args.out)
     if args.poster or args.preview or args.testday_poster:
@@ -925,7 +988,7 @@ def main():
             shoot(args.poster, 1600, 1000, "JPEG")
         if args.testday_poster:
             show_rig(True)
-            sc.frame_set(1 + round((450 - TRAIN_START) / TRAIN_SPEED * FPS))  # the train mid-span
+            sc.frame_set(f_two)
             aim(cam, (0.628, 0.0, 0.16), 2.4, -100, 11)
             shoot(args.testday_poster, 1600, 1000, "JPEG")
             sc.frame_set(1)
@@ -946,7 +1009,7 @@ def main():
             for ob in piece_objects(root):
                 ob.hide_render = False
             show_rig(True)
-            sc.frame_set(1 + round((450 - TRAIN_START) / TRAIN_SPEED * FPS))
+            sc.frame_set(f_two)
             aim(cam, (0.628, 0.0, 0.15), 2.3, -112, 14)
             shoot(os.path.join(args.preview, "testday.png"), 1400, 900)
             aim(cam, (0.05, 0.0, -0.05), 0.9, -120, 16)

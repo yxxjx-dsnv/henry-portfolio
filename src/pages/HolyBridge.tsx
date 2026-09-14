@@ -563,8 +563,12 @@ export function HolyBridge() {
               </figcaption>
             </figure>
             <p>
-              And here is the run itself, on the model: the rig from the handout, the train, and
-              the one seam the analysis was never told about.
+              And here is the run itself, on the model. Load case 1 goes in stages: one car alone,
+              then the first two together, then all three — the full 400 N, and the pass mark. Ours
+              carried the first car across and back, and let go under the second pass, with two
+              cars on the span and the lead car on the seam. Its failure load is the last one it
+              held: 133 N. Of the 75 bridges that term, 30 stopped at exactly that number; 39
+              carried the whole train or more.
             </p>
             <br />
             <BridgeStudio variant="testday" />

@@ -6,8 +6,9 @@ const GLB = `${MEDIA}/bridge.glb`;
 const SHEET_W = 1.016; // the one matboard sheet, metres
 const SHEET_H = 0.813;
 // test day: the GLB carries the whole run as one animation clip, `testday`, keyframed in
-// Blender (train, wheels, the halves hinging, the flap, the cars, the tethers). The web
-// only plays it and reads the train's position back for the HUD.
+// Blender — load case 1 in stages (one car across and back, then two cars until the
+// splice lets go), wheels, the halves hinging, the flap, the tethers. The web only plays
+// it and reads the cars' positions back for the HUD.
 const SUP = [0.028, 1.228]; // support centres, Bridge-local metres (handout §1.5)
 const AXLE_N = 400 / 6;
 
@@ -143,6 +144,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         let sheet: Object3D | undefined;
         const rigTop: Object3D[] = []; // test-day apparatus, hidden until the run
         let train: Object3D | undefined;
+        const cars: Object3D[] = [];
         const meshesUnder = (node: Object3D) => {
           const out: Mesh[] = [];
           node.traverse((o) => {
@@ -160,6 +162,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
           if (part === 'rig') {
             if (!node.parent?.userData?.part) rigTop.push(node);
             if (node.name === 'Train') train = node;
+            if (/^Car_\d$/.test(node.name)) cars.push(node);
             return;
           }
           const s = node.userData.sheet as number[] | undefined;
@@ -185,7 +188,9 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         setCount(pieces.length);
         const trainNode: Object3D = train;
         for (const n of rigTop) n.visible = testday;
-        const axles = (trainNode.userData.axles as number[]) ?? [];
+        const axle = Number(trainNode.userData.axle) || 0.088;
+        const tBack = Number(trainNode.userData.t_back);
+        const tPass2 = Number(trainNode.userData.t_pass2);
         const tBreak = Number(trainNode.userData.t_break);
         const mixer: AnimationMixer = new THREE.AnimationMixer(model);
         const run: AnimationAction = mixer.clipAction(gltf.animations[0]);
@@ -315,13 +320,23 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
           const s = e / 100;
 
           if (test) {
-            // the clip owns the pieces while it plays; the HUD reads the train back
-            const x = trainNode.position.x;
-            const onSpan = axles.filter((a) => x + a > SUP[0] && x + a < SUP[1]).length * AXLE_N;
+            // the clip owns the pieces while it plays; the HUD reads the cars back
+            const t = run.time;
+            let onSpan = 0;
+            for (const car of cars)
+              for (const a of [-axle, axle]) {
+                const x = trainNode.position.x + car.position.x + a;
+                if (x > SUP[0] && x < SUP[1]) onSpan += AXLE_N;
+              }
+            const lead = trainNode.position.x + (cars[0]?.position.x ?? 0);
             const text =
-              run.time >= tBreak
-                ? '133 N over the splice — the top sheet folds, the web tears'
-                : `load case 1 · 400 N train · ${Math.round(onSpan)} N on the span`;
+              t >= tBreak
+                ? '267 N on the span — the splice lets go · failure load 133 N, the pass before'
+                : t >= tPass2
+                  ? `pass 2 · two cars, 267 N · ${Math.round(onSpan)} N on the span`
+                  : t >= tBack || lead > SUP[1] + axle
+                    ? 'pass 1 held · 133 N · the car comes back for pass 2'
+                    : `pass 1 · one car, 133 N · ${Math.round(onSpan)} N on the span`;
             if (text !== test.hud) setHud((test.hud = text));
           } else {
             for (const p of pieces) {
@@ -421,7 +436,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                 {testing
                   ? hud
                   : testday
-                    ? 'load case 1 · 400 N train · ready'
+                    ? 'load case 1 · 400 N train, one car at a time · ready'
                     : target === 100
                       ? `${count} pieces · one 1016 × 813 mm sheet`
                       : `explode ${target}%`}
@@ -435,7 +450,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                   type="button"
                   className={`asrs-btn${testing ? ' asrs-btn-on' : ''}`}
                   onClick={() => setTesting((v) => !v)}
-                  title="The 400 N train rolls in until the top-flange splice lets go"
+                  title="Load case 1 in stages: one car across and back, then two cars until the top-flange splice lets go"
                 >
                   {testing ? '■ Reset' : '▶ Run'}
                 </button>
@@ -477,7 +492,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
       )}
       <figcaption>
         {testday
-          ? "Test day, replayed from the photos: the handout's 400 N train rolls off the staging board and across until its lead car — 133 N — sits on the top-flange splice at 1,016 mm. The near web's glued splice lets go cleanly; the far web, continuous there, tears; the cars drop with the deck onto their tethers."
+          ? 'Test day, replayed from the photos: load case 1 goes in stages — one car across and back, then two together. Ours carried the single car; with two cars on the span, 267 N, the lead car reached the top-flange splice at 1,016 mm and it let go: the near web\'s glued splice parts cleanly, the far web tears, the cars drop onto their tethers. Failure load 133 N, the pass before.'
           : 'The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet; X-ray shows the diaphragms and the splice patches — none on the top sheet.'}
       </figcaption>
     </figure>

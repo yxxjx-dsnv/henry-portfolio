@@ -105,21 +105,27 @@ washer and nut, a flat-bar tether post on the rear end with its eye at 195, link
 cars) and three tether cables (Ø6 tube meshes with ferrules and yellow tape) looping forward
 from each post up to the rail.
 
-**Animation.** One glTF clip, `testday`, keyframed in Blender at 30 fps: the train rolls from
-X = −150 at 0.15 m/s (LINEAR keys), wheels turning, until its lead axle reaches 1104 mm
-(`t_break` = 8.36 s); then 1.4 s of collapse — `Half_A`/`Half_B` (the empties the pieces
-hang under) rotate about their supports so the splice sags 70 mm (empty location = P − R·P
-keeps the pieces' rest poses Bridge-local for the studio), `Top_Flap` folds up 0.45 rad about
-X = 936, the cars follow the deck's sag and pitch, and each cable's `drop` shape key moves
-its car end to where the eye lands on the sagged, pitched car. `Train` extras: `t_break`
-(stamped as f_break / FPS, the exporter's own time for that frame), `speed`, `axles`. The
+**Animation.** One glTF clip, `testday`, keyframed in Blender at 30 fps, running load case 1
+the way it was run (owner, from the video): the cars go in stages — one car alone, then the
+first two together, then all three (400 N, the pass mark). Car 0 rolls from the staging board
+across and off onto the exit board at 0.3 m/s (pass 1, 133 N — held), is pushed back at
+0.35 m/s, then cars 0+1 go together (pass 2, 267 N) until car 0's centre sits on the splice
+(`BREAK_X` = 1016); then 1.4 s of collapse — `Half_A`/`Half_B` (the empties the pieces hang
+under) rotate about their supports so the splice sags 70 mm (empty location = P − R·P keeps
+the pieces' rest poses Bridge-local for the studio), `Top_Flap` folds up 0.45 rad about
+X = 936, the two cars on the span follow the deck's sag and pitch, and their tethers' `drop`
+shape keys move the car end to where the eye lands. Each car has its own `Carrier_k` (x only)
+holding its clip and cable, sliding on a static rail under the beam. `Train` extras:
+`t_back`, `t_pass2`, `t_break` (stamped as frame / FPS, the exporter's own time), `speed`,
+`axle`. The far web's tear is a seeded random walk serrated at fibre scale (`tear_line`). The
 pieces are scaled mm → m by hand (`to_metres`), not `transform_apply`, which mangled the
 Train → Car parent inverses. Generated tiles are written as raw sRGB bytes (a byte image's
 `pixels` are not colour-managed); `prism_mesh` flips its normals outward.
 
 **Web.** `BridgeStudio` plays the clip with an `AnimationMixer` (Run = `reset().play()`,
 Reset = `reset()`, `update(0)`, `stop()`), skips its own piece lerp while the clip runs, and
-reads the train's X back for the HUD load count; a `RoomEnvironment` map so the metals read;
+reads the cars' X back for the HUD (pass 1 / held / pass 2 / failure load 133 N); a
+`RoomEnvironment` map so the metals read;
 the Decal mesh gets `renderOrder` 1 so X-ray draws it over its ghosted web deterministically.
 The studio variant never plays the clip. A `.blend` of the whole scene (textures packed) is
 saved beside the originals: `_media-originals/civ102-bridge/holy-bridge-testday.blend`.
