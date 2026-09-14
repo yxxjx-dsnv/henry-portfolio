@@ -153,8 +153,8 @@ export function makeKit(THREE: ThreeNS, RoundedBox?: RoundedBoxCtor) {
     post: new THREE.CylinderGeometry(0.0165, 0.019, LEVEL_H, 14),
     postFoot: new THREE.CylinderGeometry(0.034, 0.04, 0.012, 14),
     postCollar: new THREE.CylinderGeometry(0.024, 0.024, 0.034, 14),
-    cradleArm: box(0.105, 0.014, 0.034, 0.004),
-    cradlePad: new THREE.BoxGeometry(0.02, 0.008, 0.034),
+    cradleArm: box(0.16, 0.014, 0.034, 0.004), // long enough to reach under the bin on all four sides
+    cradlePad: new THREE.BoxGeometry(0.03, 0.008, 0.034),
     binBody: box(0.555, 0.185, 0.375, 0.008),
     binCavity: new THREE.BoxGeometry(0.49, 0.02, 0.315),
     binLip: box(0.585, 0.03, 0.405, 0.006),
@@ -251,10 +251,10 @@ export function makeCradleField(
       pi++;
       for (let k = 0; k < 4; k++) {
         q.setFromAxisAngle(up, (k * Math.PI) / 2);
-        const off = new THREE.Vector3(0.056, 0, 0).applyQuaternion(q);
+        const off = new THREE.Vector3(0.083, 0, 0).applyQuaternion(q);
         m.compose(new THREE.Vector3(x + off.x, y + CRADLE_H - 0.011, z + off.z), q, one);
         arms.setMatrixAt(ai, m);
-        const padOff = new THREE.Vector3(0.098, 0, 0).applyQuaternion(q);
+        const padOff = new THREE.Vector3(0.15, 0, 0).applyQuaternion(q); // 160 mm in from the corner: under the 375-wide bin by 27 mm, the 555-long one by 117
         m.compose(new THREE.Vector3(x + padOff.x, y + CRADLE_H - 0.004, z + padOff.z), q, one);
         pads.setMatrixAt(ai, m);
         ai++;

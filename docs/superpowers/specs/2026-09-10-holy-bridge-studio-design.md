@@ -28,7 +28,8 @@ model-x-studio (explode slider with damping, camera pull-back on smoothstep(e, 0
 | L2 | 97.46 wide, Z 76.23–77.5, X 265.5–990.5 |
 | L3 | 97.46 wide, Z 74.96–76.23, X 408–848 |
 | Diaph_0..7 | 97.46 wide × t, at X 50, 281, 512, 743, 991, 1041, 1141, 1226; height fills soffit top → underside of whatever layer is above |
-| Patch_Soffit, Patch_WebL, Patch_WebR | 36 × 36 × t splice backers centred on X 1016, inside the box |
+| Patch_Soffit | 36 × 36 × t splice backer under the soffit, inside the box |
+| Patch_WebR, Patch_WebL | 40 × 70 × t doubler strips glued on the outside of each web over its seam (X 1016 near, 240 far), blue out — the failure photo shows the near one peeled at the top |
 | Tab_0..5 | glue tabs 60 × 12 × t on the soffit against each web at X 160, 628, 1100 |
 | Sheet | the matboard sheet 1016 × 813 × t, blue, lying flat centred under the bridge; visible only as the model spreads |
 | Decal | the pencil title from the photo, an alpha quad 0.15 mm outside the near web, X 90–1160, child of Web_R_A |

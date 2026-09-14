@@ -115,10 +115,12 @@ def pieces():
         top = TOP_Z - layers_above(x) * T
         P.append((f"Diaph_{i}", "diaphragm", half(x - T / 2, x + T / 2),
                   (x - T / 2, x + T / 2, -h, h, T, top), "+x"))
-    # splice backers on soffit and webs — none on the top sheet (that is the story)
+    # splice backers: one under the soffit inside the box, and on each web an external
+    # doubler strip glued over the seam, blue out (the failure photo shows the near one
+    # peeled off at the top) — none on the top sheet (that is the story)
     P.append(("Patch_Soffit", "patch", "A", (998, 1034, -18, 18, T, 2 * T), None))
-    P.append(("Patch_WebR", "patch", "A", (998, 1034, -50 + T, -50 + 2 * T, 22, 58), None))
-    P.append(("Patch_WebL", "patch", "A", (222, 258, 50 - 2 * T, 50 - T, 22, 58), None))
+    P.append(("Patch_WebR", "patch", "A", (996, 1036, -50 - T, -50, 4, 74), "-y"))
+    P.append(("Patch_WebL", "patch", "A", (220, 260, 50, 50 + T, 4, 74), "+y"))
     for k, x in enumerate((160, 628, 1100)):
         P.append((f"Tab_{2 * k}", "tab", half(x - 30, x + 30), (x - 30, x + 30, 50 - T - 12, 50 - T, T, 2 * T), None))
         P.append((f"Tab_{2 * k + 1}", "tab", half(x - 30, x + 30), (x - 30, x + 30, -50 + T, -50 + T + 12, T, 2 * T), None))
@@ -859,12 +861,22 @@ def piece_objects(root):
     return [ob for ob in root.children_recursive if ob.get("part") not in (None, "sheet", "rig")]
 
 
+MUTED = {}
+
+
 def lay_flat(root, on):
-    """Move every piece to its laid-flat pose (or back) — for the previews."""
+    """Move every piece to its laid-flat pose (or back) — for the previews. Pieces with
+    test-day keys (the flap, the slipping webs) have their action unhooked meanwhile,
+    or the timeline would put them straight back."""
     for ob in piece_objects(root):
         if not ob.get("rest"):
             ob["rest"] = [*ob.location, *ob.rotation_quaternion]
         ob.rotation_mode = "QUATERNION"
+        if on and ob.animation_data and ob.animation_data.action:
+            MUTED[ob.name] = (ob.animation_data.action, ob.animation_data.action_slot)
+            ob.animation_data.action = None
+        elif not on and ob.name in MUTED:
+            ob.animation_data.action, ob.animation_data.action_slot = MUTED.pop(ob.name)
         if on:
             x, y, z, qx, qy, qz, qw = ob["sheet"]
             ob.location = (x, -z, y)  # back from glTF to Blender
