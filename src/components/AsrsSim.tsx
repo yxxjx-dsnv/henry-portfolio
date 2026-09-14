@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  makeKit,
-  makeFloor,
+  loadSystemAsset,
+  makeRack,
   makeBin,
-  makeCradleField,
-  makeDeck,
-  makeBackBlock,
   makeElevator,
   makeKiosk,
+  makeGround,
+  systemMaterials,
   CRADLE_H,
   DECK_REST,
+  FLOOR_Y,
 } from './asrsScene';
-import { loadRobotAsset, makeRobot, liftPose, liftFraction, type Robot } from './asrsRobot';
+import { loadRobotAsset, makeRobot, liftPose, liftFraction, clampFraction, type Robot } from './asrsRobot';
 import { Fleet, PITCH, LEVEL_H, PHASE_LABEL, cellPos, type FleetOpts } from './asrsFleet';
 
 const MEDIA = '/media/incheon-robotics';
@@ -22,19 +22,26 @@ const MEDIA = '/media/incheon-robotics';
 
 // the lift fraction at which the deck top reaches a cradled bin's underside
 const ATTACH = liftFraction(CRADLE_H - DECK_REST);
+const CLAMP = clampFraction();
 
+// A small rack you can read at a glance: bins in rows 1 and 3 with row 2 an aisle between
+// them and the last column an aisle joining every row to the landing (loaded robots ride
+// their bin high and need a way round stored ones), two storage levels over the station
+// deck, the elevator on the end, three robots.
 const OPTS: FleetOpts = {
   cols: 6,
-  rows: [1, 2, 3],
-  levels: 3,
+  rows: [1, 3],
+  levels: 2,
   stations: [
     [1, -1],
     [3, -1],
   ],
   robotStart: [0, 2, 4],
-  elevator: [5, 0],
+  elevator: [6, 0],
+  sideAisle: true,
   fillEvery: 3,
 };
+const ELEV_TOP = OPTS.levels * LEVEL_H + 0.45; // the tower's top ring; the drum sits 40 mm under it
 
 type Snapshot = {
   t: number;
@@ -80,13 +87,12 @@ export function AsrsSim() {
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }, asset] =
-          await Promise.all([
-            import('three/examples/jsm/controls/OrbitControls.js'),
-            import('three/examples/jsm/environments/RoomEnvironment.js'),
-            import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-            loadRobotAsset(),
-          ]);
+        const [{ OrbitControls }, { RoomEnvironment }, asset, sys] = await Promise.all([
+          import('three/examples/jsm/controls/OrbitControls.js'),
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
+          loadRobotAsset(),
+          loadSystemAsset(),
+        ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
 
@@ -156,33 +162,35 @@ export function AsrsSim() {
         fill.position.set(-5, 3, -4);
         scene.add(fill);
 
-        // ── the world ──
-        const kit = makeKit(THREE, RoundedBoxGeometry);
-        cleanupExtra.push(() => kit.dispose());
+        // ── the world: the rack from the Blender parts, laid out as the fleet's grid ──
         const world = new THREE.Group();
         world.position.set(-(OPTS.cols - 1) * PITCH * 0.5, 0, -1.15 * PITCH);
         scene.add(world);
-        world.add(makeFloor(THREE, kit, 26));
+        const ground = makeGround(THREE, sys, 30);
+        ground.position.y = FLOOR_Y;
+        world.add(ground);
 
-        const fleet = new Fleet({ ...OPTS, attachAt: ATTACH });
+        const fleet = new Fleet({ ...OPTS, attachAt: ATTACH, clamp: CLAMP });
         fleetRef.current = fleet;
 
-        // storage cradles + the tile deck each upper level drives on
-        const flat: Array<[number, number]> = [];
-        for (const r of OPTS.rows) for (let c = 0; c < OPTS.cols; c++) flat.push([c, r]);
-        const aisle: Array<[number, number]> = [];
-        for (let c = 0; c < OPTS.cols; c++) aisle.push([c, 0]);
-        for (let lv = 0; lv <= OPTS.levels; lv++) {
-          const y = lv * LEVEL_H;
-          for (const mesh of makeCradleField(THREE, kit, flat, y)) world.add(mesh);
-          if (lv > 0) world.add(makeDeck(THREE, kit, [...flat, ...aisle], y));
-        }
+        // tiles on every drivable square (the station row only on the ground deck),
+        // cradles round every rack cell, posts from the floor to a hand over the top level
+        const tiles: Array<[number, number, number]> = [];
+        const cradles: Array<[number, number, number]> = [];
+        for (let lv = 0; lv <= OPTS.levels; lv++)
+          for (let r = lv === 0 ? -1 : 0; r <= Math.max(...OPTS.rows); r++)
+            for (let c = 0; c < OPTS.cols; c++) {
+              tiles.push([c, r, lv]);
+              if (r >= 0) cradles.push([c, r, lv]);
+            }
+        for (const m of makeRack(THREE, sys, { tiles, cradles, floorY: FLOOR_Y, topY: OPTS.levels * LEVEL_H + 0.3 }))
+          world.add(m);
 
         const binMeshes = new Map<number, ReturnType<typeof makeBin>>();
         for (const b of fleet.bins) {
-          const grp = makeBin(THREE, kit, b.id % 7 === 3);
-          world.add(grp);
-          binMeshes.set(b.id, grp);
+          const mesh = makeBin(sys, b.id % 7 === 3);
+          world.add(mesh);
+          binMeshes.set(b.id, mesh);
         }
 
         const views: Robot[] = fleet.robots.map(() => {
@@ -208,17 +216,12 @@ export function AsrsSim() {
           pathLine.material.dispose();
         });
 
-        for (const o of makeBackBlock(THREE, kit, 11, 2, 4, { x: -2.2 * PITCH, z: 5.1 * PITCH }))
-          world.add(o);
-
-        const elevator = makeElevator(THREE, kit, OPTS.levels * LEVEL_H + 0.45);
-        const hoistY = elevator.hoistY;
+        const elevator = makeElevator(sys);
         elevator.group.position.set(OPTS.elevator[0] * PITCH, 0, OPTS.elevator[1] * PITCH);
         world.add(elevator.group);
 
-        const kiosk = makeKiosk(THREE, kit);
-        kiosk.position.set(-1.35 * PITCH, 0, -1.05 * PITCH);
-        kiosk.rotation.y = Math.PI; // screen toward the viewer, as you walk up to it
+        const kiosk = makeKiosk(sys); // its screen already faces the viewer's side
+        kiosk.position.set(-1.35 * PITCH, FLOOR_Y, -1.05 * PITCH);
         world.add(kiosk);
 
         // a soft highlight ring that follows the focused robot
@@ -245,8 +248,8 @@ export function AsrsSim() {
         runRef.current = !reduced;
 
         // ── camera: looking at the front of the rack from above, kiosk in view
-        const home = new THREE.Vector3(0.2, 3.7, 6.1);
-        const homeTarget = new THREE.Vector3(0, 0.7, 0.1);
+        const home = new THREE.Vector3(0.6, 3.3, 6.2);
+        const homeTarget = new THREE.Vector3(0.2, 0.45, 0.3);
         camera.position.copy(home);
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
@@ -259,17 +262,7 @@ export function AsrsSim() {
         // ── per-frame: advance the fleet, copy it onto the meshes ──
         const prevPos = fleet.robots.map((r) => ({ ...r.pos }));
         // x-ray ghosts the warehouse itself, so the robots stay the subject
-        const envMats = [
-          kit.mats.binBlue,
-          kit.mats.binBlueIn,
-          kit.mats.binBlack,
-          kit.mats.binBlackIn,
-          kit.mats.slab,
-          kit.mats.post,
-          kit.mats.cradle,
-          kit.mats.frame,
-          kit.mats.flange,
-        ];
+        const envMats = systemMaterials(sys);
         let lastXray = false;
         const applyXray = (on: boolean) => {
           for (const m of envMats) {
@@ -306,12 +299,11 @@ export function AsrsSim() {
               mesh.position.set(r.pos.x, r.pos.y + deckTop, r.pos.z);
             }
           }
-          const carY = fleet.elevLevel * LEVEL_H - 0.008;
+          const carY = fleet.elevLevel * LEVEL_H; // the carriage's top face is the deck it serves
           elevator.carriage.position.y = carY;
-          const cableTop = hoistY - 0.06;
-          const cableLen = Math.max(0.02, cableTop - (carY + 0.03));
+          const cableLen = Math.max(0.02, ELEV_TOP - 0.04 - (carY + 0.05)); // yoke top to the drum
           elevator.cable.scale.y = cableLen;
-          elevator.cable.position.y = carY + 0.03 + cableLen / 2;
+          elevator.cable.position.y = carY + 0.05;
 
           if (focus !== null) {
             const r = fleet.robots[focus];
@@ -406,8 +398,8 @@ export function AsrsSim() {
       {!active ? (
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
-            src={`${MEDIA}/tower.jpg`}
-            alt="Render of the full-scale ASRS: a dense block of blue bins on white posts, elevators at the corners, a kiosk at the front."
+            src={`${MEDIA}/fig-system-render.jpg`}
+            alt="Render of the simulated rack: two storage levels of blue bins on white posts and cradles over a station deck, the elevator tower at one end, a kiosk at the front, three robots."
             width={1600}
             height={991}
             loading="lazy"
@@ -492,8 +484,10 @@ export function AsrsSim() {
         </div>
       )}
       <figcaption>
-        The whole system, running: three robots working three storage levels, riding the elevator
-        between decks, and always travelling with the load carried low. Routing is A* around
+        The whole system, running, on the Blender-built rack: three robots working two storage
+        levels over the station deck, waiting on the landing for the elevator and riding it
+        between decks, carrying each bin lifted clear of the cradles — so a loaded machine keeps
+        to the aisles while an empty one drives under the stored bins. Routing is A* around
         whatever squares the other robots hold, so paths never cross. Track follows one robot;
         X-ray ghosts the warehouse so you can watch the machines work through it.
       </figcaption>

@@ -4,12 +4,15 @@
 // separation is what makes the simulation testable — step() is pure arithmetic
 // over plain objects, so a test can run several simulated minutes instantly.
 //
-// The layout follows the real machine: robots drive across the top deck of a
-// level, and bins sit on cradles above that deck, so *every* square is
-// drivable and a robot fetches a bin by parking underneath it. Routing is
-// therefore A* over the whole level, around whatever squares other robots
-// currently hold — which is what keeps their paths from crossing and makes
-// each trip take a slightly different line. Levels are joined by the elevator.
+// The layout follows the real machine: robots drive across the deck of a
+// level, and bins sit on cradles above that deck, so an empty robot can drive
+// under any stored bin and fetches one by parking underneath it. A loaded
+// robot carries its bin lifted (clear of the cradle pads), which is taller than
+// a stored bin's underside, so it routes only through empty cells — the aisle
+// rows and unfilled cradles. Routing is A* over the level, around whatever
+// squares other robots currently hold. Levels are joined by the elevator: a
+// robot waits on the landing beside the shaft until the carriage is at its
+// floor, drives onto it, rides, and drives off.
 
 export const PITCH = 0.62; // tile pitch, metres (one 600×400 Euro bin per cell)
 export const LEVEL_H = 0.408; // vertical pitch between decks
@@ -29,14 +32,15 @@ export type Phase =
   | 'toBin'
   | 'spread' // tabs run out past the bin's footprint
   | 'liftUp' // deck rises, bin comes off its cradle onto the deck
-  | 'lock' // tabs close back in, clamping the bin
-  | 'settle' // deck lowers — the machine travels with its load LOW
-  | 'toLift' // heading for the elevator shaft
+  | 'lock' // tabs close in until they meet the bin's sides — it is clamped, and stays lifted
+  | 'toLift' // heading for the landing beside the elevator shaft
+  | 'waitLift' // on the landing: the carriage is recalled to this floor
+  | 'holdLift' // stood aside off the landing while another robot has the carriage
+  | 'board' // driving onto the carriage
   | 'riding'
   | 'toStation'
   | 'present'
   | 'toShelf'
-  | 'raise' // deck up, bin over the cradle arms
   | 'unlock' // tabs spread, freeing the bin
   | 'setDown' // deck lowers, the cradle catches the bin
   | 'stow'; // tabs close, machine goes home
@@ -70,12 +74,14 @@ export type FleetRobot = {
 
 export type FleetOpts = {
   attachAt?: number; // lift fraction where the deck meets a cradled bin
+  clamp?: number; // grip fraction where the tabs meet the bin's sides (locked)
   cols: number;
   rows: number[]; // storage rows (z, in cells)
   levels: number; // storage levels above the travel deck
   stations: Array<[number, number]>; // picking stations on level 0
   robotStart: number[]; // columns the robots park on (row 0, level 0)
   elevator: [number, number]; // the shaft's column and row
+  sideAisle?: boolean; // the last column stores nothing: it joins every aisle row to the landing
   fillEvery: number; // leave every Nth storage cell empty
   random?: () => number;
 };
@@ -98,6 +104,7 @@ export class Fleet {
   private feed = 0;
   private opts: FleetOpts;
   private attach: number;
+  private clamp: number;
   private rnd: () => number;
   private rowMin: number;
   private rowMax: number;
@@ -105,12 +112,14 @@ export class Fleet {
   constructor(opts: FleetOpts) {
     this.opts = opts;
     this.attach = opts.attachAt ?? 0.87;
+    this.clamp = opts.clamp ?? 0.46;
     this.rnd = opts.random ?? Math.random;
     this.rowMin = Math.min(0, ...opts.stations.map((s) => s[1]));
     this.rowMax = Math.max(...opts.rows);
 
+    const lastCol = opts.sideAisle ? opts.cols - 1 : opts.cols;
     for (let lv = 1; lv <= opts.levels; lv++)
-      for (const r of opts.rows) for (let c = 0; c < opts.cols; c++) this.storage.push([c, r, lv]);
+      for (const r of opts.rows) for (let c = 0; c < lastCol; c++) this.storage.push([c, r, lv]);
 
     let id = 0;
     this.storage.forEach((c, i) => {
@@ -165,14 +174,23 @@ export class Fleet {
     if (c[0] === ec && c[1] === er) return true;
     if (c[0] < 0 || c[0] >= this.opts.cols) return false;
     if (c[2] === 0) return c[1] >= this.rowMin && c[1] <= this.rowMax;
-    // Upper decks: the storage rows plus a front aisle at row 0. Without that
-    // aisle the shaft would have a single exit, and one parked robot would
-    // trap whoever came up next.
-    return c[1] === 0 || this.opts.rows.includes(c[1]);
+    // Upper decks: every row from the front aisle (0) to the last storage row —
+    // the rows between storage rows are aisles a loaded robot can use.
+    return c[1] >= 0 && c[1] <= this.rowMax;
   }
 
   private isShaft(c: Cell) {
     return c[0] === this.opts.elevator[0] && c[1] === this.opts.elevator[1];
+  }
+
+  /** The landing: the walkable square beside the shaft on a level, where a robot waits for the carriage. */
+  private landing(lv: number): Cell {
+    const [ec, er] = this.opts.elevator;
+    const c = ([[ec - 1, er], [ec + 1, er], [ec, er + 1], [ec, er - 1]] as const)
+      .map(([x, z]) => [x, z, lv] as Cell)
+      .find((n) => !this.isShaft(n) && this.walkable(n));
+    if (!c) throw new Error('the shaft has no landing');
+    return c;
   }
 
   /**
@@ -189,6 +207,7 @@ export class Fleet {
     return h !== undefined && h !== id;
   }
 
+  /** Squares a robot may step onto from c — never the shaft, which is only entered by boarding. */
   private neighbours(c: Cell): Cell[] {
     return ([
       [1, 0],
@@ -197,7 +216,7 @@ export class Fleet {
       [0, -1],
     ] as const)
       .map(([dx, dz]) => [c[0] + dx, c[1] + dz, c[2]] as Cell)
-      .filter((n) => this.walkable(n));
+      .filter((n) => this.walkable(n) && !this.isShaft(n));
   }
 
   /** True while this robot's bin is on its deck (a stored bin sits too low to pass under). */
@@ -212,18 +231,21 @@ export class Fleet {
    * so routes come out as straight runs with deliberate corners — the way a
    * real traffic controller would lay them — instead of staircases.
    *
-   * A loaded robot cannot really pass under a stored bin (cradle 88 mm, its
-   * own bin tops out near 250 mm), so those squares carry a heavy cost: the
-   * route detours round them whenever one exists, and only drives through
-   * when the layout leaves no other way — a wall there would deadlock the
-   * dead-end cells of the storage grid.
+   * A loaded robot carries its bin lifted, far too tall to pass under a
+   * stored bin, so stored squares are walls for it; every storage row borders
+   * an aisle, so a way round always exists. Should the layout ever leave none
+   * (a test's odd grid), the search runs again with them merely expensive.
    */
   private findPath(from: Cell, to: Cell, id: number): Cell[] | null {
+    if (!this.loaded(id)) return this.search(from, to, id, null);
+    const stored = new Set(this.bins.flatMap((b) => (b.cell ? [key(b.cell)] : [])));
+    return this.search(from, to, id, stored, Infinity) ?? this.search(from, to, id, stored, 10);
+  }
+
+  private search(from: Cell, to: Cell, id: number, stored: Set<string> | null, UNDER_BIN = 0): Cell[] | null {
     if (same(from, to)) return [];
     const lv = from[2];
     const TURN = 0.4;
-    const UNDER_BIN = 10;
-    const stored = new Set(this.loaded(id) ? this.bins.flatMap((b) => (b.cell ? [key(b.cell)] : [])) : []);
     const DIRS = [
       [1, 0],
       [-1, 0],
@@ -252,10 +274,11 @@ export class Fleet {
       for (let di = 0; di < DIRS.length; di++) {
         const [dx, dz] = DIRS[di];
         const nb: Cell = [cur.c[0] + dx, cur.c[1] + dz, lv];
-        if (!this.walkable(nb)) continue;
+        if (!this.walkable(nb) || (this.isShaft(nb) && !same(nb, to))) continue;
         if (this.blockedBy(nb, id) && !same(nb, to)) continue;
-        const g =
-          cur.g + 1 + (cur.d !== -1 && cur.d !== di ? TURN : 0) + (stored.has(key(nb)) ? UNDER_BIN : 0);
+        const under = stored?.has(key(nb)) && !same(nb, to) ? UNDER_BIN : 0;
+        if (under === Infinity) continue;
+        const g = cur.g + 1 + (cur.d !== -1 && cur.d !== di ? TURN : 0) + under;
         const nk = skey(nb, di);
         if (g >= (best.get(nk) ?? Infinity)) continue;
         best.set(nk, g);
@@ -351,8 +374,7 @@ export class Fleet {
         // is what eventually breaks the stand-off. When the stored goal is on
         // another level, this leg's goal is the shaft: A* is single-level, so
         // feeding it the far cell would return null on every blocked tick.
-        const [ec, er] = this.opts.elevator;
-        const legGoal: Cell = r.goal[2] !== r.cell[2] ? [ec, er, r.cell[2]] : r.goal;
+        const legGoal: Cell = r.goal[2] !== r.cell[2] ? this.landing(r.cell[2]) : r.goal;
         const alt = this.findPath(r.cell, legGoal, r.id);
         if (alt && alt.length && alt[0] && !this.blockedBy(alt[0], r.id)) {
           this.dropClaimsBut(r);
@@ -386,7 +408,10 @@ export class Fleet {
         r.cell = wp;
         r.path.shift();
         step -= dist;
-        if (this.ckey(from) !== this.ckey(wp)) this.held.delete(this.ckey(from));
+        if (this.ckey(from) !== this.ckey(wp)) {
+          this.held.delete(this.ckey(from));
+          if (this.isShaft(from) && this.elevFor === r.id) this.elevFor = null; // stepped off: the carriage is free
+        }
       } else {
         r.pos = {
           x: r.pos.x + (dx / dist) * step,
@@ -429,9 +454,8 @@ export class Fleet {
       r.phase = this.drivePhase(after);
       return true;
     }
-    const [ec, er] = this.opts.elevator;
-    if (!this.setGoal(r, [ec, er, r.cell[2]], after)) return false;
-    r.goal = dest; // the shaft is only the first leg
+    if (!this.setGoal(r, this.landing(r.cell[2]), after)) return false;
+    r.goal = dest; // the landing is only the first leg
     r.phase = 'toLift';
     return true;
   }
@@ -488,18 +512,11 @@ export class Fleet {
           break;
         }
 
-        // the hub turns back — the tabs close in and clamp the bin
+        // the hub turns back until the tabs meet the bin's sides — clamped, and it stays lifted
         case 'lock': {
-          r.grip = Math.max(0, r.grip - dt / GRIP_TIME);
+          r.grip = Math.max(this.clamp, r.grip - dt / GRIP_TIME);
           r.spin -= (dt / GRIP_TIME) * Math.PI * 0.5;
-          if (r.grip <= 0) r.phase = 'settle';
-          break;
-        }
-
-        // the deck comes down — the machine never travels with its load high
-        case 'settle': {
-          r.lift = Math.max(0, r.lift - dt / LIFT_TIME);
-          if (r.lift <= 0) {
+          if (r.grip <= this.clamp) {
             const si = this.freeStation();
             if (si >= 0) {
               r.station = si;
@@ -511,32 +528,64 @@ export class Fleet {
         }
 
         case 'toLift': {
-          const [ec, er] = this.opts.elevator;
-          const atShaft = r.cell[0] === ec && r.cell[1] === er;
-          if (!atShaft) {
-            if (this.drive(r, dt) && r.goal) {
-              // A yield step ended somewhere that isn't the shaft. Route back
-              // to it — but the shaft is only a waypoint, so the real
-              // destination in r.goal must survive the re-plan.
+          if (this.drive(r, dt) && r.goal) {
+            const landing = this.landing(r.cell[2]);
+            if (same(r.cell, landing)) r.phase = 'waitLift';
+            else {
+              // A yield step ended somewhere else. Route back to the landing —
+              // it is only a waypoint, so the real destination must survive.
               const dest = r.goal;
-              const shaft: Cell = [ec, er, r.cell[2]];
-              if (!same(r.cell, shaft) && this.setGoal(r, shaft, r.after)) r.goal = dest;
+              if (this.setGoal(r, landing, r.after)) r.goal = dest;
+            }
+          }
+          break;
+        }
+
+        // on the landing: take the carriage when it is free, bring it to this floor, drive on
+        case 'waitLift': {
+          if (this.elevFor === null) this.elevFor = r.id;
+          if (this.elevFor !== r.id) {
+            // someone else has the carriage and will need this landing to step off —
+            // waiting here is the deadlock, so stand aside until the shaft is free
+            const aside = this.neighbours(r.cell).find((c) => !this.isShaft(c) && !this.held.has(this.ckey(c)));
+            if (aside) {
+              this.dropClaimsBut(r);
+              r.path = [aside];
+              r.phase = 'holdLift';
             }
             break;
           }
-          if (this.elevFor === null) this.elevFor = r.id;
-          if (this.elevFor === r.id) {
-            // recall the empty carriage to this floor first — boarding a
-            // carriage that is parked two levels up is how robots teleported
-            const here = r.cell[2];
-            const d = here - this.elevLevel;
-            const stepLv = (ELEV_SPEED * dt) / LEVEL_H;
-            this.elevLevel += Math.sign(d) * Math.min(Math.abs(d), stepLv);
-            if (Math.abs(d) < 1e-3) {
-              this.elevLevel = here;
-              r.phase = 'riding';
+          const here = r.cell[2];
+          const d = here - this.elevLevel;
+          const stepLv = (ELEV_SPEED * dt) / LEVEL_H;
+          this.elevLevel += Math.sign(d) * Math.min(Math.abs(d), stepLv);
+          if (Math.abs(d) < 1e-3) {
+            this.elevLevel = here;
+            const [ec, er] = this.opts.elevator;
+            const shaft: Cell = [ec, er, here];
+            if (!this.blockedBy(shaft, r.id)) {
+              this.dropClaimsBut(r);
+              r.path = [shaft];
+              r.phase = 'board';
             }
           }
+          break;
+        }
+
+        case 'holdLift': {
+          this.drive(r, dt);
+          if (!r.path.length && this.elevFor === null && r.goal) {
+            const dest = r.goal;
+            if (this.setGoal(r, this.landing(r.cell[2]), r.after)) {
+              r.goal = dest;
+              r.phase = 'toLift';
+            }
+          }
+          break;
+        }
+
+        case 'board': {
+          if (this.drive(r, dt)) r.phase = 'riding';
           break;
         }
 
@@ -555,12 +604,22 @@ export class Fleet {
             r.cell = arrived; // same 'shaft' reservation, new floor
             this.held.set(this.ckey(arrived), r.id);
             r.pos = cellPos(arrived);
-            this.elevFor = null;
             const dest = r.goal!;
             if (same(dest, arrived)) {
               r.phase = r.after;
             } else if (this.setGoal(r, dest, r.after)) {
               r.phase = this.drivePhase(r.after);
+            } else {
+              // no line open yet (robots waiting round the landing): step off onto the
+              // landing anyway so the shaft is free, and keep asking for a route from there —
+              // the ordinary yield rules then sort the crowd out
+              const landing = this.landing(want);
+              if (!this.blockedBy(landing, r.id)) {
+                this.dropClaimsBut(r);
+                r.path = [landing];
+                r.goal = dest;
+                r.phase = this.drivePhase(r.after);
+              }
             }
           }
           break;
@@ -588,7 +647,7 @@ export class Fleet {
             if (home) {
               r.station = -1;
               r.target = home;
-              this.head(r, home, 'setDown');
+              this.head(r, home, 'unlock');
             }
           }
           break;
@@ -597,15 +656,8 @@ export class Fleet {
         case 'toShelf': {
           if (this.drive(r, dt)) {
             if (r.goal && !same(r.cell, r.goal)) this.setGoal(r, r.goal, r.after);
-            else r.phase = 'raise';
+            else r.phase = 'unlock';
           }
-          break;
-        }
-
-        // deck up: the bin rises above the cradle arms
-        case 'raise': {
-          r.lift = Math.min(1, r.lift + dt / LIFT_TIME);
-          if (r.lift >= 1) r.phase = 'unlock';
           break;
         }
 
@@ -656,13 +708,14 @@ export const PHASE_LABEL: Record<Phase, string> = {
   spread: 'SPREAD',
   liftUp: 'LIFT',
   lock: 'LOCK',
-  settle: 'SETTLE',
-  toLift: 'TO SHAFT',
+  toLift: 'TO LIFT',
+  waitLift: 'CALL LIFT',
+  holdLift: 'WAIT LIFT',
+  board: 'BOARD',
   riding: 'ELEVATOR',
   toStation: 'CARRY → STN',
   present: 'PRESENT',
   toShelf: 'CARRY → SHELF',
-  raise: 'RAISE',
   unlock: 'UNLOCK',
   setDown: 'SET DOWN',
   stow: 'STOW',

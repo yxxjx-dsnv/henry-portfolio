@@ -1,26 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { makeKit, makeFloor, makeBin, makeCradleField, CRADLE_H, DECK_REST } from './asrsScene';
-import { loadRobotAsset, makeRobot, liftPose, gripPose } from './asrsRobot';
+import { loadSystemAsset, makeRack, makeBin, makeGround, CRADLE_H, DECK_REST, TILE_T } from './asrsScene';
+import { loadRobotAsset, makeRobot, liftPose, clampFraction } from './asrsRobot';
 import { PITCH } from './asrsFleet';
 
-// The bin the viewer handles (asrsScene.makeBin): 555 × 375 body. Locking means the tabs
-// close in until they meet its sides — not all the way, which would put them through it.
-// One hub drives both pairs, so it stops at the first contact; the other pair sits a few mm off.
-const BIN_HALF = { long: 0.555 / 2 + 0.002, short: 0.375 / 2 + 0.002 };
-const clampFraction = () => {
-  const tips = { long: 0.2288, short: 0.166 }; // tab tips with the hub closed (tools/robot/dims.json)
-  const need = (axis: 'long' | 'short') => {
-    let lo = 0;
-    let hi = 1;
-    for (let i = 0; i < 40; i++) {
-      const mid = (lo + hi) / 2;
-      if (tips[axis] + gripPose(mid).slide[axis] < BIN_HALF[axis]) lo = mid;
-      else hi = mid;
-    }
-    return hi;
-  };
-  return Math.max(need('long'), need('short'));
-};
 const CLAMP = clampFraction();
 // `?fast` runs the easing 12× — for screenshots from a throttled headless browser, not for people
 const TEMPO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fast') ? 12 : 1;
@@ -148,13 +130,12 @@ export function AsrsRobotViewer() {
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ OrbitControls }, { RoomEnvironment }, { RoundedBoxGeometry }, asset] =
-          await Promise.all([
-            import('three/examples/jsm/controls/OrbitControls.js'),
-            import('three/examples/jsm/environments/RoomEnvironment.js'),
-            import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-            loadRobotAsset(),
-          ]);
+        const [{ OrbitControls }, { RoomEnvironment }, asset, sys] = await Promise.all([
+          import('three/examples/jsm/controls/OrbitControls.js'),
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
+          loadRobotAsset(),
+          loadSystemAsset(),
+        ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
 
@@ -223,16 +204,20 @@ export function AsrsRobotViewer() {
         rim.position.set(-2, 1.4, -1.6);
         scene.add(rim);
 
-        const kit = makeKit(THREE, RoundedBoxGeometry);
-        cleanupExtra.push(() => kit.dispose());
-        scene.add(makeFloor(THREE, kit, 7));
-        // two cradles a lane apart: the storage cell and, diagonally, the station it delivers to
-        for (const mesh of makeCradleField(THREE, kit, [[0, 0], [1, 1]])) scene.add(mesh);
+        // a 3 × 3 patch of the rack's deck, tiles at floor level, cradles at every cell —
+        // the storage cell A (0,0) and, diagonally, the station cell B (1,1)
+        const cells: Array<[number, number, number]> = [];
+        for (let c = -1; c <= 2; c++) for (let r = -1; r <= 2; r++) cells.push([c, r, 0]);
+        for (const mesh of makeRack(THREE, sys, { tiles: cells, cradles: cells, floorY: -TILE_T - 0.05, topY: 0.5 }))
+          scene.add(mesh);
+        const ground = makeGround(THREE, sys, 12);
+        ground.position.y = -TILE_T - 0.05;
+        scene.add(ground);
 
         const robot = makeRobot(asset);
         scene.add(robot.group);
         cleanupExtra.push(() => robot.dispose());
-        const bin = makeBin(THREE, kit);
+        const bin = makeBin(sys);
         scene.add(bin);
 
         const orbit = new OrbitControls(camera, webgl.domElement);

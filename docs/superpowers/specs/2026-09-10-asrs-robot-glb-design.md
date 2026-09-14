@@ -106,3 +106,36 @@ new `makeRobot`. Figcaptions that claim "no mesh files" are rewritten. Posters u
 
 Tiles at the real 672 × 472 pitch, posts/arms/bins/elevator/kiosk from the company GLBs,
 the picking-station geometry, and the story text of the cycle viewer.
+
+## Phase 2 — the system around the robot (built 2026-09-15)
+
+`tools/asrs/build_system.py` (helpers in `tools/blendkit.py`) models the rack after the
+company renders and the N09 prototype photo and exports `public/media/incheon-robotics/
+asrs-system.glb` (76 KB): single-mesh parts the site instances per cell — `Post` (1 m, scaled
+to height), `Foot`, `DeckJoint` (the cross casting under a tile corner), `Cradle` (cross arms
+with pads at 88 mm), `Tile` (620 × 620 × 16, corners notched, laminate texture whose dark edge
+strip becomes the guide line), `Bin_Blue`/`Bin_Black` (Euro 600 × 400 × 220, drafted, ribbed,
+hollow) — and groups dropped in whole: `Elevator` (black extrusion tower, red hoist, `Carriage`
+whose top is the deck it serves, unit `Cable`), `Kiosk` (with its emissive `Screen`), `Ground`
+(a 2 m concrete swatch whose material the site tiles over the floor). Origins: posts, feet,
+cables at their base; tiles at the top-face centre; cradles and joints on the post axis at deck
+level; bins at their bottom centre. Frame: X across columns, Y toward the viewer's side
+(three.js −Z), Z up. The poster `fig-system-render.jpg` is the demo layout with three robots
+imported from robot.glb. A packed `.blend` sits in the company folder
+(`src-incheon-robotics/asrs-system.blend`).
+
+`src/components/asrsScene.ts` now only loads that GLB (`loadSystemAsset`) and instances it
+(`makeRack`, `makeBin`, `makeElevator`, `makeKiosk`, `makeGround`); `AsrsSim`, the robot
+viewer and the fleet tests share the layout: 6 columns (the sixth an aisle), storage rows 1
+and 3 with row 2 an aisle, two storage levels over the station deck, the shaft at column 6
+with its landing at [5, 0], 14 bins, three robots.
+
+Fleet rules changed with the owner's account of the machine: Lock closes the tabs to the
+bin's sides (`clamp`, from dims.json and the bin), the bin then rides lifted to the station
+and to its shelf — so stored cells are walls for a loaded robot (every storage row borders
+an aisle) and the deck lowers only at the destination cradle (unlock → set down → stow).
+The elevator is boarded from the landing: `toLift` → `waitLift` (recall the carriage) →
+`board` → `riding` → step off; a robot that finds the carriage taken stands aside
+(`holdLift`) so the rider can step off, riders always step onto the landing even when no
+onward route is open yet, and the shaft is never a yield square or a through-route.
+

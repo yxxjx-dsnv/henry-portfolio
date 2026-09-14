@@ -38,6 +38,27 @@ const slider = (axis: Axis, a: number) => {
 };
 
 /** Hub angle and how far each tab pair has run out for grip fraction t (0 closed … 1 open). */
+/** The bin the site handles (asrs-system.glb): 600 × 400 Euro bin, 556 × 376 at the bottom. */
+export const BIN_HALF = { long: 0.556 / 2 + 0.002, short: 0.376 / 2 + 0.002 };
+
+/**
+ * Locking means the tabs close in until they meet the bin's sides — not all the way, which
+ * would put them through it. One hub drives both pairs, so it stops at the first contact.
+ */
+export function clampFraction(half = BIN_HALF): number {
+  const need = (axis: Axis) => {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (G[axis].tip + gripPose(mid).slide[axis] < half[axis]) lo = mid;
+      else hi = mid;
+    }
+    return hi;
+  };
+  return Math.max(need('long'), need('short'));
+}
+
 export function gripPose(t: number) {
   const hubAngle = CLOSED + t * (OPEN - CLOSED);
   return {

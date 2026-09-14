@@ -1,17 +1,19 @@
 import { Fleet, PITCH, LEVEL_H, cellPos, type FleetOpts } from './asrsFleet';
 
-// The same field the page runs: 6 columns, storage rows 1–3, two levels above
-// the travel deck, three robots, one elevator shaft on the runway.
+// The same field the page runs: storage rows 1 and 3 in five columns with row 2 and the
+// sixth column as aisles, two levels above the station deck, three robots, the elevator
+// shaft beyond the aisle column.
 const OPTS: FleetOpts = {
   cols: 6,
-  rows: [1, 2, 3],
+  rows: [1, 3],
   levels: 2,
   stations: [
     [1, -1],
     [3, -1],
   ],
   robotStart: [0, 2, 4],
-  elevator: [5, 0],
+  elevator: [6, 0],
+  sideAisle: true,
   fillEvery: 3,
 };
 
@@ -27,8 +29,8 @@ const makeFleet = () => {
 
 test('builds stacked storage: bins on every level above the travel deck', () => {
   const f = makeFleet();
-  expect(f.storage.length).toBe(6 * 3 * 2);
-  expect(f.bins.length).toBe(24); // two in every three cells
+  expect(f.storage.length).toBe(5 * 2 * 2); // the aisle column stores nothing
+  expect(f.bins.length).toBe(14); // two in every three cells
   const levels = new Set(f.bins.map((b) => b.cell![2]));
   expect([...levels].sort()).toEqual([1, 2]);
   expect(f.robots.every((r) => r.cell[2] === 0)).toBe(true); // parked on the deck
@@ -39,7 +41,7 @@ test('runs full cycles and uses the elevator to reach the upper levels', () => {
   const rode = new Set<number>();
   for (let i = 0; i < 60 * 180; i++) {
     f.step(1 / 60);
-    for (const r of f.robots) if (r.phase === 'riding' || r.phase === 'toLift') rode.add(r.id);
+    for (const r of f.robots) if (r.phase === 'riding') rode.add(r.id);
   }
   expect(f.done).toBeGreaterThan(3);
   expect(rode.size).toBe(3); // every robot has ridden between levels
@@ -68,9 +70,9 @@ test('keeps working whatever the order of requests — no jams', () => {
       }
       worstGap = Math.max(worstGap, f.t - stallAt);
     }
-    expect(f.done).toBeGreaterThanOrEqual(12); // three minutes of real work
+    expect(f.done).toBeGreaterThanOrEqual(9); // three minutes of real work — every trip rides the elevator now
     expect(f.robots.every((r) => r.trips >= 2)).toBe(true); // nobody left idle
-    expect(f.avgCycle()!).toBeLessThan(28);
+    expect(f.avgCycle()!).toBeLessThan(34);
     expect(worstGap).toBeLessThan(60); // never a minute with nothing delivered
   }
 });
@@ -110,26 +112,33 @@ test('a bin is never nowhere, and no two bins share a cradle', () => {
     const occupied = f.bins.filter((b) => b.cell).map((b) => b.cell!.join(','));
     expect(new Set(occupied).size).toBe(occupied.length);
   }
-  expect(f.bins.length).toBe(24);
+  expect(f.bins.length).toBe(14);
 });
 
-test('the handling order is the real one: spread, lift, lock, travel LOW', () => {
+test('the handling order is the real one: spread, lift, lock, travel with the bin held HIGH', () => {
   const f = makeFleet();
   const cellByBin = new Map(f.bins.map((b) => [b.id, b.cell && [...b.cell]]));
   const carrierByBin = new Map<number, number | null>(f.bins.map((b) => [b.id, b.carriedBy]));
   for (let i = 0; i < 60 * 180; i++) {
     f.step(1 / 60);
     for (const r of f.robots) {
-      // a loaded machine never drives, rides, or presents with its deck up
+      // a loaded machine drives, rides and presents with its deck up and the tabs clamped on the bin —
+      // lowering it would drop the bin onto the cradle pads it has to clear
+      const loaded = r.binId !== null && f.bin(r.binId)?.cell === null;
       if (
-        r.binId !== null &&
+        loaded &&
         (r.phase === 'toStation' ||
           r.phase === 'toShelf' ||
           r.phase === 'toLift' ||
+          r.phase === 'waitLift' ||
+          r.phase === 'board' ||
           r.phase === 'riding' ||
           r.phase === 'present')
-      )
-        expect(r.lift).toBe(0);
+      ) {
+        expect(r.lift).toBe(1);
+        expect(r.grip).toBeGreaterThan(0.3);
+        expect(r.grip).toBeLessThan(0.6);
+      }
       expect(r.lift).toBeGreaterThanOrEqual(0);
       expect(r.lift).toBeLessThanOrEqual(1);
       expect(r.grip).toBeGreaterThanOrEqual(0);
@@ -234,24 +243,38 @@ test('request() queues a shelved bin and refuses when none are free', () => {
   expect(f.request()).toBe(false);
 });
 
-// A loaded robot's bin rides at deck height, far too tall to pass under a
-// stored bin on its 88 mm cradle — so with the bin aboard the route detours
-// round stored cells, and the same trip unloaded cuts straight through.
+// A loaded robot's bin rides lifted, far too tall to pass under a stored bin on
+// its 88 mm cradle — so with the bin aboard the route never enters a stored cell
+// (the aisle row is there for that), while the same trip unloaded cuts straight through.
 test('a loaded robot routes round stored bins', () => {
   const f = makeFleet();
-  const stored = new Set(f.bins.filter((b) => b.cell).map((b) => b.cell!.join(',')));
   const r = f.robots[0];
-  r.cell = [3, 3, 1]; // a bin column, two stored bins between it and the aisle
+  r.cell = [0, 3, 1]; // the far storage row, stored bins along it toward the shaft
   r.pos = cellPos(r.cell);
-  const b = f.bins[0];
+  const b = f.bins.find((bin) => bin.cell && bin.cell[1] === 3 && bin.cell[2] === 1 && bin.cell[0] > 0)!;
+  const stored = new Set(f.bins.filter((x) => x.cell && x !== b).map((x) => x.cell!.join(',')));
+  const findPath = (f as unknown as { findPath: Fleet['findPath'] }).findPath.bind(f);
+  const through = findPath(r.cell, [3, 3, 1], r.id)!;
+  expect(through.some((c) => stored.has(c.join(',')))).toBe(true); // empty: straight along the row
   r.binId = b.id;
   b.carriedBy = r.id;
-  // private, but this is the one place the routing rule is observable
-  const findPath = (f as unknown as { findPath: Fleet['findPath'] }).findPath.bind(f);
-  const through = findPath(r.cell, [5, 0, 1], r.id)!;
-  expect(through.some((c) => stored.has(c.join(',')))).toBe(true);
-  b.cell = null; // now on the deck
-  const around = findPath(r.cell, [5, 0, 1], r.id)!;
+  b.cell = null; // now on the deck, lifted
+  const around = findPath(r.cell, [3, 3, 1], r.id)!;
   expect(around.some((c) => stored.has(c.join(',')))).toBe(false);
   expect(around.length).toBeGreaterThan(through.length);
+});
+
+test('a robot boards the carriage from the landing, never floats in the shaft', () => {
+  const f = makeFleet();
+  for (let i = 0; i < 60 * 240; i++) {
+    f.step(1 / 60);
+    for (const r of f.robots) {
+      const inShaft = r.cell[0] === OPTS.elevator[0] && r.cell[1] === OPTS.elevator[1];
+      if (inShaft) {
+        // whoever stands in the shaft is on the carriage: it is at their floor, or carrying them
+        expect(['board', 'riding', 'toBin', 'toStation', 'toShelf']).toContain(r.phase);
+        if (r.phase === 'board') expect(Math.abs(f.elevLevel - r.cell[2])).toBeLessThan(1e-3);
+      }
+    }
+  }
 });
