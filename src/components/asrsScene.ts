@@ -133,7 +133,7 @@ export function makeKit(THREE: ThreeNS, RoundedBox?: RoundedBoxCtor) {
   const kioskMap = kioskTexture(THREE);
 
   const mats = {
-    floor: std(0xaeb2b8, 0.55, 0.02), // grey, so the white posts and cradles read against it
+    floor: std(0x6f737a, 0.6, 0.02), // mid grey, so the white posts and cradles read against it
     post: std(0xf6f4f0, 0.32, 0.03),
     cradle: std(0xf1efe9, 0.4, 0.03),
     slab: std(0xe9e6df, 0.58, 0.02),

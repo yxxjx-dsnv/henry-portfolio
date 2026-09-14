@@ -485,7 +485,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                 ⦿ X-ray
               </button>
 
-              <span className="asrs-hint">drag to orbit · scroll to zoom</span>
+              <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
             </div>
           )}
         </div>

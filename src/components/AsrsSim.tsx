@@ -333,7 +333,7 @@ export function AsrsSim() {
           } else {
             ring.visible = false;
             pathLine.visible = false;
-            orbit.target.lerp(homeTarget, Math.min(1, dt * 2));
+            // no drift back home: the view stays where the visitor panned it (ctrl+drag)
           }
         };
         sync(0);
@@ -486,7 +486,7 @@ export function AsrsSim() {
               >
                 ⊘ X-ray
               </button>
-              <span className="asrs-hint">drag to orbit · scroll to zoom</span>
+              <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
             </div>
           )}
         </div>

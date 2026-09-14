@@ -70,7 +70,7 @@ TRAIN_SPEED = 300.0  # mm/s, pushed across
 RETURN_SPEED = 350.0  # mm/s, pushed back for the next pass (the handout allows reverse runs)
 BREAK_X = SPLICE  # the lead car's centre when the splice lets go (its lead axle at 1104)
 DROP = 70.0  # how far the splice sags in the break
-FLAP_LIFT = 0.45  # rad
+FLAP_LIFT = 0.14  # rad — the free end kinks up ~11 mm, all the car body over it allows
 BREAK_T, HOLD_T, FPS = 1.4, 0.7, 30
 WHEEL_R = 22.5
 AXLE = 88.0  # each car's axles sit ±88 from its centre (handout §1.6)
@@ -750,6 +750,10 @@ def animate(keys):
     halves = {"A": (O["Half_A"], SUPPORT[0]), "B": (O["Half_B"], SUPPORT[1])}
     flap = O["Top_Flap"]
     flap_rest = flap.location.copy()
+    # the short B half swings 19° about its support, so its web ends move ~17 mm into the A
+    # half's near the top: the parted webs slide past each other sideways instead of through
+    slip = {O["Web_R_B"]: -0.0025, O["Web_L_C"]: 0.0025}
+    slip_rest = {ob: ob.location.copy() for ob in slip}
     for f in list(range(f_break, f_break + nb + 1)) + [1]:
         t = 0 if f == 1 else min(1, (f - f_break) / nb)
         k = t * t * (3 - 2 * t)
@@ -767,6 +771,9 @@ def animate(keys):
         flap.rotation_euler = (0, -FLAP_LIFT * k, 0)
         flap.keyframe_insert("location", frame=f)
         flap.keyframe_insert("rotation_euler", frame=f)
+        for ob, dy in slip.items():
+            ob.location = slip_rest[ob] + Vector((0, dy * k, 0))
+            ob.keyframe_insert("location", frame=f)
         if f == 1:
             continue
         for c in range(2):  # the two cars on the span ride the sag
@@ -778,7 +785,7 @@ def animate(keys):
             cars[c].keyframe_insert("rotation_euler", frame=f)
             keys[c].value = k
             keys[c].keyframe_insert("value", frame=f)
-    for ob in [flap, *wheels, *cars, *carriers] + [h for h, _ in halves.values()]:
+    for ob in [flap, *wheels, *cars, *carriers, *slip] + [h for h, _ in halves.values()]:
         linear(ob)
     sc.frame_set(1)
     return f2, f_break, f_end
@@ -838,7 +845,7 @@ def check_glb(path):
     anims = js.get("animations", [])
     assert len(anims) == 1 and anims[0]["name"] == "testday", f"animations: {[a.get('name') for a in anims]}"
     paths = [c["target"]["path"] for c in anims[0]["channels"]]
-    assert paths.count("translation") >= 8 and paths.count("rotation") >= 12 and paths.count("weights") == 2, paths
+    assert paths.count("translation") >= 10 and paths.count("rotation") >= 12 and paths.count("weights") == 2, paths
     assert "KHR_draco_mesh_compression" in js.get("extensionsRequired", []), "no draco"
     size = os.path.getsize(path)
     assert size < 1_800_000, f"GLB too big: {size}"

@@ -349,7 +349,7 @@ export function PendulumLab() {
                     {s}×
                   </button>
                 ))}
-                <span className="asrs-hint">drag to orbit · scroll to zoom</span>
+                <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
               </div>
               <Chart title={meta.name} xLabel={meta.x} yLabel={meta.y} {...chart} />
               <p className="asrs-note">{chart.note}</p>

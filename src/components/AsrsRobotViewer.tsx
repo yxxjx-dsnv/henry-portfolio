@@ -111,16 +111,23 @@ export function AsrsRobotViewer() {
   );
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [stage, setStage] = useState(0);
+  // a clicked step is a goal: the machine walks there one step at a time, forward or back,
+  // so every pose it passes through is one it could really be in — no teleporting bins
+  const [goal, setGoal] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [xray, setXray] = useState(false);
   const mountRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef(0);
+  const goalRef = useRef(0);
   const playRef = useRef(true);
   const xrayRef = useRef(false);
 
   useEffect(() => {
     stageRef.current = stage;
   }, [stage]);
+  useEffect(() => {
+    goalRef.current = goal;
+  }, [goal]);
   useEffect(() => {
     playRef.current = playing;
   }, [playing]);
@@ -314,17 +321,23 @@ export function AsrsRobotViewer() {
 
           robot.setXray(xrayRef.current);
 
-          // auto-play advances once the pose has settled
+          // advance once the pose has settled: round the cycle when playing, otherwise
+          // one step at a time toward the clicked goal
+          const settled =
+            Math.abs(slide - s.slide) < 0.02 &&
+            Math.abs(grip - s.grip) < 0.02 &&
+            Math.abs(lift - s.lift) < 0.02;
+          hold = settled ? hold + dt : 0;
           if (playRef.current) {
-            const settled =
-              Math.abs(slide - s.slide) < 0.02 &&
-              Math.abs(grip - s.grip) < 0.02 &&
-              Math.abs(lift - s.lift) < 0.02;
-            hold = settled ? hold + dt : 0;
             if (hold > 2.0) {
               hold = 0;
-              setStage((i) => (i + 1) % STAGES.length);
+              const next = (idx + 1) % STAGES.length;
+              setStage(next);
+              setGoal(next);
             }
+          } else if (goalRef.current !== idx && hold > 0.5) {
+            hold = 0;
+            setStage(idx + Math.sign(goalRef.current - idx));
           }
 
           orbit.update();
@@ -395,10 +408,10 @@ export function AsrsRobotViewer() {
                   <button
                     key={st.name}
                     type="button"
-                    className={`asrs-step${i === stage ? ' asrs-step-on' : ''}`}
+                    className={`asrs-step${i === stage ? ' asrs-step-on' : i === goal && !playing ? ' asrs-step-goal' : ''}`}
                     onClick={() => {
                       setPlaying(false);
-                      setStage(i);
+                      setGoal(i);
                     }}
                   >
                     {i + 1}. {st.name}
@@ -409,7 +422,10 @@ export function AsrsRobotViewer() {
                 <button
                   type="button"
                   className="asrs-btn"
-                  onClick={() => setPlaying((p) => !p)}
+                  onClick={() => {
+                    setGoal(stage);
+                    setPlaying((p) => !p);
+                  }}
                 >
                   {playing ? '⏸ Pause' : '▶ Play the cycle'}
                 </button>
@@ -420,7 +436,7 @@ export function AsrsRobotViewer() {
                 >
                   ⦿ X-ray
                 </button>
-                <span className="asrs-hint">drag to orbit · scroll to zoom</span>
+                <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
               </div>
               <p className="asrs-note">{s.note}</p>
             </>

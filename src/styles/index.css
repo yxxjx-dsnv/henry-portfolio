@@ -341,6 +341,7 @@ body.dark-mode .asrs-steps { border-color: #333333; }
 }
 .asrs-step:hover { border-color: #9a9a9a; color: #1c1c1c; }
 .asrs-step-on { border-color: #2f7bff; color: #1f5fd0; background: rgba(47, 123, 255, 0.07); }
+.asrs-step-goal { border-style: dashed; border-color: #2f7bff; }
 body.dark-mode .asrs-step { color: #8f8f8f; border-color: #3a3a3a; }
 body.dark-mode .asrs-step:hover { color: #e6e6e6; border-color: #666666; }
 body.dark-mode .asrs-step-on { color: #8ab4ff; border-color: #2f7bff; background: rgba(47, 123, 255, 0.12); }
