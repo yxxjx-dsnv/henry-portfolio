@@ -151,16 +151,20 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           Colophon
         </NavLink>
       </p>
-      <button
-        type="button"
-        className="lang-toggle"
-        lang={lang === 'en' ? 'ko' : 'en'}
-        aria-label={lang === 'en' ? '한국어로 보기' : 'View in English'}
-        title={lang === 'en' ? '한국어' : 'English'}
-        onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
-      >
-        {lang === 'en' ? '한' : 'EN'}
-      </button>
+      <div className="lang-switch" role="group" aria-label="Language">
+        {(['en', 'ko'] as const).map((l) => (
+          <button
+            key={l}
+            type="button"
+            lang={l}
+            aria-pressed={lang === l}
+            title={l === 'en' ? 'English' : '한국어'}
+            onClick={() => setLang(l)}
+          >
+            {l === 'en' ? 'EN' : '한'}
+          </button>
+        ))}
+      </div>
     </nav>
   );
 }
