@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { CLab } from '../components/CLab';
 import { aps105Labs } from '../data/aps105Labs';
+import { useLang } from '../i18n';
 
 // APS105 coding labs, each with its C submission running in an in-page IDE.
 // A full C compiler (clang, built to WebAssembly) runs client-side, so the
 // code compiles and executes here with no server.
 export function Aps105Labs() {
+  const { t } = useLang();
   const [labId, setLabId] = useState(aps105Labs[0].id);
   const lab = aps105Labs.find((l) => l.id === labId) ?? aps105Labs[0];
   const [progId, setProgId] = useState(lab.programs[0].id);
@@ -28,14 +30,7 @@ export function Aps105Labs() {
       <section className="essay-section">
         <div className="text">
           <div className="section-body">
-            <p>
-              APS105 is U of T Engineering's introduction to programming, taught in C. Every week
-              had a lab. Here are mine: the code I submitted, running in your browser. Edit any of
-              it and press Run, and it is compiled and executed right on the page. A full C compiler
-              (clang, built to WebAssembly) runs client-side, so there is no server. The first Run
-              downloads the compiler once (about 40 MB, then cached); after that it is instant.
-              Press Reset to put my original code back.
-            </p>
+            <p>{t("APS105 is U of T Engineering's introduction to programming, taught in C. Every week had a lab. Here are mine: the code I submitted, running in your browser. Edit any of it and press Run, and it is compiled and executed right on the page. A full C compiler (clang, built to WebAssembly) runs client-side, so there is no server. The first Run downloads the compiler once (about 40 MB, then cached); after that it is instant. Press Reset to put my original code back.")}</p>
 
             <div className="labs-nav" role="tablist" aria-label="Labs">
               {aps105Labs.map((l) => (
@@ -53,20 +48,20 @@ export function Aps105Labs() {
             </div>
 
             <h2 className="labs-title">{lab.title}</h2>
-            <p className="labs-objective">{lab.objective}</p>
+            <p className="labs-objective">{t(lab.objective)}</p>
 
             {(lab.task || lab.approach) && (
               <div className="labs-writeup">
                 {lab.task && (
                   <>
                     <p className="labs-wu-head">The task</p>
-                    <p className="labs-wu-body">{lab.task}</p>
+                    <p className="labs-wu-body">{t(lab.task)}</p>
                   </>
                 )}
                 {lab.approach && (
                   <>
                     <p className="labs-wu-head">My approach</p>
-                    <p className="labs-wu-body">{lab.approach}</p>
+                    <p className="labs-wu-body">{t(lab.approach)}</p>
                   </>
                 )}
               </div>

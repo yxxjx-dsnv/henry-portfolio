@@ -1,3 +1,4 @@
+import { useLang } from '../i18n';
 // The kiosk voice chain, drawn rather than described: what a spoken request
 // passes through on its way to a robot, and what comes back. It runs downward
 // because the reading column is narrow — five stages side by side would need
@@ -35,6 +36,7 @@ const RAIL = X + W + 30;
 const VB_H = top(STAGES.length - 1) + H + 52;
 
 export function VoicePipeline() {
+  const { t } = useLang();
   return (
     <figure className="story-figure ir-pipe-fig">
       <div className="ir-pipe-wrap">
@@ -42,7 +44,7 @@ export function VoicePipeline() {
           className="ir-pipe"
           viewBox={`0 0 ${RAIL + 26} ${VB_H}`}
           role="img"
-          aria-label="The kiosk voice chain: a spoken request becomes text, then intent, then a validated command to the robot fleet, and a spoken confirmation returns to the kiosk."
+          aria-label={t("The kiosk voice chain: a spoken request becomes text, then intent, then a validated command to the robot fleet, and a spoken confirmation returns to the kiosk.")}
         >
           <title>Kiosk voice chain</title>
 
@@ -121,10 +123,7 @@ export function VoicePipeline() {
           </text>
         </svg>
       </div>
-      <figcaption>
-        The chain I was hired to build: a spoken request in Korean, a fleet of robots moving at the
-        end of it, and a spoken answer on the way back — so the worker never looks down at a screen.
-      </figcaption>
+      <figcaption>{t("The chain I was hired to build: a spoken request in Korean, a fleet of robots moving at the end of it, and a spoken answer on the way back — so the worker never looks down at a screen.")}</figcaption>
     </figure>
   );
 }

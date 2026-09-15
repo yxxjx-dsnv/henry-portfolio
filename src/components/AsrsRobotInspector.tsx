@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadRobotAsset, makeRobot } from './asrsRobot';
+import { useLang } from '../i18n';
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -8,6 +9,7 @@ const MEDIA = '/media/incheon-robotics';
 // the deck, the tabs, and the x-ray shell. Same lazy-load pattern as the
 // other viewers; `?3d` activates immediately for screenshots.
 export function AsrsRobotInspector() {
+  const { t } = useLang();
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -192,7 +194,7 @@ export function AsrsRobotInspector() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/r-2.jpg`}
-            alt="CAD render of the ASRS robot from a high angle, deck seated flat with its four tabs extended."
+            alt={t("CAD render of the ASRS robot from a high angle, deck seated flat with its four tabs extended.")}
             width={1300}
             height={700}
             loading="lazy"
@@ -206,7 +208,7 @@ export function AsrsRobotInspector() {
             ref={mountRef}
             tabIndex={-1}
             role="application"
-            aria-label="The ASRS robot alone on a turntable. Drag to orbit, scroll to zoom; toggles run the deck, the tabs, and the x-ray shell."
+            aria-label={t("The ASRS robot alone on a turntable. Drag to orbit, scroll to zoom; toggles run the deck, the tabs, and the x-ray shell.")}
           >
             <span className="model-status" role="status" aria-live="polite">
               {status === 'loading' && 'loading the model…'}
@@ -253,12 +255,7 @@ export function AsrsRobotInspector() {
           )}
         </div>
       )}
-      <figcaption>
-        The machine itself, on a turntable — the Blender model, built to the company's robot
-        description and photographs: the plate with its slot cross, the blue hub and its cam
-        links, the mecanum rollers, the pinned scissor. Run the deck and the tabs yourself, and
-        X-ray the shell to see the drivetrain.
-      </figcaption>
+      <figcaption>{t("The machine itself, on a turntable — the Blender model, built to the company's robot description and photographs: the plate with its slot cross, the blue hub and its cam links, the mecanum rollers, the pinned scissor. Run the deck and the tabs yourself, and X-ray the shell to see the drivetrain.")}</figcaption>
     </figure>
   );
 }

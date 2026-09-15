@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { profile } from '../data/profile';
 import { LocalTime } from './LocalTime';
+import { useLang } from '../i18n';
 
 const EMAIL = profile.social.email.replace(/^mailto:/, '');
 
@@ -19,6 +20,7 @@ const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' :
 
 export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
   const location = useLocation();
+  const { lang, setLang } = useLang();
   const navRef = useRef<HTMLUListElement>(null);
   const [dotY, setDotY] = useState<number | null>(null);
   // The nav dot travels to whichever link is active — "you are here".
@@ -149,6 +151,16 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           Colophon
         </NavLink>
       </p>
+      <button
+        type="button"
+        className="lang-toggle"
+        lang={lang === 'en' ? 'ko' : 'en'}
+        aria-label={lang === 'en' ? '한국어로 보기' : 'View in English'}
+        title={lang === 'en' ? '한국어' : 'English'}
+        onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
+      >
+        {lang === 'en' ? '한' : 'EN'}
+      </button>
     </nav>
   );
 }

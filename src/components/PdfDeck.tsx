@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLang } from '../i18n';
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
 type LoadingTask = ReturnType<(typeof import('pdfjs-dist'))['getDocument']>;
+
+// t() for an attribute: fills {name} placeholders with plain values (tx() returns elements)
+const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (m, k) => String(v[k] ?? m));
 
 // A slide deck the way a deck wants to be read: one slide at a time, turned
 // left and right. Pages render lazily as they scroll into view, native
@@ -17,6 +21,7 @@ export function PdfDeck({
   title: string;
   captions?: string[];
 }) {
+  const { t, tx } = useLang();
   const trackRef = useRef<HTMLDivElement>(null);
   const rendered = useRef<Set<number>>(new Set());
   const pending = useRef<number | null>(null);
@@ -117,11 +122,13 @@ export function PdfDeck({
   if (status === 'error') {
     return (
       <p className="pdf-status">
-        The in-page deck couldn't open —{' '}
-        <a href={src} target="_blank" rel="noopener noreferrer">
-          open it in its own tab
-        </a>{' '}
-        instead.
+        {tx("The in-page deck couldn't open — {link} instead.", {
+          link: (
+            <a href={src} target="_blank" rel="noopener noreferrer">
+              {t('open it in its own tab')}
+            </a>
+          ),
+        })}
       </p>
     );
   }
@@ -133,7 +140,7 @@ export function PdfDeck({
     <figure className="story-figure pdf-deck">
       {status === 'loading' ? (
         <p className="pdf-status" role="status">
-          loading {title}…
+          {tx('loading {title}…', { title })}
         </p>
       ) : (
         <>
@@ -144,7 +151,7 @@ export function PdfDeck({
               onScroll={onScroll}
               tabIndex={0}
               role="group"
-              aria-roledescription="slide deck"
+              aria-roledescription={t('slide deck')}
               aria-label={title}
             >
               {Array.from({ length: pages }, (_, i) => (
@@ -152,7 +159,7 @@ export function PdfDeck({
                   <canvas
                     className="pdf-deck-canvas"
                     data-page={i + 1}
-                    aria-label={`${title}, slide ${i + 1} of ${pages}`}
+                    aria-label={fill(t('{title}, slide {n} of {m}'), { title, n: i + 1, m: pages })}
                   />
                 </div>
               ))}
@@ -162,7 +169,7 @@ export function PdfDeck({
                 <button
                   type="button"
                   className="carousel-arrow carousel-prev"
-                  aria-label="Previous slide"
+                  aria-label={t('Previous slide')}
                   aria-disabled={atStart}
                   onClick={() => !atStart && go(-1)}
                 >
@@ -171,7 +178,7 @@ export function PdfDeck({
                 <button
                   type="button"
                   className="carousel-arrow carousel-next"
-                  aria-label="Next slide"
+                  aria-label={t('Next slide')}
                   aria-disabled={atEnd}
                   onClick={() => !atEnd && go(1)}
                 >
@@ -190,7 +197,7 @@ export function PdfDeck({
           </figcaption>
           <p className="doc-escape">
             <a href={src} target="_blank" rel="noopener noreferrer">
-              open in its own tab
+              {t('open in its own tab')}
             </a>
           </p>
         </>

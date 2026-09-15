@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BufferAttribute, Object3D, Points } from 'three';
+import { useLang } from '../i18n';
 import { FPS, REPORT, gauss, trackOf, type Point, type Track } from './pendulumPhysics';
 import {
   BY_HAND,
@@ -44,6 +45,7 @@ const fmtAngle = (th: number, unit: Unit, signed = false) => {
 type PlotStyle = { fg: string; bg: string; grid: string; accent: string; font: string };
 
 export function PendulumLab() {
+  const { t, tx } = useLang();
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -59,7 +61,7 @@ export function PendulumLab() {
   const [measured, setMeasured] = useState<Partial<Record<ExpId, Point[]>>>({});
   const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, th: 0, n: 0 });
   const [rows, setRows] = useState<string[][]>([]);
-  const [lastResult, setLastResult] = useState('');
+  const [lastResult, setLastResult] = useState<{ exp: ExpId; n: number; y: number } | null>(null); // the last measurement, worded at render
   const [released, setReleased] = useState(false); // the viewer has let go once: the hint can go
   const [pull, setPull] = useState<number | null>(null); // the angle while the ball is held
   const mountRef = useRef<HTMLDivElement>(null);
@@ -111,7 +113,7 @@ export function PendulumLab() {
       setTrialIdx(-1);
       setBusy(true);
       setReleased(true);
-      setLastResult('');
+      setLastResult(null);
       if (id === 'decay') setPoints((p) => ({ ...p, decay: [] })); // one decay on the graph at a time
       clearTrack();
     },
@@ -142,7 +144,7 @@ export function PendulumLab() {
     expRef.current = exp;
     setRunning(false);
     setTrialIdx(-1);
-    setLastResult('');
+    setLastResult(null);
     hang(); // a new experiment starts with the ball hanging
   }, [exp, hang]);
   useEffect(() => {
@@ -153,7 +155,7 @@ export function PendulumLab() {
 
   const runAll = () => {
     setPoints((p) => ({ ...p, [exp]: [] }));
-    setLastResult('');
+    setLastResult(null);
     setRunning(true);
     setTrialIdx(0);
     startTrial(exp, 0);
@@ -161,8 +163,7 @@ export function PendulumLab() {
   const record = (live: Live, pts: Point[]) => {
     setPoints((p) => ({ ...p, [live.exp]: live.exp === 'decay' ? pts : [...p[live.exp], ...pts] }));
     const last = pts[pts.length - 1];
-    if (last)
-      setLastResult(live.exp === 'decay' ? `${pts.length} peaks` : live.exp === 'q' ? `Q ${last.y.toFixed(0)}` : `T ${last.y.toFixed(3)} s`);
+    if (last) setLastResult({ exp: live.exp, n: pts.length, y: last.y });
   };
   /** A hand release's measurement, the angle taken as the protractor reading. */
   const measureHand = (live: Live, tr: Track): Point[] =>
@@ -182,7 +183,7 @@ export function PendulumLab() {
   };
   const clear = () => {
     setPoints((p) => ({ ...p, [exp]: [] }));
-    setLastResult('');
+    setLastResult(null);
     setRunning(false);
     setTrialIdx(-1);
     hang();
@@ -564,19 +565,34 @@ export function PendulumLab() {
   const scaled = (p?: Point[]) => (xf === 1 ? p : p?.map((q) => ({ ...q, x: q.x * xf })));
   const inRad = (f?: (x: number) => number) => (f && xf !== 1 ? (x: number) => f(x / xf) : f);
   const knots = exp === 'length' || exp === 'q';
+  const result =
+    lastResult === null
+      ? null
+      : lastResult.exp === 'decay'
+        ? tx('{n} peaks', { n: lastResult.n })
+        : lastResult.exp === 'q'
+          ? `Q ${lastResult.y.toFixed(0)}`
+          : `T ${lastResult.y.toFixed(3)} s`;
+  const tail = result ? <> · {result}</> : null;
   const statusLine =
     pull !== null
-      ? `pulled to ${fmtAngle(pull, unit, true)}`
+      ? tx('pulled to {angle}', { angle: fmtAngle(pull, unit, true) })
       : running
-        ? `trial ${trialIdx + 1} of ${def.trials.length}${lastResult ? ` · ${lastResult}` : ''}`
+        ? <>{tx('trial {i} of {n}', { i: trialIdx + 1, n: def.trials.length })}{tail}</>
         : busy
-          ? `tracking ${frame.t.toFixed(0)} s${lastResult ? ` · ${lastResult}` : ''}`
+          ? <>{t('tracking')} {frame.t.toFixed(0)} s{tail}</>
           : released
-            ? lastResult || 'hanging'
+            ? result ?? t('hanging')
             : knots
-              ? '✋ pull the ball and let go · click a knot to re-tie'
-              : '✋ pull the ball and let go';
-  const chartNote = fit?.note ?? (pts.length ? `${pts.length} point${pts.length > 1 ? 's' : ''} — a few more for the fit` : 'each release adds a point');
+              ? t('✋ pull the ball and let go · click a knot to re-tie')
+              : t('✋ pull the ball and let go');
+  const chartNote = fit
+    ? tx(fit.note.key, fit.note.values)
+    : pts.length === 1
+      ? t('1 point — a few more for the fit')
+      : pts.length
+        ? tx('{n} points — a few more for the fit', { n: pts.length })
+        : t('each release adds a point');
 
   return (
     <figure className="story-figure model-viewer" id="pendulum-lab">
@@ -584,20 +600,20 @@ export function PendulumLab() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/fig-lab-render.jpg`}
-            alt="Rendered model of the pendulum rig: the acrylic rest and laptop on the oak shelf, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the lined-paper backdrop."
+            alt={t('Rendered model of the pendulum rig: the acrylic rest and laptop on the oak shelf, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the lined-paper backdrop.')}
             width={1600}
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">Try the pendulum</span>
+          <span className="model-cta">{t('Try the pendulum')}</span>
         </button>
       ) : (
         <div className="asrs-frame trk" ref={frameRef}>
           <div className="trk-head">
             <span className="trk-title">Tracker</span>
-            <span className="trk-muted">tracking the bob · pivot as origin</span>
+            <span className="trk-muted">{t('tracking the bob · pivot as origin')}</span>
             <span className="trk-clock">
-              frame {frame.n} · t = {frame.t.toFixed(2)} s
+              {t('frame')} {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
           </div>
           <div className="trk-body">
@@ -606,11 +622,11 @@ export function PendulumLab() {
               ref={mountRef}
               tabIndex={-1}
               role="application"
-              aria-label="The pendulum rig in 3D. Drag the ball to pull it back and let go; drag elsewhere to orbit, scroll to zoom."
+              aria-label={t('The pendulum rig in 3D. Drag the ball to pull it back and let go; drag elsewhere to orbit, scroll to zoom.')}
             >
               <span className="model-status" role="status" aria-live="polite">
-                {status === 'loading' && 'building the rig…'}
-                {status === 'error' && "3D isn't available in this browser."}
+                {status === 'loading' && t('building the rig…')}
+                {status === 'error' && t("3D isn't available in this browser.")}
               </span>
               {status === 'ready' && (
                 <>
@@ -625,18 +641,18 @@ export function PendulumLab() {
             </div>
             <div className="trk-side">
               <div className="trk-plot">
-                <canvas ref={plotX} aria-label="the bob's x against time" />
+                <canvas ref={plotX} aria-label={t("the bob's x against time")} />
                 <span className="trk-read">
                   t = {frame.t.toFixed(3)} s · x = {fmtX(frame.x)} m
                 </span>
               </div>
               <div className="trk-plot">
-                <canvas ref={plotY} aria-label="the bob's y against time" />
+                <canvas ref={plotY} aria-label={t("the bob's y against time")} />
                 <span className="trk-read">
                   t = {frame.t.toFixed(3)} s · y = {fmtX(frame.y)} m
                 </span>
               </div>
-              <div className="trk-table" aria-label="frame table">
+              <div className="trk-table" aria-label={t('frame table')}>
                 <table>
                   <thead>
                     <tr>
@@ -662,32 +678,32 @@ export function PendulumLab() {
           </div>
           {status === 'ready' && (
             <>
-              <div className="asrs-steps" role="group" aria-label="Experiments">
+              <div className="asrs-steps" role="group" aria-label={t('Experiments')}>
                 {EXPERIMENTS.map((e) => (
                   <button
                     key={e.id}
                     type="button"
                     className={`asrs-step${e.id === exp ? ' asrs-step-on' : ''}`}
-                    title={e.blurb}
+                    title={t(e.blurb)}
                     onClick={() => setExp(e.id)}
                   >
-                    {e.lab} · {e.name}
+                    {t(e.lab)} · {t(e.name)}
                   </button>
                 ))}
               </div>
               <div className="asrs-controls">
                 {busy ? (
                   <button type="button" className="asrs-btn" onClick={finishNow}>
-                    ⏭ finish
+                    {t('⏭ finish')}
                   </button>
                 ) : (
                   <button type="button" className="asrs-btn" onClick={runAll}>
-                    ▶ run all {def.trials.length}
+                    {tx('▶ run all {n}', { n: def.trials.length })}
                   </button>
                 )}
                 {pts.length > 0 && (
                   <button type="button" className="asrs-btn" onClick={clear}>
-                    ↺ clear
+                    {t('↺ clear')}
                   </button>
                 )}
                 {knots &&
@@ -702,26 +718,26 @@ export function PendulumLab() {
                       {Math.round(L * 100)} cm
                     </button>
                   ))}
-                <span className="trk-seg" role="group" aria-label="Angle unit">
+                <span className="trk-seg" role="group" aria-label={t('Angle unit')}>
                   {(['rad', 'deg'] as Unit[]).map((u) => (
                     <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} onClick={() => setUnit(u)}>
                       {u}
                     </button>
                   ))}
                 </span>
-                <span className="trk-seg" role="group" aria-label="Playback speed">
+                <span className="trk-seg" role="group" aria-label={t('Playback speed')}>
                   {[1, 4].map((s) => (
                     <button key={s} type="button" className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`} onClick={() => setSpeed(s)}>
                       {s}×
                     </button>
                   ))}
                 </span>
-                <span className="asrs-hint">drag elsewhere to orbit · scroll to zoom</span>
+                <span className="asrs-hint">{t('drag elsewhere to orbit · scroll to zoom')}</span>
               </div>
               <Chart
-                title={def.name}
-                xLabel={exp === 'angle' ? `Release angle (${unit})` : def.x}
-                yLabel={def.y}
+                title={t(def.name)}
+                xLabel={exp === 'angle' ? `${t('Release angle')} (${unit})` : t(def.x)}
+                yLabel={t(def.y)}
                 twin={scaled(exp === 'decay' ? pts.filter((_, i) => i % 3 === 0) : pts)!}
                 twinLine={inRad(fit?.line)}
                 reportLine={inRad(reportLine(exp, A0))!}
@@ -735,9 +751,7 @@ export function PendulumLab() {
         </div>
       )}
       <figcaption>
-        The rig from the photos, swinging to the report's own damped model. Pull the ball and let
-        go: the window tracks it the way Tracker tracked the real video, and each release becomes a
-        point on the graph beside the report's measurements.
+        {t("The rig from the photos, swinging to the report's own damped model. Pull the ball and let go: the window tracks it the way Tracker tracked the real video, and each release becomes a point on the graph beside the report's measurements.")}
       </figcaption>
     </figure>
   );
@@ -866,9 +880,10 @@ function Chart({
       return `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(Math.min(yRange[1] * 1.5, Math.max(yRange[0] - 1e9, f(x)))).toFixed(1)}`;
     }).join(' ');
   const [hover, setHover] = useState<Point | null>(null);
+  const { t } = useLang();
   return (
     <div className="lab-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: the report's points and fit, and this lab's releases`}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: ${t("the report's points and fit, and this lab's releases")}`}>
         {ticks(yRange[0], yRange[1]).map((v) => (
           <g key={`y${v}`}>
             <line x1={m.l} x2={W - m.r} y1={sy(v)} y2={sy(v)} className="lab-grid" />
@@ -908,9 +923,9 @@ function Chart({
         )}
       </svg>
       <div className="lab-legend">
-        <span><i className="lab-key lab-key-measured" /> report</span>
-        <span><i className="lab-key lab-key-report" /> report fit</span>
-        <span><i className="lab-key lab-key-twin" /> this lab</span>
+        <span><i className="lab-key lab-key-measured" /> {t('report')}</span>
+        <span><i className="lab-key lab-key-report" /> {t('report fit')}</span>
+        <span><i className="lab-key lab-key-twin" /> {t('this lab')}</span>
       </div>
     </div>
   );

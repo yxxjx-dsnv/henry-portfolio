@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
 import type { Project } from '../types';
+import { useLang } from '../i18n';
 
 // Reuses the .activity-item dot-timeline styling for visual consistency with
 // the Extra-Curricular / Education sections. Stack tags ride in the muted date line.
 export function ProjectItem({ project }: { project: Project }) {
+  const { t } = useLang();
   const { name, date, stack, link, detail, slug } = project;
   const meta = stack && stack.length > 0 ? `${date} · ${stack.join(', ')}` : date;
   const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
@@ -34,7 +36,7 @@ export function ProjectItem({ project }: { project: Project }) {
           <div className="detail-box">
             {detail.map((para, i) => (
               <Fragment key={i}>
-                <p>{para}</p>
+                <p>{t(para)}</p>
                 {i < detail.length - 1 && <br />}
               </Fragment>
             ))}

@@ -6,6 +6,7 @@ import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfFlow } from '../components/PdfFlow';
 import { BridgeStudio } from '../components/BridgeStudio';
+import { useLang } from '../i18n';
 
 const MEDIA = '/media/civ102-bridge';
 
@@ -292,167 +293,81 @@ const TESTDAY: CarouselSlide[] = [
 ];
 
 export function HolyBridge() {
+  const { t, tx } = useLang();
+  const tr = (slides: CarouselSlide[]) => slides.map((s) => ({ ...s, alt: t(s.alt), caption: t(s.caption) }));
   useEffect(() => () => document.body.classList.remove('reading-focus'), []);
   return (
     <section className="section">
       <ReadProgress />
       <Link to="/projects" className="story-back">
-        &larr; All projects
+        &larr; {t('All projects')}
       </Link>
-      <Hero title="The Holy Bridge" subtitle="CIV102 matboard bridge — Team 107, Fall 2025" />
+      <Hero title={t('The Holy Bridge')} subtitle={t('CIV102 matboard bridge — Team 107, Fall 2025')} />
       <section className="essay-section">
         <div className="text">
           <div className="story-meta">
             <p>
-              Team 107 — Alan W., Luyu VK., and{' '}
-              <a
-                href="https://www.linkedin.com/in/henry-kim-uoft/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Henry Kim
-              </a>{' '}
-              (me)
+              {tx('Team 107 — Alan W., Luyu VK., and {henry} (me)', {
+                henry: (
+                  <a href="https://www.linkedin.com/in/henry-kim-uoft/" target="_blank" rel="noopener noreferrer">
+                    Henry Kim
+                  </a>
+                ),
+              })}
             </p>
-            <p>CIV102 Bridge Project, University of Toronto · TA: Christian Pavlidis</p>
+            <p>{t('CIV102 Bridge Project, University of Toronto · TA: Christian Pavlidis')}</p>
           </div>
           <div
             className="section-body"
             onPointerEnter={() => document.body.classList.add('reading-focus')}
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
-            <p>
-              The brief was simple to state and hard to meet: build a bridge that spans 1,200
-              millimetres and carries a moving train load, using one sheet of matboard and two
-              tubes of contact cement. Matboard is not a generous material: 30 MPa in tension, 6
-              in compression, 4 in shear. With numbers that low over that span, the strength has
-              to come from the shape of the cross-section.
-            </p>
+            <p>{t('The brief was simple to state and hard to meet: build a bridge that spans 1,200 millimetres and carries a moving train load, using one sheet of matboard and two tubes of contact cement. Matboard is not a generous material: 30 MPa in tension, 6 in compression, 4 in shear. With numbers that low over that span, the strength has to come from the shape of the cross-section.')}</p>
             <br />
-            <p>
-              Underneath the assignment was a research question, and the report states it as the
-              objective: understand how failure mechanisms constrain the load a thin-plate
-              structure can carry. Once you take that seriously, the questions turn quantitative.
-              Given a fixed amount of a weak material and a fixed span, where is that material best
-              spent, and which way of failing decides the answer? Everything we did after the
-              first sketch was an attempt to answer that with numbers rather than intuition.
-            </p>
+            <p>{t('Underneath the assignment was a research question, and the report states it as the objective: understand how failure mechanisms constrain the load a thin-plate structure can carry. Once you take that seriously, the questions turn quantitative. Given a fixed amount of a weak material and a fixed span, where is that material best spent, and which way of failing decides the answer? Everything we did after the first sketch was an attempt to answer that with numbers rather than intuition.')}</p>
             <br />
             <figure className="story-figure">
               <img
                 src={`${MEDIA}/holy-bridge.jpg`}
-                alt="The three teammates at the testing event holding the finished blue box girder, with 'HOLY BRIDGE', 'TEAM 107', the three names, and 'Predicted: 548 N' hand-written on its side, one teammate holding a volume of The New Interpreter's Bible."
+                alt={t("The three teammates at the testing event holding the finished blue box girder, with 'HOLY BRIDGE', 'TEAM 107', the three names, and 'Predicted: 548 N' hand-written on its side, one teammate holding a volume of The New Interpreter's Bible.")}
                 width={1600}
                 height={1200}
                 loading="lazy"
               />
-              <figcaption>
-                Test day. The name, the team, and the prediction, in marker on the side.
-              </figcaption>
+              <figcaption>{t('Test day. The name, the team, and the prediction, in marker on the side.')}</figcaption>
             </figure>
-            <p className="story-head">The method</p>
-            <p>
-              A moving load is harder to analyze than a fixed one, because the worst case is
-              different at every point along the span. So the first thing we built was not a
-              bridge but a model of the loading. We swept the train across the 1,200 millimetres
-              in one-millimetre steps and, at each position, computed the shear force and bending
-              moment everywhere along the bridge. Taking the worst value at each point over all
-              train positions gives the shear-force and bending-moment envelopes, the two curves
-              that say how hard the structure is pushed at every station. Those envelopes are the
-              ground truth the rest of the investigation is measured against.
-            </p>
+            <p className="story-head">{t('The method')}</p>
+            <p>{t('A moving load is harder to analyze than a fixed one, because the worst case is different at every point along the span. So the first thing we built was not a bridge but a model of the loading. We swept the train across the 1,200 millimetres in one-millimetre steps and, at each position, computed the shear force and bending moment everywhere along the bridge. Taking the worst value at each point over all train positions gives the shear-force and bending-moment envelopes, the two curves that say how hard the structure is pushed at every station. Those envelopes are the ground truth the rest of the investigation is measured against.')}</p>
             <br />
-            <p>
-              Against them we checked six independent ways the bridge could fail: crushing and
-              tearing of the matboard, buckling of the compressed flange and of the tall thin
-              webs, and two kinds of shear failure. Each has its own equation, and each produces
-              its own factor of safety at every point on the span. The design is only as strong as
-              its weakest mode at its weakest point, so the real object of study was that lower
-              envelope of factors of safety, and the question became how to raise it with the
-              material we had.
-            </p>
+            <p>{t('Against them we checked six independent ways the bridge could fail: crushing and tearing of the matboard, buckling of the compressed flange and of the tall thin webs, and two kinds of shear failure. Each has its own equation, and each produces its own factor of safety at every point on the span. The design is only as strong as its weakest mode at its weakest point, so the real object of study was that lower envelope of factors of safety, and the question became how to raise it with the material we had.')}</p>
             <br />
-            <p className="story-head">Seven designs on paper</p>
-            <p>
-              With that machinery in place, the seven iterations in the report are really seven
-              experiments, each one asking the equations where material was being wasted. Buckling
-              was the recurring answer. A thin plate buckles at a stress that scales with the
-              square of its thickness-to-width ratio, so slender, unsupported spans of matboard
-              give out long before the material itself would crush. We added internal diaphragms
-              to keep the box from racking into a parallelogram under shear, and we layered the
-              compression flange rather than the whole deck, because every failure equation
-              improves with the second moment of area and that is where the bending moment
-              concentrates.
-            </p>
+            <p className="story-head">{t('Seven designs on paper')}</p>
+            <p>{t('With that machinery in place, the seven iterations in the report are really seven experiments, each one asking the equations where material was being wasted. Buckling was the recurring answer. A thin plate buckles at a stress that scales with the square of its thickness-to-width ratio, so slender, unsupported spans of matboard give out long before the material itself would crush. We added internal diaphragms to keep the box from racking into a parallelogram under shear, and we layered the compression flange rather than the whole deck, because every failure equation improves with the second moment of area and that is where the bending moment concentrates.')}</p>
             <br />
-            <p>
-              The height and width were not guessed but solved. The factor of safety against
-              bending rises roughly with the square of the section height, while the factor
-              against web buckling falls with its square, so the two pull in opposite directions.
-              The most efficient height is the one where the web buckles and the material yields at
-              the same stress, because beyond that height the web gives out before the extra
-              material can help. Solving that condition gave 74 millimetres of web and 121 of
-              flange, which we then rounded to the project's 20-millimetre height increments and to
-              what a knife can honestly cut.
-            </p>
+            <p>{t("The height and width were not guessed but solved. The factor of safety against bending rises roughly with the square of the section height, while the factor against web buckling falls with its square, so the two pull in opposite directions. The most efficient height is the one where the web buckles and the material yields at the same stress, because beyond that height the web gives out before the extra material can help. Solving that condition gave 74 millimetres of web and 121 of flange, which we then rounded to the project's 20-millimetre height increments and to what a knife can honestly cut.")}</p>
             <br />
             <figure className="story-figure">
               <img
                 src={`${MEDIA}/layer-heatmap.jpg`}
-                alt="Heatmap titled 'Deck Stress vs. Layer Amounts (Darker is Better)': number of top layers on the vertical axis, bottom layers on the horizontal, with a red diagonal marking the four-layer area constraint. The darkest cells sit toward more top layers."
+                alt={t("Heatmap titled 'Deck Stress vs. Layer Amounts (Darker is Better)': number of top layers on the vertical axis, bottom layers on the horizontal, with a red diagonal marking the four-layer area constraint. The darkest cells sit toward more top layers.")}
                 width={1600}
                 height={1217}
                 loading="lazy"
               />
-              <figcaption>
-                Deck stress across every top-and-bottom layer combination. The red line is the
-                material we actually had; darker is better.
-              </figcaption>
+              <figcaption>{t('Deck stress across every top-and-bottom layer combination. The red line is the material we actually had; darker is better.')}</figcaption>
             </figure>
-            <p>
-              Iteration seven exists because the investigation caught its own mistake. We had
-              optimized so aggressively against compression and buckling that we removed the
-              bottom layer entirely, and only later, re-running the checks, found we had never
-              properly tested failure by tension. The numbers came back wrong. The bottom layer
-              went back in, which shifted the governing failure to shear through the new glue
-              joints, which is why the finished bridge has glue tabs along the soffit. Re-running
-              the checks is what caught it, and the report says so plainly, which I like.
-            </p>
+            <p>{t('Iteration seven exists because the investigation caught its own mistake. We had optimized so aggressively against compression and buckling that we removed the bottom layer entirely, and only later, re-running the checks, found we had never properly tested failure by tension. The numbers came back wrong. The bottom layer went back in, which shifted the governing failure to shear through the new glue joints, which is why the finished bridge has glue tabs along the soffit. Re-running the checks is what caught it, and the report says so plainly, which I like.')}</p>
             <br />
-            <p className="story-head">The code</p>
-            <p>
-              Under the design sits a set of Python scripts. They sweep the train across the span
-              and build shear force and bending moment envelopes, compute the factor of safety
-              against every failure mode we knew, and solve for how long each top layer needs to
-              be. The final run predicted a failure load of 1,096 newtons, with the weakest point
-              at x = 379 millimetres and a factor of safety of 1.009 there. In other words, the
-              design uses up its material almost exactly, which is what the optimization was for.
-              The number we wrote on the bridge on test day, 548 N, is the working-load prediction
-              we carried into the competition. The scripts that did all this, the main solver, the
-              bending-moment envelope, the layer-stress calculation, and the one that drew the
-              heatmap above, are in the shelf below, next to the reports. The full output, graphs
-              included, is there too.
-            </p>
+            <p className="story-head">{t('The code')}</p>
+            <p>{t('Under the design sits a set of Python scripts. They sweep the train across the span and build shear force and bending moment envelopes, compute the factor of safety against every failure mode we knew, and solve for how long each top layer needs to be. The final run predicted a failure load of 1,096 newtons, with the weakest point at x = 379 millimetres and a factor of safety of 1.009 there. In other words, the design uses up its material almost exactly, which is what the optimization was for. The number we wrote on the bridge on test day, 548 N, is the working-load prediction we carried into the competition. The scripts that did all this, the main solver, the bending-moment envelope, the layer-stress calculation, and the one that drew the heatmap above, are in the shelf below, next to the reports. The full output, graphs included, is there too.')}</p>
             <br />
-            <FigureCarousel slides={ANALYSIS} label="The analysis, in graphs" />
-            <p>
-              The graph that best captures the whole design is the first one: all six failure
-              modes plotted along the span, every curve sitting just above the dashed line where
-              the factor of safety equals one. That narrow gap is the entire point. A bridge that
-              clears every mode by a wide margin has wasted material; ours clears them by almost
-              nothing, on purpose.
-            </p>
+            <FigureCarousel slides={tr(ANALYSIS)} label={t('The analysis, in graphs')} />
+            <p>{t('The graph that best captures the whole design is the first one: all six failure modes plotted along the span, every curve sitting just above the dashed line where the factor of safety equals one. That narrow gap is the entire point. A bridge that clears every mode by a wide margin has wasted material; ours clears them by almost nothing, on purpose.')}</p>
             <br />
-            <p className="story-head">Two nights of building</p>
-            <p>
-              Construction took two evenings, five days before testing so the cement could cure.
-              On November 19 we marked and cut the sheet at the Myhal fabrication facility, with
-              permission from the supervisors: tape measure and rulers against a prepared
-              floorplan, every line double-checked by a second person, three hours of precision
-              knife work.
-            </p>
+            <p className="story-head">{t('Two nights of building')}</p>
+            <p>{t('Construction took two evenings, five days before testing so the cement could cure. On November 19 we marked and cut the sheet at the Myhal fabrication facility, with permission from the supervisors: tape measure and rulers against a prepared floorplan, every line double-checked by a second person, three hours of precision knife work.')}</p>
             <br />
-            <FigureCarousel slides={MARKING} label="Marking and cutting the matboard" />
+            <FigureCarousel slides={tr(MARKING)} label={t('Marking and cutting the matboard')} />
             <figure className="story-figure story-clip">
               <video
                 src={`${MEDIA}/cutting.mp4`}
@@ -461,19 +376,13 @@ export function HolyBridge() {
                 preload="metadata"
                 width={1280}
                 height={720}
-                aria-label="Video: tracing and cutting the matboard at the fabrication facility"
+                aria-label={t('Video: tracing and cutting the matboard at the fabrication facility')}
               />
-              <figcaption>Cutting night, in motion.</figcaption>
+              <figcaption>{t('Cutting night, in motion.')}</figcaption>
             </figure>
-            <p>
-              The next evening we glued, in a CampusOne room chosen for its ventilation. One
-              teammate could not join for medical reasons, so two of us finished the glue-up. The
-              order of operations mattered: every joint needed pressure while it set, which is how
-              a stack of borrowed hardcovers, volumes of The New Interpreter's Bible, became our
-              clamping weights. The name of the bridge followed from there.
-            </p>
+            <p>{t("The next evening we glued, in a CampusOne room chosen for its ventilation. One teammate could not join for medical reasons, so two of us finished the glue-up. The order of operations mattered: every joint needed pressure while it set, which is how a stack of borrowed hardcovers, volumes of The New Interpreter's Bible, became our clamping weights. The name of the bridge followed from there.")}</p>
             <br />
-            <FigureCarousel slides={GLUING} label="Gluing the layers" />
+            <FigureCarousel slides={tr(GLUING)} label={t('Gluing the layers')} />
             <figure className="story-figure story-clip">
               <video
                 src={`${MEDIA}/gluing.mp4`}
@@ -482,117 +391,48 @@ export function HolyBridge() {
                 preload="metadata"
                 width={1280}
                 height={720}
-                aria-label="Video: applying contact cement during the glue-up"
+                aria-label={t('Video: applying contact cement during the glue-up')}
               />
-              <figcaption>The glue-up.</figcaption>
+              <figcaption>{t('The glue-up.')}</figcaption>
             </figure>
-            <FigureCarousel slides={ASSEMBLY} label="Assembling the box girder" />
-            <p>
-              The finished section is a closed box: a soffit, two webs, a layered top flange, and
-              eight diaphragms standing inside it. Here it is built from the assembly drawing,
-              every piece, blue side out. Drag the slider and the bridge lays itself back onto the
-              one sheet it was cut from; X-ray shows the diaphragms and the splice patches —
-              and that there is no patch on the top sheet.
-            </p>
+            <FigureCarousel slides={tr(ASSEMBLY)} label={t('Assembling the box girder')} />
+            <p>{t('The finished section is a closed box: a soffit, two webs, a layered top flange, and eight diaphragms standing inside it. Here it is built from the assembly drawing, every piece, blue side out. Drag the slider and the bridge lays itself back onto the one sheet it was cut from; X-ray shows the diaphragms and the splice patches — and that there is no patch on the top sheet.')}</p>
             <br />
             <BridgeStudio />
-            <p className="story-head">The Bible test</p>
-            <p>
-              Before we closed the box, we gave it our own test: the bridge suspended over the
-              one-metre span between two tables, the same books that had clamped it now loading
-              it, with an acrylic ruler taped at one end to watch the deflection. This is the test
-              that earned its keep. Around 20 kilograms it showed minor web buckling, and the
-              soffit lifted near the diaphragms where a roughly one-millimetre height mismatch kept
-              it from seating. Some pieces also had to be patched from offcuts.
-            </p>
+            <p className="story-head">{t('The Bible test')}</p>
+            <p>{t('Before we closed the box, we gave it our own test: the bridge suspended over the one-metre span between two tables, the same books that had clamped it now loading it, with an acrylic ruler taped at one end to watch the deflection. This is the test that earned its keep. Around 20 kilograms it showed minor web buckling, and the soffit lifted near the diaphragms where a roughly one-millimetre height mismatch kept it from seating. Some pieces also had to be patched from offcuts.')}</p>
             <br />
-            <FigureCarousel slides={FINISHED} label="The finished bridge and the light-load test" />
-            <p>
-              None of that was fatal, and all of it was fixable. We added glue tabs to hold the
-              soffit to the webs, the connection the calculations already assume exists. The
-              patched joints we treated as harmless, because the analysis models each layer as a
-              single discrete piece. That assumption is the one that would come back to bite us. By
-              11 p.m. on November 20 the box was closed.
-            </p>
-            <p className="story-head">The report itself</p>
-            <p>
-              Everything above is a retelling. The design report is the real record, nine pages of
-              it, and it reads right here, in full, without leaving the page.
-            </p>
+            <FigureCarousel slides={tr(FINISHED)} label={t('The finished bridge and the light-load test')} />
+            <p>{t('None of that was fatal, and all of it was fixable. We added glue tabs to hold the soffit to the webs, the connection the calculations already assume exists. The patched joints we treated as harmless, because the analysis models each layer as a single discrete piece. That assumption is the one that would come back to bite us. By 11 p.m. on November 20 the box was closed.')}</p>
+            <p className="story-head">{t('The report itself')}</p>
+            <p>{t('Everything above is a retelling. The design report is the real record, nine pages of it, and it reads right here, in full, without leaving the page.')}</p>
             <br />
-            <PdfFlow src={`${MEDIA}/design-report.pdf`} title="Box Girder Bridge Design Report" />
-            <p>
-              The rest of the engineering record sits alongside it: nineteen pages of hand
-              calculations, the assembly drawings, the construction log, and the code output with
-              every envelope and factor of safety. Each opens right on this page too.
-            </p>
+            <PdfFlow src={`${MEDIA}/design-report.pdf`} title={t('Box Girder Bridge Design Report')} />
+            <p>{t('The rest of the engineering record sits alongside it: nineteen pages of hand calculations, the assembly drawings, the construction log, and the code output with every envelope and factor of safety. Each opens right on this page too.')}</p>
             <br />
-            <DocShelf docs={DOCS} base={MEDIA} />
-            <p className="story-head">Test day</p>
-            <p>
-              The prediction was 1,096 newtons. The bridge failed at 133. That is not a small miss;
-              it is the prediction off by a factor of eight, and it is the most useful thing this
-              project taught me.
-            </p>
+            <DocShelf docs={DOCS.map((d) => ({ ...d, title: t(d.title), meta: t(d.meta) }))} base={MEDIA} />
+            <p className="story-head">{t('Test day')}</p>
+            <p>{t('The prediction was 1,096 newtons. The bridge failed at 133. That is not a small miss; it is the prediction off by a factor of eight, and it is the most useful thing this project taught me.')}</p>
             <br />
-            <FigureCarousel slides={TESTDAY} label="Test day" />
-            <p>
-              It did not fail anywhere the analysis pointed. It failed at a splice. To reach the
-              full length from one sheet, we had joined shorter pieces end to end, and one of those
-              joints sat in the top flange, the part of the bridge in compression. We had treated
-              that joint as harmless, the way the model does, as if the layer were one continuous
-              piece. Under load it was not. The compression had nowhere to cross the unreinforced
-              seam, so the flange hinged there and folded into a sharp V, and the whole section
-              went with it. It had held the Bibles a few nights earlier because those books sat
-              spread along the whole span; the competition load comes through a rig, concentrated
-              where the books had been distributed, so the splice carried far more than it ever
-              had under the informal test.
-            </p>
+            <FigureCarousel slides={tr(TESTDAY)} label={t('Test day')} />
+            <p>{t('It did not fail anywhere the analysis pointed. It failed at a splice. To reach the full length from one sheet, we had joined shorter pieces end to end, and one of those joints sat in the top flange, the part of the bridge in compression. We had treated that joint as harmless, the way the model does, as if the layer were one continuous piece. Under load it was not. The compression had nowhere to cross the unreinforced seam, so the flange hinged there and folded into a sharp V, and the whole section went with it. It had held the Bibles a few nights earlier because those books sat spread along the whole span; the competition load comes through a rig, concentrated where the books had been distributed, so the splice carried far more than it ever had under the informal test.')}</p>
             <br />
             <figure className="story-figure">
               <img
                 src={`${MEDIA}/photo-failure.jpg`}
-                alt="The broken bridge: the top flange has torn and folded into a sharp V-shape at a splice joint where two matboard pieces were joined end to end, the two halves of the deck angling down from the break."
+                alt={t('The broken bridge: the top flange has torn and folded into a sharp V-shape at a splice joint where two matboard pieces were joined end to end, the two halves of the deck angling down from the break.')}
                 width={1200}
                 height={1600}
                 loading="lazy"
               />
-              <figcaption>
-                Where it broke: the top-flange splice, folded into a V. The failure started here,
-                not at the weakest point the math had named.
-              </figcaption>
+              <figcaption>{t('Where it broke: the top-flange splice, folded into a V. The failure started here, not at the weakest point the math had named.')}</figcaption>
             </figure>
-            <p>
-              And here is the run itself, on the model. Load case 1 goes in stages: one car alone,
-              then the first two together, then all three — the full 400 N, and the pass mark. Ours
-              carried the first car across and back, and let go under the second pass, with two
-              cars on the span and the lead car on the seam. Its failure load is the last one it
-              held: 133 N. Of the 75 bridges that term, 30 stopped at exactly that number; 39
-              carried the whole train or more.
-            </p>
+            <p>{t('And here is the run itself, on the model. Load case 1 goes in stages: one car alone, then the first two together, then all three — the full 400 N, and the pass mark. Ours carried the first car across and back, and let go under the second pass, with two cars on the span and the lead car on the seam. Its failure load is the last one it held: 133 N. Of the 75 bridges that term, 30 stopped at exactly that number; 39 carried the whole train or more.')}</p>
             <br />
             <BridgeStudio variant="testday" />
-            <p>
-              So the number the research produced was real, but it was the failure load of the
-              bridge we designed, not the bridge we built. The two differed at exactly one place:
-              a discontinuity the analysis was never told about. A continuous compression flange
-              carries load across its whole length; a spliced one is only as strong as the seam,
-              and an unreinforced seam in the most-compressed part of the structure is the worst
-              place to put it. The fix is not subtle in hindsight. Reinforce the splice with an
-              overlapping doubler and extra glue tabs, or plan the cut layout so the compression
-              flange is one uncut piece, or at least move any unavoidable joint away from midspan
-              where the moment is highest. We had spent the whole design optimizing the modes we
-              modeled and almost no attention on the joint we improvised.
-            </p>
+            <p>{t('So the number the research produced was real, but it was the failure load of the bridge we designed, not the bridge we built. The two differed at exactly one place: a discontinuity the analysis was never told about. A continuous compression flange carries load across its whole length; a spliced one is only as strong as the seam, and an unreinforced seam in the most-compressed part of the structure is the worst place to put it. The fix is not subtle in hindsight. Reinforce the splice with an overlapping doubler and extra glue tabs, or plan the cut layout so the compression flange is one uncut piece, or at least move any unavoidable joint away from midspan where the moment is highest. We had spent the whole design optimizing the modes we modeled and almost no attention on the joint we improvised.')}</p>
             <br />
-            <p>
-              That gap between 1,096 and 133 is the lesson, and it is a better one than a pass
-              would have been. The equations narrowed the shape and the code checked them across
-              every train position, but the model only knows what you tell it, and we never told
-              it about the seam. The part I kept from this is a specific kind of suspicion: the
-              failure rarely waits at the point your analysis worked hardest to protect. It waits
-              at the detail you decided was too small to model.
-            </p>
+            <p>{t('That gap between 1,096 and 133 is the lesson, and it is a better one than a pass would have been. The equations narrowed the shape and the code checked them across every train position, but the model only knows what you tell it, and we never told it about the seam. The part I kept from this is a specific kind of suspicion: the failure rarely waits at the point your analysis worked hardest to protect. It waits at the detail you decided was too small to model.')}</p>
             <br />
             <div className="end-mark" aria-hidden="true" />
           </div>

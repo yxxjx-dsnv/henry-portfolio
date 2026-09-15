@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { loadSystemAsset, makeRack, makeBin, makeGround, CRADLE_H, DECK_REST, TILE_T } from './asrsScene';
 import { loadRobotAsset, makeRobot, liftPose, clampFraction } from './asrsRobot';
 import { PITCH } from './asrsFleet';
+import { useLang } from '../i18n';
 
 const CLAMP = clampFraction();
 // `?fast` runs the easing 12× — for screenshots from a throttled headless browser, not for people
@@ -88,6 +89,7 @@ const STAGES: Stage[] = [
 ];
 
 export function AsrsRobotViewer() {
+  const { t } = useLang();
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -357,7 +359,7 @@ export function AsrsRobotViewer() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/r-4.jpg`}
-            alt="CAD render of the ASRS robot with its deck raised on the lifting cross and the four tabs run out."
+            alt={t("CAD render of the ASRS robot with its deck raised on the lifting cross and the four tabs run out.")}
             width={1300}
             height={700}
             loading="lazy"
@@ -371,7 +373,7 @@ export function AsrsRobotViewer() {
             ref={mountRef}
             tabIndex={-1}
             role="application"
-            aria-label="Interactive 3D model of the ASRS robot running its retrieval cycle. Drag to orbit, scroll to zoom."
+            aria-label={t("Interactive 3D model of the ASRS robot running its retrieval cycle. Drag to orbit, scroll to zoom.")}
           >
             <span className="model-status" role="status" aria-live="polite">
               {status === 'loading' && 'loading the model…'}
@@ -423,17 +425,12 @@ export function AsrsRobotViewer() {
                 </button>
                 <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
               </div>
-              <p className="asrs-note">{s.note}</p>
+              <p className="asrs-note">{t(s.note)}</p>
             </>
           )}
         </div>
       )}
-      <figcaption>
-        The full handling cycle. The robot is the Blender model, built to the company's robot
-        description and photographs; the cradle and floor around it are generated geometry. Drive
-        in along the lanes, spread, lift, clamp, carry the bin high to the next cradle and set it
-        down — then back for it. Step through it or let it run; X-ray strips the shell off.
-      </figcaption>
+      <figcaption>{t("The full handling cycle. The robot is the Blender model, built to the company's robot description and photographs; the cradle and floor around it are generated geometry. Drive in along the lanes, spread, lift, clamp, carry the bin high to the next cradle and set it down — then back for it. Step through it or let it run; X-ray strips the shell off.")}</figcaption>
     </figure>
   );
 }

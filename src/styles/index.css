@@ -18,9 +18,11 @@ body {
     /* explicit fallbacks: without them, a slow/blocked Google Fonts load
        leaves Windows on its default serif and the site looks like a different
        website. Georgia is the closest metric-compatible fallback. */
-    font-family: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+    font-family: 'Libre Baskerville', 'Noto Serif KR', Georgia, 'Times New Roman', 'Apple SD Gothic Neo', serif;
     background-color: var(--background-color);
 }
+/* Korean: no breaks inside a word, a touch more leading */
+html[lang='ko'] body { word-break: keep-all; overflow-wrap: anywhere; line-height: 1.75; }
 
 a {
     color: var(--link-color);
@@ -2269,3 +2271,28 @@ body.dark-mode .trk-status { color: #e6e6e6; background: rgba(16, 16, 16, 0.8); 
 .trk-progress { color: #6a6a6a; }
 body.dark-mode .trk-progress { color: #a8a8a8; }
 .trk-seg { display: inline-flex; gap: 4px; }
+
+/* the language toggle at the foot of the sidebar: a rounded square, 한 ↔ EN */
+.lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin: 14px 0 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-color);
+    background: transparent;
+    border: 1.5px solid currentColor;
+    border-radius: 9px;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity var(--t), transform var(--t), background-color var(--t);
+}
+.lang-toggle:hover { opacity: 1; transform: translateY(-1px); }
+.lang-toggle:active { transform: translateY(0); }
+body.dark-mode .lang-toggle { color: #dad9e2; }

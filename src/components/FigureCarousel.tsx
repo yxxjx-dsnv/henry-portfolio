@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { AutoVideo } from './AutoVideo';
+import { useLang } from '../i18n';
 
 export type CarouselSlide = {
   src: string;
@@ -15,6 +16,7 @@ export type CarouselSlide = {
 // carries a quiet 2 / 7 counter. Native scroll-snap does the swiping, so touch
 // works with no extra code.
 export function FigureCarousel({ slides, label }: { slides: CarouselSlide[]; label: string }) {
+  const { t } = useLang();
   const trackRef = useRef<HTMLDivElement>(null);
   // While a programmatic smooth-scroll is in flight, intermediate scroll events
   // would round back to the old slide; pending holds the target until we land.
@@ -62,7 +64,7 @@ export function FigureCarousel({ slides, label }: { slides: CarouselSlide[]; lab
           onScroll={onScroll}
           tabIndex={0}
           role="group"
-          aria-roledescription="carousel"
+          aria-roledescription={t('carousel')}
           aria-label={label}
         >
           {slides.map((s) =>
@@ -82,7 +84,7 @@ export function FigureCarousel({ slides, label }: { slides: CarouselSlide[]; lab
             <button
               type="button"
               className="carousel-arrow carousel-prev"
-              aria-label="Previous photo"
+              aria-label={t('Previous photo')}
               aria-disabled={atStart}
               onClick={() => !atStart && go(-1)}
             >
@@ -91,7 +93,7 @@ export function FigureCarousel({ slides, label }: { slides: CarouselSlide[]; lab
             <button
               type="button"
               className="carousel-arrow carousel-next"
-              aria-label="Next photo"
+              aria-label={t('Next photo')}
               aria-disabled={atEnd}
               onClick={() => !atEnd && go(1)}
             >

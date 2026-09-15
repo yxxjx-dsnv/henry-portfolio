@@ -17,7 +17,7 @@ function parsePoint(s: string, now: Date): Date | null {
   return null;
 }
 
-export function durationLabel(range: string, now: Date = new Date()): string | null {
+export function durationLabel(range: string, now: Date = new Date(), lang: 'en' | 'ko' = 'en'): string | null {
   const parts = range.split(/\s[-–]\s/);
   if (parts.length !== 2) return null;
   const start = parsePoint(parts[0], now);
@@ -27,6 +27,7 @@ export function durationLabel(range: string, now: Date = new Date()): string | n
     (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
   const yr = Math.floor(months / 12);
   const mo = months % 12;
+  if (lang === 'ko') return yr === 0 ? `${mo}개월` : mo === 0 ? `${yr}년` : `${yr}년 ${mo}개월`;
   if (yr === 0) return `${mo} mo`;
   if (mo === 0) return `${yr} yr`;
   return `${yr} yr ${mo} mo`;
