@@ -1,9 +1,10 @@
 // Korean for the home page — English on the left, Korean on the right.
 const ko: Record<string, string> = {
+  'Henry Kim': 'Henry Kim | 김연준',
   'South Korea': '대한민국',
   'University of Toronto': '토론토 대학교',
   '19, born in {korea}. Second-year Electrical & Computer Engineering (ECE) student at the {uoft}.':
-    '{korea}에서 태어난 19살, {uoft} 전기·컴퓨터공학과(ECE) 2학년 학생입니다.',
+    '{korea} 국적을 지닌 19살, {uoft} 전기·컴퓨터공학과(ECE) 2학년 학생입니다.',
   'AI/Robotics Engineering Intern': 'AI/로보틱스 엔지니어링 인턴',
   'its own page': '별도 페이지',
   'implementing AI/ML voice recognition system': 'AI/ML 음성 인식 시스템 구현',

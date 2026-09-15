@@ -15,7 +15,7 @@ export function Home() {
   );
   return (
     <section className="section">
-      <Hero title="Henry Kim" playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
+      <Hero title={t('Henry Kim')} playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
       <DotField />
       <DailyQuote />
       <section className="about-section">
