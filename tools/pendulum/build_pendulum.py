@@ -28,7 +28,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-from blendkit import Part, aim, box_mesh, empty, export_glb, fbm, link, material, shoot, srgb, tile_image, to_metres  # noqa: E402
+from blendkit import Part, aim, box_mesh, empty, export_glb, fbm, fill_polys, link, material, path_polys, shoot, srgb, tile_image, to_metres  # noqa: E402
 
 L0 = 221.0  # pivot to bob centre, the report's reference length
 BOB_R = 21.0
@@ -39,6 +39,11 @@ SHELF_EDGE = 60.0  # the rest overhangs the shelf by this much
 PROT_R = 50.0
 PAPER = (420.0, 297.0)  # A3 landscape
 SWING_Y = -4.0  # the swing plane, just in front of the protractor
+APPLE = ("M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7"
+         "-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2"
+         " 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90"
+         "-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3"
+         "-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z")  # the Apple mark, as Font Awesome draws it (viewBox 384 × 512)
 
 
 # --------------------------------------------------------------------------- textures / materials
@@ -66,19 +71,14 @@ def make_tiles(dirpath):
     # the desk mat
     mat = np.array([0.075, 0.078, 0.082])[None, None, :] * (1 + 0.06 * fbm(rng, N, N, (1,), (1,)))[..., None]
     T["mat"] = tile_image("mat", mat, dirpath)
-    # the MacBook lid: silver, the Apple mark at its centre — one 312 mm tile, the logo 45 mm tall
+    # the MacBook lid: silver, the Apple mark 45 mm tall at its centre — one 312 mm tile
     M2 = 1024
-    lx = (np.linspace(0, 1, M2, endpoint=False)[None, :] - 0.5) * LAPTOP[0] / 21.0  # units of the logo's half height
-    ly = (np.linspace(0, 1, M2, endpoint=False)[:, None] - 0.5) * LAPTOP[0] / 21.0
-    ly = ly[::-1]  # row 0 is the top of the tile (+y, the hinge side)
-    disc = lambda cx, cy, r: (lx - cx) ** 2 + (ly - cy) ** 2 < r * r
-    body = disc(-0.32, 0.18, 0.52) | disc(0.32, 0.18, 0.52) | disc(-0.28, -0.35, 0.5) | disc(0.28, -0.35, 0.5) | disc(0, -0.1, 0.62)
-    body &= ~disc(0.74, 0.12, 0.30)  # the bite
-    ca, sa = math.cos(math.radians(-38)), math.sin(math.radians(-38))
-    u, v = (lx - 0.30) * ca - (ly - 1.02) * sa, (lx - 0.30) * sa + (ly - 1.02) * ca
-    leaf = (u / 0.14) ** 2 + (v / 0.34) ** 2 < 1
-    lid = np.ones((M2, M2, 3)) * np.array([0.80, 0.81, 0.83])
-    lid = np.where(np.broadcast_to((body | leaf)[..., None], lid.shape), np.array([0.16, 0.16, 0.17]), lid)
+    polys = path_polys(APPLE)
+    xs = [x for q in polys for x, _ in q]
+    ys = [y for q in polys for _, y in q]
+    cx, cy, k = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, 45.0 / (max(ys) - min(ys)) * M2 / LAPTOP[0]
+    cov = fill_polys(polys, M2, M2, lambda x, y: ((x - cx) * k + M2 / 2, (y - cy) * k + M2 / 2))[..., None]
+    lid = np.array([0.80, 0.81, 0.83]) * (1 - cov) + np.array([0.16, 0.16, 0.17]) * cov
     T["lid"] = tile_image("lid", lid, dirpath)
     # the protractor scale: 100 × 50 mm, ticks every degree round the rim, printed on the plastic
     W, H = 1024, 512
@@ -232,15 +232,12 @@ def build(M):
         for sx in (-1, 1):
             p.box((0.8, 0.8, REST[2] + 1.6), (sx * (REST[0] / 2 + 0.4), y, -REST[2] / 2), M["thread"])
     part("ThreadWraps", p, rig)
-    # the MacBook as ballast, lid closed: a rounded slab with the mark on its lid and the
-    # lid/base seam round its side; its front on the rest, its back edge down on the shelf
-    tilt = -math.asin(REST[2] / LAPTOP[1])
-    R = Matrix.Rotation(tilt, 4, "X")
-    back_edge = Vector((0, LAPTOP_FRONT + LAPTOP[1], -REST[2]))
-    base = back_edge - (R @ Vector((0, LAPTOP[1] / 2, 0)))
-    laptop = outline_mesh("Laptop", rounded_rect(LAPTOP[0], LAPTOP[1], 11), 0, LAPTOP[2], M["laptop"], rig, base, (tilt, 0, 0), uv_scale=LAPTOP[0])
+    # the MacBook as ballast, lid closed, lying flat on the rest with its back hovering over
+    # the shelf: a rounded slab with the mark on its lid and the lid/base seam round its side
+    base = Vector((0, LAPTOP_FRONT + LAPTOP[1] / 2, 0))
+    laptop = outline_mesh("Laptop", rounded_rect(LAPTOP[0], LAPTOP[1], 11), 0, LAPTOP[2], M["laptop"], rig, base, uv_scale=LAPTOP[0])
     bevel(laptop, 1.4)
-    outline_mesh("LaptopSeam", rounded_rect(LAPTOP[0] + 0.5, LAPTOP[1] + 0.5, 11.25), 7.6, 8.2, M["dark"], rig, base, (tilt, 0, 0))
+    outline_mesh("LaptopSeam", rounded_rect(LAPTOP[0] + 0.5, LAPTOP[1] + 0.5, 11.25), 7.6, 8.2, M["dark"], rig, base)
     # the protractor on the rest's front face, its origin at the notch; its printed scale; the tape
     half_annulus("Protractor", 6.5, PROT_R, 1.5, M["plastic"], rig, (0, -1.85, 0))
     half_annulus("ProtractorScale", 5.5, PROT_R, 0.2, M["scale"], rig, (0, -2.75, 0), uv=True)

@@ -6,6 +6,7 @@ parent inverse is left at identity, so a node's local transform is its parent-re
 """
 import math
 import os
+import re
 
 import bmesh
 import bpy
@@ -45,6 +46,104 @@ def tile_image(name, rgb, dirpath, alpha=None):
     img.save()
     img.colorspace_settings.name = "sRGB"
     return img
+
+
+# an SVG path rasterised with numpy — decals such as the Apple mark on a laptop lid
+
+def path_polys(d, segs=18):
+    """Flatten an SVG path (M/L/H/V/C/Q/Z, absolute or relative) into closed polygons of (x, y)."""
+    tokens = re.findall(r"[MmLlHhVvCcQqZz]|-?\d*\.?\d+(?:e-?\d+)?", d)
+    polys, cur, pos, start, cmd, i = [], [], (0.0, 0.0), (0.0, 0.0), None, 0
+
+    def num():
+        nonlocal i
+        v = float(tokens[i])
+        i += 1
+        return v
+
+    def bez(pts):
+        p0 = pos
+        for k in range(1, segs + 1):
+            t = k / segs
+            if len(pts) == 3:
+                x = (1 - t) ** 3 * p0[0] + 3 * (1 - t) ** 2 * t * pts[0][0] + 3 * (1 - t) * t * t * pts[1][0] + t ** 3 * pts[2][0]
+                y = (1 - t) ** 3 * p0[1] + 3 * (1 - t) ** 2 * t * pts[0][1] + 3 * (1 - t) * t * t * pts[1][1] + t ** 3 * pts[2][1]
+            else:
+                x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * pts[0][0] + t * t * pts[1][0]
+                y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * pts[0][1] + t * t * pts[1][1]
+            cur.append((x, y))
+        return pts[-1]
+
+    while i < len(tokens):
+        if tokens[i].isalpha():
+            cmd = tokens[i]
+            i += 1
+        rel = cmd.islower()
+        c = cmd.upper()
+        if c == "Z":
+            if cur:
+                polys.append(cur)
+            cur, pos = [], start
+            continue
+        if c == "M":
+            x, y = num(), num()
+            pos = (pos[0] + x, pos[1] + y) if rel else (x, y)
+            if cur:
+                polys.append(cur)
+            cur, start = [pos], pos
+            cmd = "l" if rel else "L"  # further pairs are line-tos
+            continue
+        if c == "L":
+            x, y = num(), num()
+            pos = (pos[0] + x, pos[1] + y) if rel else (x, y)
+        elif c == "H":
+            x = num()
+            pos = (pos[0] + x if rel else x, pos[1])
+        elif c == "V":
+            y = num()
+            pos = (pos[0], pos[1] + y if rel else y)
+        elif c in ("C", "Q"):
+            n = 3 if c == "C" else 2
+            pts = []
+            for _ in range(n):
+                x, y = num(), num()
+                pts.append((pos[0] + x, pos[1] + y) if rel else (x, y))
+            pos = bez(pts)
+            continue
+        cur.append(pos)
+    if cur:
+        polys.append(cur)
+    return polys
+
+
+def fill_polys(polys, w, h, transform, ss=4):
+    """Even-odd scanline fill at ss× supersampling, returned as a (h, w) coverage in 0..1.
+    `transform` maps path coordinates to pixel coordinates (x right, y down)."""
+    W, H = w * ss, h * ss
+    edges = []
+    for poly in polys:
+        pts = [transform(x, y) for x, y in poly]
+        pts = [(x * ss, y * ss) for x, y in pts]
+        for k in range(len(pts)):
+            (x0, y0), (x1, y1) = pts[k], pts[(k + 1) % len(pts)]
+            if y0 != y1:
+                edges.append((x0, y0, x1, y1))
+    e = np.array(edges)
+    mask = np.zeros((H, W), bool)
+    ys = np.arange(H) + 0.5
+    ymin, ymax = np.minimum(e[:, 1], e[:, 3]), np.maximum(e[:, 1], e[:, 3])
+    for r, y in enumerate(ys):
+        hit = (y >= ymin) & (y < ymax)
+        if not hit.any():
+            continue
+        s = e[hit]
+        xs = s[:, 0] + (y - s[:, 1]) * (s[:, 2] - s[:, 0]) / (s[:, 3] - s[:, 1])
+        xs = np.sort(xs)
+        for a, b in zip(xs[0::2], xs[1::2]):
+            lo, hi = int(np.ceil(a - 0.5)), int(np.floor(b - 0.5)) + 1
+            if hi > lo:
+                mask[r, max(lo, 0):min(hi, W)] = True
+    return mask.reshape(h, ss, w, ss).mean(axis=(1, 3))
 
 
 # --------------------------------------------------------------------------- materials
