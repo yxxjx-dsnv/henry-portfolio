@@ -16,25 +16,28 @@ first, from the report's §2.1 and the photographs.
 
 Modelled in mm, baked to metres: the oak hutch (shelf slab with a rounded front, the board
 under it, wallpaper above, the desk and its black mat), the frosted acrylic wrist rest
-(284 × 97 × 15) on the shelf edge with the thread wound round it three times and dropping
-through the notch at its top-front edge — that edge is the pivot and the protractor's origin
-— the MacBook on it as ballast (its back edge down on the shelf, so it tilts), a clear 10 cm
-protractor taped to the rest's front face with a printed scale (ticks every degree, numerals
+(97 × 284 × 15) lying lengthwise out over the shelf edge, as in the photographs, with the
+thread wound round it three times and dropping through the notch at its top-front edge —
+that edge is the pivot and the protractor's origin — the MacBook on it as ballast (a rounded
+slab with the lid/base seam and the Apple mark on its lid; its back edge down on the shelf,
+so it tilts), a clear 10 cm protractor taped to the rest's 97 mm front face with a printed scale (ticks every degree, numerals
 0–180 as Blender text converted to mesh), an A3 sheet of lined paper taped under the shelf,
 the orange thread with knots every 50 mm, and the 8-ball keychain (white circle, "8",
 eyelet and ring). Rig nodes `Arm` / `Thread` / `Bob` are unchanged, so three.js drives it
 as before. Textures are numpy (oak streaks, wallpaper, lined pad, mat, the tick band).
-`pendulum.glb` ≈ 520 KB (five JPEG textures); the `.blend` sits in `_media-originals/pendulum/`.
+`pendulum.glb` ≈ 540 KB (six JPEG textures, the lid among them); the `.blend` sits in `_media-originals/pendulum/`.
 
 ## The window (`src/components/PendulumLab.tsx`)
 
-Laid out like Tracker: a title bar (Tracker · mass A · frame and time · play/pause · 1×/8×/32×),
-the 3D rig as the video with Tracker's purple axes through the pivot and red step marks on
-the bob's path, and beside it `mass A (t, x)` and `mass A (t, y)` drawn on canvases with the
-yellow readouts under them, then the frame table (t, x, y) at 30 fps — the rate the report's
-decay video was tracked at — scrolling with the latest row highlighted. x and y are the bob
-relative to the pivot. The window keeps its light chrome in dark mode. Below it the
-experiment tabs, Run / finish now / clear, the manual release controls, and the result chart.
+Laid out like the Tracker session but in the site's own type and theme (Libre Baskerville,
+light and dark): a header (Tracker · mass A · frame and time · play/pause · 1×/8×/32×), the 3D
+rig as the video with the purple axes through the pivot and red step marks on the bob's
+path, and beside it `x(t)` and `y(t)` drawn on canvases in the page's colours with a readout
+under each, then the frame table (t, x, y, θ) at 30 fps — the rate the report's decay video
+was tracked at — scrolling with the latest row highlighted. x and y are the bob relative to
+the pivot, θ = atan2(x, −y). A rad/deg toggle sets the unit for θ, the release slider, the
+trial labels and the angle graph's axis; the fits stay in radians. Below it the experiment
+tabs, Run / finish now / clear, the manual release controls, and the result chart.
 
 ## The experiments (`src/components/pendulumExperiments.ts`, pure)
 

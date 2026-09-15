@@ -19,7 +19,7 @@ import {
 } from './pendulumPhysics';
 
 export type ExpId = 'angle' | 'decay' | 'length' | 'q';
-export type Trial = { L: number; theta0: number; seconds: number; label: string };
+export type Trial = { L: number; theta0: number; seconds: number };
 export type Experiment = {
   id: ExpId;
   lab: string;
@@ -35,7 +35,6 @@ export type Experiment = {
 
 const DEG = Math.PI / 180;
 const angles = [-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8];
-const sign = (v: number) => (v > 0 ? '+' : '−');
 
 export const EXPERIMENTS: Experiment[] = [
   {
@@ -49,7 +48,7 @@ export const EXPERIMENTS: Experiment[] = [
     speed: 1,
     data: 'period-vs-angle.txt',
     // ±10° to ±80° in 10° steps at the reference length, a few periods each
-    trials: angles.map((i) => ({ L: REPORT.L, theta0: i * 10 * DEG, seconds: 4, label: `release ${sign(i)}${Math.abs(i) * 10}°` })),
+    trials: angles.map((i) => ({ L: REPORT.L, theta0: i * 10 * DEG, seconds: 4 })),
   },
   {
     id: 'decay',
@@ -61,7 +60,7 @@ export const EXPERIMENTS: Experiment[] = [
     yRange: [0.15, 0.5],
     speed: 32,
     data: 'amplitude-decay.txt',
-    trials: [{ L: REPORT.L, theta0: REPORT.theta0, seconds: 200, label: 'release +30°, tracked 200 s' }],
+    trials: [{ L: REPORT.L, theta0: REPORT.theta0, seconds: 200 }],
   },
   {
     id: 'length',
@@ -73,7 +72,7 @@ export const EXPERIMENTS: Experiment[] = [
     yRange: [0.45, 1.25],
     speed: 1,
     data: 'period-vs-length.txt',
-    trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 6, label: `L = ${L.toFixed(2)} m, release +30°` })),
+    trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 6 })),
   },
   {
     id: 'q',
@@ -85,7 +84,7 @@ export const EXPERIMENTS: Experiment[] = [
     yRange: [250, 850],
     speed: 32,
     data: 'q-factor-vs-length.txt',
-    trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 200, label: `L = ${L.toFixed(2)} m, tracked 200 s` })),
+    trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 200 })),
   },
 ];
 

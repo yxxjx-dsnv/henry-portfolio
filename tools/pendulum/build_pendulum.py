@@ -4,7 +4,7 @@ Run headless:
   Blender -b -P tools/pendulum/build_pendulum.py -- --out public/media/pendulum/pendulum.glb \
       [--poster public/media/pendulum/fig-lab-render.jpg] [--preview DIR] [--blend FILE.blend]
 
-The rig as built: the oak desk hutch, the frosted acrylic wrist rest (284 × 97 × 15) on the
+The rig as built: the oak desk hutch, the frosted acrylic wrist rest (97 × 284 × 15) lying out over the
 shelf edge with the thread wound round it and dropping through the notch at its top-front
 edge, the MacBook on it as ballast, a clear 10 cm protractor taped to the rest's front face
 with its origin at that notch, an A3 sheet of lined paper taped under the shelf as the
@@ -32,8 +32,10 @@ from blendkit import Part, aim, box_mesh, empty, export_glb, fbm, link, material
 
 L0 = 221.0  # pivot to bob centre, the report's reference length
 BOB_R = 21.0
-REST = (284.0, 97.0, 15.0)
+REST = (97.0, 284.0, 15.0)  # across × front-to-back × thick: it lies lengthwise, out from under the laptop
 LAPTOP = (312.0, 221.0, 15.5)
+LAPTOP_FRONT = 120.0  # how far back from the rest's front edge the laptop starts
+SHELF_EDGE = 60.0  # the rest overhangs the shelf by this much
 PROT_R = 50.0
 PAPER = (420.0, 297.0)  # A3 landscape
 SWING_Y = -4.0  # the swing plane, just in front of the protractor
@@ -64,6 +66,20 @@ def make_tiles(dirpath):
     # the desk mat
     mat = np.array([0.075, 0.078, 0.082])[None, None, :] * (1 + 0.06 * fbm(rng, N, N, (1,), (1,)))[..., None]
     T["mat"] = tile_image("mat", mat, dirpath)
+    # the MacBook lid: silver, the Apple mark at its centre — one 312 mm tile, the logo 45 mm tall
+    M2 = 1024
+    lx = (np.linspace(0, 1, M2, endpoint=False)[None, :] - 0.5) * LAPTOP[0] / 21.0  # units of the logo's half height
+    ly = (np.linspace(0, 1, M2, endpoint=False)[:, None] - 0.5) * LAPTOP[0] / 21.0
+    ly = ly[::-1]  # row 0 is the top of the tile (+y, the hinge side)
+    disc = lambda cx, cy, r: (lx - cx) ** 2 + (ly - cy) ** 2 < r * r
+    body = disc(-0.32, 0.18, 0.52) | disc(0.32, 0.18, 0.52) | disc(-0.28, -0.35, 0.5) | disc(0.28, -0.35, 0.5) | disc(0, -0.1, 0.62)
+    body &= ~disc(0.74, 0.12, 0.30)  # the bite
+    ca, sa = math.cos(math.radians(-38)), math.sin(math.radians(-38))
+    u, v = (lx - 0.30) * ca - (ly - 1.02) * sa, (lx - 0.30) * sa + (ly - 1.02) * ca
+    leaf = (u / 0.14) ** 2 + (v / 0.34) ** 2 < 1
+    lid = np.ones((M2, M2, 3)) * np.array([0.80, 0.81, 0.83])
+    lid = np.where(np.broadcast_to((body | leaf)[..., None], lid.shape), np.array([0.16, 0.16, 0.17]), lid)
+    T["lid"] = tile_image("lid", lid, dirpath)
     # the protractor scale: 100 × 50 mm, ticks every degree round the rim, printed on the plastic
     W, H = 1024, 512
     x = np.linspace(-PROT_R, PROT_R, W, endpoint=False)[None, :] + PROT_R / W
@@ -90,7 +106,8 @@ def materials(T):
         "acrylic": material("Acrylic", srgb("e6ebee"), 0.5, alpha=0.55),
         "plastic": material("Protractor", srgb("dfe8ef"), 0.08, alpha=0.32),
         "tape": material("Tape", srgb("ffffff"), 0.45, alpha=0.35),
-        "laptop": material("Laptop", srgb("c9cbcf"), 0.35, metallic=0.85),
+        "laptop": material("Laptop", (1, 1, 1), 0.32, metallic=0.85, image=T["lid"]),
+        "dark": material("Dark", srgb("2a2b2e"), 0.45, metallic=0.6),
         "thread": material("Thread", srgb("d98a2b"), 0.75),
         "bob": material("Bob", srgb("0a0a0c"), 0.12),
         "white": material("White", srgb("f4f4f2"), 0.35),
@@ -130,6 +147,34 @@ def half_annulus(name, r_in, r_out, thick, mat, parent, at, segs=96, uv=None):
     return link(name, me, parent, at)
 
 
+def outline_mesh(name, poly, z0, z1, mat, parent, loc=(0, 0, 0), rot=(0, 0, 0), uv_scale=None):
+    """A polygon extruded z0..z1 with planar UVs (x, y) / uv_scale centred on the origin."""
+    n = len(poly)
+    verts = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
+    faces = [list(range(n))[::-1], [n + i for i in range(n)]] + [[i, (i + 1) % n, n + (i + 1) % n, n + i] for i in range(n)]
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.validate()
+    me.materials.append(mat)
+    if uv_scale:
+        layer = me.uv_layers.new(name="UVMap")
+        for poly_ in me.polygons:
+            for li in poly_.loop_indices:
+                q = me.vertices[me.loops[li].vertex_index].co
+                layer.data[li].uv = (q.x / uv_scale + 0.5, q.y / uv_scale + 0.5)
+    return link(name, me, parent, loc, rot)
+
+
+def rounded_rect(w, h, r, segs=6):
+    """Counter-clockwise outline of a w × h rectangle with corners of radius r, centred."""
+    out = []
+    for cx, cy, a0 in ((w / 2 - r, h / 2 - r, 0), (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180), (w / 2 - r, -h / 2 + r, 270)):
+        for i in range(segs + 1):
+            a = math.radians(a0 + 90 * i / segs)
+            out.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return out
+
+
 def text_mesh(name, body, size, mat, parent, loc, rot):
     """Blender's built-in font, converted to a flat mesh so the mm → m bake reaches it."""
     cu = bpy.data.curves.new(name, "FONT")
@@ -157,7 +202,7 @@ def part(name, p, parent, loc=(0, 0, 0), rot=(0, 0, 0)):
 def build(M):
     rig = empty("Rig", None)
     # the hutch: shelf slab with a rounded front, wood board under it, wallpaper above, the desk and its mat
-    me, c = box_mesh("Shelf", (-1200, 1200, 50, 350, -50, -15), [M["oak"]], uv=600, along="x")
+    me, c = box_mesh("Shelf", (-1200, 1200, SHELF_EDGE, 352, -50, -15), [M["oak"]], uv=600, along="x")
     bevel(link("Shelf", me, rig, c), 4)
     p = Part()
     p.box((2400, 6, 385), (0, 349, -242.5), M["board"])
@@ -175,25 +220,27 @@ def build(M):
     for x, z in ((-180, -62), (180, -62), (-PAPER[0] / 2 + 2, -190), (PAPER[0] / 2 - 2, -190)):
         p.box((42, 0.3, 18), (x, 343.2, z), M["tape"])
     part("PaperTape", p, rig)
-    # the wrist rest on the shelf edge, its top-front edge the pivot; the thread wound round it three times
+    # the wrist rest lying out over the shelf edge, its top-front edge the pivot; the thread
+    # wound round it three times just behind the notch
     p = Part()
     p.box(REST, (0, REST[1] / 2, -REST[2] / 2), M["acrylic"])
     bevel(part("WristRest", p, rig), 2.5)
     p = Part()
-    for x in (-6, 0, 6):
-        p.box((0.8, REST[1], 0.8), (x, REST[1] / 2, 0.4), M["thread"])
-        p.box((0.8, REST[1], 0.8), (x, REST[1] / 2, -REST[2] - 0.4), M["thread"])
-        p.box((0.8, 0.8, REST[2]), (x, REST[1] + 0.4, -REST[2] / 2), M["thread"])
-        p.box((0.8, 0.8, REST[2]), (x, -0.4, -REST[2] / 2), M["thread"])
+    for y in (22, 34, 46):
+        p.box((REST[0] + 1.6, 0.8, 0.8), (0, y, 0.4), M["thread"])
+        p.box((REST[0] + 1.6, 0.8, 0.8), (0, y, -REST[2] - 0.4), M["thread"])
+        for sx in (-1, 1):
+            p.box((0.8, 0.8, REST[2] + 1.6), (sx * (REST[0] / 2 + 0.4), y, -REST[2] / 2), M["thread"])
     part("ThreadWraps", p, rig)
-    # the laptop as ballast: its front on the rest, its back edge down on the shelf
+    # the MacBook as ballast, lid closed: a rounded slab with the mark on its lid and the
+    # lid/base seam round its side; its front on the rest, its back edge down on the shelf
     tilt = -math.asin(REST[2] / LAPTOP[1])
     R = Matrix.Rotation(tilt, 4, "X")
-    back_edge = Vector((0, 40 + LAPTOP[1], -REST[2]))
-    centre = back_edge - (R @ Vector((0, LAPTOP[1] / 2, -LAPTOP[2] / 2)))
-    p = Part()
-    p.box(LAPTOP, centre, M["laptop"], rot=R)
-    bevel(part("Laptop", p, rig), 5)
+    back_edge = Vector((0, LAPTOP_FRONT + LAPTOP[1], -REST[2]))
+    base = back_edge - (R @ Vector((0, LAPTOP[1] / 2, 0)))
+    laptop = outline_mesh("Laptop", rounded_rect(LAPTOP[0], LAPTOP[1], 11), 0, LAPTOP[2], M["laptop"], rig, base, (tilt, 0, 0), uv_scale=LAPTOP[0])
+    bevel(laptop, 1.4)
+    outline_mesh("LaptopSeam", rounded_rect(LAPTOP[0] + 0.5, LAPTOP[1] + 0.5, 11.25), 7.6, 8.2, M["dark"], rig, base, (tilt, 0, 0))
     # the protractor on the rest's front face, its origin at the notch; its printed scale; the tape
     half_annulus("Protractor", 6.5, PROT_R, 1.5, M["plastic"], rig, (0, -1.85, 0))
     half_annulus("ProtractorScale", 5.5, PROT_R, 0.2, M["scale"], rig, (0, -2.75, 0), uv=True)
@@ -202,8 +249,8 @@ def build(M):
         psi = math.atan2(-math.cos(phi), -math.sin(phi))
         text_mesh(f"Deg{a}", str(a), 3.2, M["ink"], rig, (41.5 * math.cos(phi), -2.95, 41.5 * math.sin(phi)), (math.pi / 2, psi, 0))
     p = Part()
-    for x in (-56, 56):
-        p.box((22, 0.3, 14), (x, -3.0, -7.5), M["tape"])
+    for x in (-30, 30):
+        p.box((20, 0.3, 13), (x, -3.0, -7.0), M["tape"])
     part("ProtractorTape", p, rig)
 
     # the pendulum: Arm rotates, Thread scales to the string length, Bob rides at −L
@@ -290,7 +337,7 @@ def main():
         cam = lights((0, 0, -0.14))
         bpy.data.objects["Arm"].rotation_euler = (0, 0.42, 0)  # mid-swing reads better than dead centre
         if args.poster:
-            aim(cam, (0.0, 0.0, -0.13), 0.72, -104, 9)
+            aim(cam, (0.0, 0.02, -0.10), 0.80, -106, 26)
             shoot(args.poster, 1600, 1000, "JPEG")
         if args.preview:
             os.makedirs(args.preview, exist_ok=True)
@@ -298,6 +345,8 @@ def main():
             shoot(os.path.join(args.preview, "protractor.png"), 1400, 900)
             aim(cam, (0.0, 0.0, -0.18), 1.1, -125, 14)
             shoot(os.path.join(args.preview, "overview.png"), 1400, 900)
+            aim(cam, (0.0, 0.2, 0.0), 0.7, -100, 48)
+            shoot(os.path.join(args.preview, "laptop.png"), 1400, 900)
     if args.blend:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(args.blend))
 

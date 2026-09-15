@@ -27,7 +27,19 @@ const ROWS = 8; // the table rows that fit beside the video
 
 type Live = { run: Run; trial: Trial; exp: ExpId; idx: number }; // idx −1: a manual release
 
-const fmtX = (v: number) => (Math.abs(v) < 0.1 ? v.toExponential(3).replace('e', 'E') : v.toFixed(3));
+const fmtX = (v: number) => (Object.is(v, -0) ? '0.000' : v.toFixed(3));
+type Unit = 'rad' | 'deg';
+const DEG = 180 / Math.PI;
+const fmtAngle = (th: number, unit: Unit, signed = false) => {
+  const sign = signed && th > 0 ? '+' : '';
+  return unit === 'rad' ? `${sign}${th.toFixed(3)} rad` : `${sign}${(th * DEG).toFixed(1)}°`;
+};
+/** How a trial reads in the progress line, in the chosen unit. */
+const labelOf = (t: Trial, exp: ExpId, unit: Unit) =>
+  exp === 'angle'
+    ? `release ${fmtAngle(t.theta0, unit, true)}`
+    : `L = ${t.L.toFixed(2)} m, release ${fmtAngle(t.theta0, unit, true)}${t.seconds >= 60 ? `, tracked ${t.seconds} s` : ''}`;
+type PlotStyle = { fg: string; bg: string; grid: string; accent: string; font: string };
 
 export function PendulumLab() {
   const [active, setActive] = useState(
@@ -39,11 +51,12 @@ export function PendulumLab() {
   const [length, setLength] = useState(REPORT.L);
   const [speed, setSpeed] = useState(1);
   const [paused, setPaused] = useState(false);
+  const [unit, setUnit] = useState<Unit>('rad');
   const [running, setRunning] = useState(false);
   const [trialIdx, setTrialIdx] = useState(-1);
   const [points, setPoints] = useState<Record<ExpId, Point[]>>({ angle: [], decay: [], length: [], q: [] });
   const [measured, setMeasured] = useState<Partial<Record<ExpId, Point[]>>>({});
-  const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, n: 0 });
+  const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, th: 0, n: 0 });
   const [rows, setRows] = useState<string[][]>([]);
   const mountRef = useRef<HTMLDivElement>(null);
   const plotX = useRef<HTMLCanvasElement>(null);
@@ -53,6 +66,9 @@ export function PendulumLab() {
   const bufRef = useRef<Track>({ t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 });
   const trailRef = useRef<{ points: Points; attr: BufferAttribute } | null>(null);
   const doneRef = useRef<() => void>(() => {});
+  const unitRef = useRef<Unit>('rad');
+  const styleRef = useRef<PlotStyle | null>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
 
   const def = experiment(exp);
 
@@ -68,7 +84,7 @@ export function PendulumLab() {
     (id: ExpId): Trial => {
       const L = id === 'length' || id === 'q' ? length : REPORT.L;
       const th = id === 'angle' ? angle : REPORT.theta0;
-      return { L, theta0: th, seconds: id === 'decay' || id === 'q' ? 200 : 8, label: 'a release' };
+      return { L, theta0: th, seconds: id === 'decay' || id === 'q' ? 200 : 8 };
     },
     [angle, length],
   );
@@ -105,7 +121,8 @@ export function PendulumLab() {
   useEffect(() => {
     clockRef.current.speed = speed;
     clockRef.current.paused = paused;
-  }, [speed, paused]);
+    unitRef.current = unit;
+  }, [speed, paused, unit]);
 
   const runExperiment = () => {
     setPoints((p) => ({ ...p, [exp]: [] }));
@@ -176,8 +193,21 @@ export function PendulumLab() {
         const mount = mountRef.current;
         if (!mount || disposed) return;
 
+        const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xd8d6d2);
+        const restyle = () => {
+          scene.background = new THREE.Color(dark() ? 0x1c1c1e : 0xd8d6d2);
+          const host = plotX.current?.parentElement;
+          const cs = host ? getComputedStyle(host) : null;
+          styleRef.current = {
+            fg: cs?.color || '#3e3e3e',
+            bg: cs?.backgroundColor || '#ffffff',
+            grid: dark() ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)',
+            accent: (frameRef.current && getComputedStyle(frameRef.current).getPropertyValue('--trk-accent').trim()) || '#d62b30',
+            font: cs?.fontFamily || 'Georgia, serif',
+          };
+        };
+        restyle(); // and again every half second in the loop: the theme sweep animates the colours
         const camera = new THREE.PerspectiveCamera(
           36,
           (mount.clientWidth || 560) / (mount.clientHeight || 400),
@@ -291,11 +321,16 @@ export function PendulumLab() {
 
         let last = 0;
         let lastUi = 0;
+        let lastStyle = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;
+          if (now - lastStyle > 500) {
+            lastStyle = now;
+            restyle();
+          }
           const live = liveRef.current;
           if (live) {
             const clock = clockRef.current;
@@ -330,16 +365,22 @@ export function PendulumLab() {
               if (added) {
                 trailAttr.needsUpdate = true;
                 trailGeo.setDrawRange(0, buf.n);
-                drawPlot(plotX.current, buf, 'x', trial.seconds);
-                drawPlot(plotY.current, buf, 'y', trial.seconds);
+                const st = styleRef.current;
+                if (st) {
+                  drawPlot(plotX.current, buf, 'x', trial.seconds, st);
+                  drawPlot(plotY.current, buf, 'y', trial.seconds, st);
+                }
               }
               if (now - lastUi > 100 && buf.n > 0) {
                 lastUi = now;
                 const i = buf.n - 1;
-                setFrame({ t: buf.t[i], x: buf.x[i], y: buf.y[i], n: i });
+                const u = unitRef.current;
+                setFrame({ t: buf.t[i], x: buf.x[i], y: buf.y[i], th: Math.atan2(buf.x[i], -buf.y[i]), n: i });
                 const out: string[][] = [];
-                for (let k = Math.max(0, buf.n - ROWS); k < buf.n; k++)
-                  out.push([buf.t[k].toFixed(3), fmtX(buf.x[k]), buf.y[k].toFixed(3)]);
+                for (let k = Math.max(0, buf.n - ROWS); k < buf.n; k++) {
+                  const th = Math.atan2(buf.x[k], -buf.y[k]);
+                  out.push([buf.t[k].toFixed(3), fmtX(buf.x[k]), buf.y[k].toFixed(3), u === 'rad' ? th.toFixed(3) : (th * DEG).toFixed(1)]);
+                }
                 setRows(out);
               }
             }
@@ -372,10 +413,14 @@ export function PendulumLab() {
   const fit = useMemo(() => fitOf(exp, pts), [exp, pts]);
   const A0 = exp === 'decay' ? (measured.decay?.[0]?.y ?? pts[0]?.y ?? REPORT.theta0) : REPORT.theta0;
   const progress = running
-    ? `trial ${trialIdx + 1} of ${def.trials.length} · ${def.trials[trialIdx]?.label ?? ''}`
+    ? `trial ${trialIdx + 1} of ${def.trials.length} · ${def.trials[trialIdx] ? labelOf(def.trials[trialIdx], exp, unit) : ''}`
     : pts.length
       ? `${def.trials.length} trials done`
       : 'a single release — press Run for the experiment';
+  // the angle experiment's graph reads in the chosen unit; the fits stay in radians
+  const xf = exp === 'angle' && unit === 'deg' ? DEG : 1;
+  const scaled = (p?: Point[]) => (xf === 1 ? p : p?.map((q) => ({ ...q, x: q.x * xf })));
+  const inRad = (f?: (x: number) => number) => (f && xf !== 1 ? (x: number) => f(x / xf) : f);
   const chartNote = fit?.note ?? (pts.length ? `${pts.length} of ${def.trials.length} trials measured — the fit needs a few more` : `Run ${def.lab.toLowerCase()} on the twin: ${def.trials.length === 1 ? 'one release, ' : `${def.trials.length} releases, `}each measured off its tracked frames.`);
 
   return (
@@ -392,10 +437,10 @@ export function PendulumLab() {
           <span className="model-cta">Open the lab in Tracker</span>
         </button>
       ) : (
-        <div className="asrs-frame trk">
-          <div className="trk-bar">
+        <div className="asrs-frame trk" ref={frameRef}>
+          <div className="trk-head">
             <span className="trk-title">Tracker</span>
-            <span className="trk-track">◇ mass A</span>
+            <span className="trk-muted">mass A · the bob, pivot as origin</span>
             <span className="trk-clock">
               frame {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
@@ -426,7 +471,7 @@ export function PendulumLab() {
               </span>
               {status === 'ready' && (
                 <span className="trk-read" aria-hidden="true">
-                  x={fmtX(frame.x)} m y={fmtX(frame.y)} m
+                  x = {fmtX(frame.x)} m · y = {fmtX(frame.y)} m · θ = {fmtAngle(frame.th, unit)}
                 </span>
               )}
             </div>
@@ -434,13 +479,13 @@ export function PendulumLab() {
               <div className="trk-plot">
                 <canvas ref={plotX} aria-label="mass A: x against t" />
                 <span className="trk-read">
-                  t={frame.t.toFixed(3)} s x={fmtX(frame.x)} m
+                  t = {frame.t.toFixed(3)} s · x = {fmtX(frame.x)} m
                 </span>
               </div>
               <div className="trk-plot">
                 <canvas ref={plotY} aria-label="mass A: y against t" />
                 <span className="trk-read">
-                  t={frame.t.toFixed(3)} s y={fmtX(frame.y)} m
+                  t = {frame.t.toFixed(3)} s · y = {fmtX(frame.y)} m
                 </span>
               </div>
               <div className="trk-table" aria-label="mass A frame table">
@@ -450,6 +495,7 @@ export function PendulumLab() {
                       <th>t (s)</th>
                       <th>x (m)</th>
                       <th>y (m)</th>
+                      <th>θ ({unit})</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,6 +504,7 @@ export function PendulumLab() {
                         <td>{r[0]}</td>
                         <td>{r[1]}</td>
                         <td>{r[2]}</td>
+                        <td>{r[3]}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -499,9 +546,16 @@ export function PendulumLab() {
                   </button>
                 )}
                 <span className="trk-progress">{progress}</span>
+                <span className="trk-seg" role="group" aria-label="Angle unit">
+                  {(['rad', 'deg'] as Unit[]).map((u) => (
+                    <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} onClick={() => setUnit(u)}>
+                      {u}
+                    </button>
+                  ))}
+                </span>
                 {exp === 'angle' && (
                   <label className="lab-field">
-                    release {angle.toFixed(2)} rad
+                    release {fmtAngle(angle, unit)}
                     <input
                       type="range"
                       min={-1.4}
@@ -530,13 +584,13 @@ export function PendulumLab() {
               </div>
               <Chart
                 title={def.name}
-                xLabel={def.x}
+                xLabel={exp === 'angle' ? `Release angle (${unit})` : def.x}
                 yLabel={def.y}
-                twin={exp === 'decay' ? pts.filter((_, i) => i % 3 === 0) : pts}
-                twinLine={fit?.line}
-                reportLine={reportLine(exp, A0)}
-                measured={exp === 'decay' ? measured.decay?.filter((_, i) => i % 2 === 0) : measured[exp]}
-                xRange={def.xRange}
+                twin={scaled(exp === 'decay' ? pts.filter((_, i) => i % 3 === 0) : pts)!}
+                twinLine={inRad(fit?.line)}
+                reportLine={inRad(reportLine(exp, A0))!}
+                measured={scaled(exp === 'decay' ? measured.decay?.filter((_, i) => i % 2 === 0) : measured[exp])}
+                xRange={[def.xRange[0] * xf, def.xRange[1] * xf]}
                 yRange={def.yRange}
               />
               <p className="asrs-note">{chartNote}</p>
@@ -566,7 +620,7 @@ function envelopeOf(track: Point[]): Point[] {
 
 // ── the live plots, drawn the way Tracker draws them: red steps on white ────
 
-function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y', seconds: number) {
+function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y', seconds: number, st: PlotStyle) {
   if (!canvas) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const W = canvas.clientWidth || 300;
@@ -578,7 +632,7 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   const g = canvas.getContext('2d');
   if (!g) return;
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.fillStyle = '#ffffff';
+  g.fillStyle = st.bg;
   g.fillRect(0, 0, W, H);
   const m = { l: 46, r: 8, t: 16, b: 26 };
   const unit = which === 'x' ? 100 : 1; // x reads in ×10⁻² m, as Tracker labelled it
@@ -598,13 +652,17 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   hi += pad;
   const sx = (t: number) => m.l + (t / seconds) * (W - m.l - m.r);
   const sy = (y: number) => H - m.b - ((y - lo) / (hi - lo)) * (H - m.t - m.b);
-  g.strokeStyle = '#1c1c1c';
+  g.strokeStyle = st.grid;
   g.lineWidth = 1;
-  g.strokeRect(m.l, m.t, W - m.l - m.r, H - m.t - m.b);
-  g.fillStyle = '#1c1c1c';
-  g.font = '10px ui-monospace, Menlo, monospace';
+  g.strokeRect(m.l + 0.5, m.t + 0.5, W - m.l - m.r, H - m.t - m.b);
+  g.beginPath();
+  g.moveTo(m.l, sy((lo + hi) / 2) + 0.5);
+  g.lineTo(W - m.r, sy((lo + hi) / 2) + 0.5);
+  g.stroke();
+  g.fillStyle = st.fg;
+  g.font = `10px ${st.font}`;
   g.textAlign = 'center';
-  g.fillText(`mass A (t, ${which})`, m.l + (W - m.l - m.r) / 2, 11);
+  g.fillText(`mass A · ${which}(t)`, m.l + (W - m.l - m.r) / 2, 11);
   g.fillText('t (s)', m.l + (W - m.l - m.r) / 2, H - 4);
   for (let k = 0; k <= 2; k++) {
     const t = (seconds * k) / 2;
@@ -622,7 +680,7 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   g.textAlign = 'center';
   g.fillText(`${which} (m)`, 0, 0);
   g.restore();
-  g.fillStyle = '#e0202a';
+  g.fillStyle = st.accent;
   const step = Math.max(1, Math.ceil(buf.n / 2400));
   for (let i = 0; i < buf.n; i += step) {
     g.fillRect(sx(buf.t[i]) - 1, sy(v[i]) - 1, 2, 2);
