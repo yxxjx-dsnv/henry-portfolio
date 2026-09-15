@@ -1,0 +1,29 @@
+// Diagnostic, not a permanent test: render every page in Korean and list prose that stayed English.
+import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { writeFileSync } from 'node:fs';
+import { LangProvider } from '../i18n';
+import * as P from './index_all';
+
+const PAGES: Record<string, () => JSX.Element> = P as any;
+const hangul = /[가-힣]/;
+test('list English prose on the Korean site', () => {
+  localStorage.setItem('lang', 'ko');
+  const out: string[] = [];
+  for (const [name, Page] of Object.entries(PAGES)) {
+    const { container, unmount } = render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <LangProvider><Page /></LangProvider>
+      </MemoryRouter>,
+    );
+    const seen = new Set<string>();
+    container.querySelectorAll('p, figcaption, li, dd, td, img[alt], summary').forEach((el) => {
+      const txt = el.tagName === 'IMG' ? (el as HTMLImageElement).alt : (el as HTMLElement).innerText ?? el.textContent ?? '';
+      const t = txt.replace(/\s+/g, ' ').trim();
+      if (t.length >= 40 && !hangul.test(t) && !seen.has(t)) { seen.add(t); out.push(`${name}\t${el.tagName.toLowerCase()}\t${t}`); }
+    });
+    unmount();
+  }
+  writeFileSync(process.env.KO_GAP_OUT!, out.join('\n'));
+  expect(true).toBe(true);
+});
