@@ -71,7 +71,9 @@ export default function App() {
     }
     const x = e.clientX;
     const y = e.clientY;
+    document.documentElement.classList.add('theme-sweep');
     const vt = document.startViewTransition(() => flushSync(() => toggle()));
+    vt.finished.finally(() => document.documentElement.classList.remove('theme-sweep'));
     vt.ready.then(() => {
       const r = Math.hypot(
         Math.max(x, window.innerWidth - x),
