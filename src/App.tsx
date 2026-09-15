@@ -23,6 +23,7 @@ import { Education } from './pages/Education';
 import { NotFound } from './pages/NotFound';
 import { Colophon } from './pages/Colophon';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useLang } from './i18n';
 
 const HASH_ROUTES: Record<string, string> = {
   '#home': '/',
@@ -55,6 +56,7 @@ const KEY_ROUTES = ['/', '/projects', '/essays', '/extra-curricular', '/educatio
 
 export default function App() {
   const { isDark, toggle } = useDarkMode();
+  const { lang, setLang } = useLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,7 +71,9 @@ export default function App() {
     }
     const x = e.clientX;
     const y = e.clientY;
+    document.documentElement.classList.add('theme-sweep');
     const vt = document.startViewTransition(() => flushSync(() => toggle()));
+    vt.finished.finally(() => document.documentElement.classList.remove('theme-sweep'));
     vt.ready.then(() => {
       const r = Math.hypot(
         Math.max(x, window.innerWidth - x),
@@ -223,6 +227,7 @@ export default function App() {
     { label: 'Extra-Curricular', hint: '4', run: () => navigate('/extra-curricular') },
     { label: 'Education', hint: '5', run: () => navigate('/education') },
     { label: 'Colophon', run: () => navigate('/colophon') },
+    { label: 'Switch language', hint: lang === 'en' ? '한국어' : 'English', run: () => setLang(lang === 'en' ? 'ko' : 'en') },
     { label: 'Incheon ASRS — the story', run: () => navigate('/projects/incheon-robotics') },
     { label: 'Campus Pulse — the story', run: () => navigate('/projects/campus-pulse') },
     { label: 'MONO — the story', run: () => navigate('/projects/mono') },

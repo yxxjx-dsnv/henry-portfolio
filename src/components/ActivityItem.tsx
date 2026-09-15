@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { durationLabel } from '../utils/duration';
 import type { Activity } from '../types';
+import { useLang } from '../i18n';
 
 export function ActivityItem({ item }: { item: Activity }) {
+  const { t } = useLang();
   const { prefix, link, suffix, date, detail, slug, logo } = item;
   const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
   return (
@@ -35,7 +37,7 @@ export function ActivityItem({ item }: { item: Activity }) {
             {logo && <img className="activity-logo" src={logo} alt="" loading="lazy" />}
             {detail.map((para, i) => (
               <Fragment key={i}>
-                <p>{para}</p>
+                <p>{t(para)}</p>
                 {i < detail.length - 1 && <br />}
               </Fragment>
             ))}

@@ -1,0 +1,26 @@
+// Korean for the UTKESA page — the prose; headings stay English. English on the left, Korean on the right.
+const ko: Record<string, string> = {
+  "UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025 and became an executive in January 2026, helping plan and run the association's events. What I care about most from that time is a donation the association made to a museum campaign.": "토론토 대학교 한인 공학 학생회(UTKESA)는 학업 지원, 커리어 개발, 친목 행사로 한인 공학도들을 잇는 단체입니다. 저는 2025년 9월 행사부 인턴으로 들어가 2026년 1월 임원이 되었고 학생회의 행사를 기획하고 운영하는 일을 돕고 있습니다. 그 시간 중 가장 마음이 가는 일은 학생회가 한 박물관 캠페인에 보탠 기부입니다.",
+  "The Royal Ontario Museum has Canada's only permanent Gallery of Korea. Without a dedicated curator it could have closed or been folded into a broader East Asian gallery, and the specific history it is there to tell would have blurred into that. The Korea Root Initiative started a campaign to fund a permanent curator, and UTKESA decided to support it.": "로열 온타리오 박물관(ROM)에는 캐나다 유일의 상설 한국관이 있습니다. 전담 큐레이터가 없으면 폐관되거나 더 넓은 동아시아관에 흡수될 수 있었고, 그러면 한국관이 전하려고 존재하는 고유한 역사가 그 안에서 흐려졌을 것입니다. Korea Root Initiative가 상임 큐레이터 기금 캠페인을 시작했고 UTKESA는 그 캠페인을 지지하기로 했습니다.",
+  "We made the donation around Samil-jeol, the March 1st holiday that commemorates the 1919 Korean independence movement, on purpose. For Korean students studying abroad it was our way of marking the day. The money had been raised over the year by the executive team.": "기부는 1919년 독립운동을 기리는 삼일절 무렵에 일부러 맞춰서 했습니다. 해외에서 공부하는 한인 학생들에게는 그날을 기념하는 우리 나름의 방식이었습니다. 기금은 임원진이 한 해 동안 모은 것이었습니다.",
+  "The Korea Root Initiative later held a fundraiser where community leaders, organizations, and student groups gathered for the cause, and the contribution was handed over there in person. Our 43rd president Jihan Kang and 44th president Leo Choung represented UTKESA. I helped with the work behind our part of it as a member of the event team. The photos below are from that day, at the fundraiser and at the gallery itself.": "이후 Korea Root Initiative는 지역 사회 지도자와 단체, 학생 모임이 이 취지로 모이는 모금 행사를 열었고 기부금은 그곳에서 직접 전달했습니다. 43대 회장 강지한과 44대 회장 Leo Choung이 UTKESA를 대표했습니다. 저는 행사팀의 일원으로서 우리 몫의 뒷일을 도왔습니다. 아래 사진은 그날 모금 행사와 한국관에서 찍은 것입니다.",
+  "The Korea Root Initiative event and the Gallery of Korea": "Korea Root Initiative 행사와 한국관",
+  "The Korea Root Initiative recognized the contribution with a certificate: CAD $400 from the Korean Engineering Students' Association at the University of Toronto, toward a permanent curator for the Gallery of Korea at the ROM. It is a small amount next to what a curator costs, but it is on the record and it went to one specific gallery.": "Korea Root Initiative는 이 기부에 인증서를 발급해 주었습니다. 토론토 대학교 한인 공학 학생회가 ROM 한국관 상임 큐레이터를 위해 기부한 400 캐나다달러입니다. 큐레이터 한 명에 드는 비용에 비하면 작은 금액이지만 기록에 남았고 특정한 전시관 하나를 위해 쓰였습니다.",
+  "The Korea Root Initiative Certification of Contribution: presented to the Korean Engineering Students' Association at the University of Toronto for a CAD $400 contribution toward establishing a permanent curator for the Gallery of Korea at the Royal Ontario Museum, dated May 10, 2026.": "Korea Root Initiative 기부 인증서. 로열 온타리오 박물관 한국관 상임 큐레이터 설립을 위한 400 캐나다달러 기부에 대해 토론토 대학교 한인 공학 학생회에 수여, 2026년 5월 10일 자.",
+  "The certificate: CAD $400, dated May 10, 2026.": "인증서: 400 캐나다달러, 2026년 5월 10일.",
+  "Most of what a student association does is logistics: rooms, sign-ups, schedules. A club also lets a group put a bit of money and effort toward something it decides matters, and for us that was the Gallery of Korea. That money came from the events the executive team ran all year, which is reason enough for the logistics.": "학생회가 하는 일의 대부분은 실무입니다. 장소, 신청, 일정. 동아리는 또한 사람들이 모여 스스로 중요하다고 정한 일에 약간의 돈과 노력을 보탤 수 있게 해 주고, 우리에게 그 일은 한국관이었습니다. 그 돈은 임원진이 한 해 내내 연 행사에서 나왔고, 그것이면 실무를 할 이유로 충분합니다.",
+  // photo captions and alt text
+  "A speaker in hanbok addresses the room with a microphone in front of a large Korean flag at the Korea Root Initiative fundraising event.": "Korea Root Initiative 모금 행사에서 커다란 태극기 앞에 선 한복 차림의 연사가 마이크를 들고 청중에게 이야기하고 있습니다.",
+  "The Korea Root Initiative fundraiser.": "Korea Root Initiative 모금 행사.",
+  "A student hands a donation envelope to an organizer in front of a Korean flag, others watching and filming.": "태극기 앞에서 한 학생이 주최 측에 기부 봉투를 건네고, 다른 사람들이 지켜보며 촬영하고 있습니다.",
+  "Handing over the contribution.": "기부금 전달.",
+  "Four UTKESA representatives stand with the Korea Root Initiative organizer, two of them holding framed certificates of contribution.": "UTKESA 대표 네 명이 Korea Root Initiative 주최자와 함께 서 있고, 그중 두 명이 액자에 넣은 기부 인증서를 들고 있습니다.",
+  "UTKESA representatives with the certificates.": "인증서를 든 UTKESA 대표들.",
+  "Hands signing messages in marker across a large Korean flag laid on a table.": "테이블에 펼친 커다란 태극기 위에 마커로 메시지를 적는 손들.",
+  "Signing the flag at the event.": "행사장에서 태극기에 서명하는 모습.",
+  "The Royal Ontario Museum's Gallery of Korea: glass cases of Korean drums, instruments, and artifacts, visitors walking through.": "로열 온타리오 박물관 한국관. 유리 진열장 안의 한국 북과 악기, 유물들 사이로 관람객이 지나갑니다.",
+  "The ROM's Gallery of Korea, which the donation supports.": "이 기부가 지원하는 ROM 한국관.",
+
+};
+
+export default ko;

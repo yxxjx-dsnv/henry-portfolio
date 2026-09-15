@@ -140,7 +140,10 @@ export function measure(id: ExpId, trial: Trial, tr: Track): Point[] {
   return [{ x: trial.L, y: (Math.PI * tau) / periodFromTrack(tr) }];
 }
 
-export type Fit = { line: (x: number) => number; note: string };
+/** The fit's one-line summary: an English key with `{name}` slots and the numbers that fill
+ *  them, so the lab can render it through tx() in either language. */
+export type Note = { key: string; values: Record<string, string> };
+export type Fit = { line: (x: number) => number; note: Note };
 
 const f3 = (v: number) => v.toFixed(3);
 
@@ -153,7 +156,7 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const [a, b, c] = fitQuadratic(xs, ys);
     return {
       line: (x) => a + b * x + c * x * x,
-      note: `T₀ ${f3(a)} s · curvature C ${f3(c / a)} — report 0.936 s · 0.080`,
+      note: { key: 'T₀ {a} s · curvature C {c} — report 0.936 s · 0.080', values: { a: f3(a), c: f3(c / a) } },
     };
   }
   if (id === 'decay') {
@@ -163,7 +166,7 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const Q = (Math.PI * tau) / T;
     return {
       line: (x) => A * Math.exp(-x / tau),
-      note: `τ ${tau.toFixed(0)} s · Q ${Q.toFixed(0)} — report 178 s · 597`,
+      note: { key: 'τ {tau} s · Q {q} — report 178 s · 597', values: { tau: tau.toFixed(0), q: Q.toFixed(0) } },
     };
   }
   if (id === 'length') {
@@ -171,14 +174,14 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const { k, n } = fitPower(xs, ys);
     return {
       line: (x) => k * x ** n,
-      note: `T = k·Lⁿ with k ${k.toFixed(2)} · n ${n.toFixed(3)} — report 1.94 · 0.433`,
+      note: { key: 'T = k·Lⁿ with k {k} · n {n} — report 1.94 · 0.433', values: { k: k.toFixed(2), n: n.toFixed(3) } },
     };
   }
   if (points.length < 2) return null;
   const { a, b } = fitLinear(xs, ys);
   return {
     line: (x) => a * x + b,
-    note: `Q ≈ ${a.toFixed(0)}·L + ${b.toFixed(0)} — report 1960·L + 202`,
+    note: { key: 'Q ≈ {a}·L + {b} — report 1960·L + 202', values: { a: a.toFixed(0), b: b.toFixed(0) } },
   };
 }
 

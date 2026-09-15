@@ -6,6 +6,7 @@ import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfDeck } from '../components/PdfDeck';
 import { ModelViewer } from '../components/ModelViewer';
+import { useLang } from '../i18n';
 import firmwareSource from '../assets/two-wand-system.ino?raw';
 
 const MEDIA = '/media/gyroscope-wand';
@@ -360,55 +361,62 @@ const PRESENTING: CarouselSlide[] = [
 ];
 
 export function GyroscopeWand() {
+  const { t, tx } = useLang();
+  // the slide and document data above stays English; the reader's language is applied here
+  const tr = (slides: CarouselSlide[]) => slides.map((s) => ({ ...s, alt: t(s.alt), caption: t(s.caption) }));
   useEffect(() => () => document.body.classList.remove('reading-focus'), []);
   return (
     <section className="section">
       <ReadProgress />
       <Link to="/projects" className="story-back">
-        &larr; All projects
+        &larr; {t('All projects')}
       </Link>
-      <Hero title="The Gyroscope Wand" subtitle="APS112 Engineering Strategies & Practice II — Winter 2026" />
+      <Hero title={t('The Gyroscope Wand')} subtitle={t('APS112 Engineering Strategies & Practice II — Winter 2026')} />
       <section className="essay-section">
         <div className="text">
           <div className="story-meta">
             <p>
-              Team 013 —{' '}
-              {TEAM.map((m) => (
-                <span key={m.name}>
-                  {m.url ? (
-                    <a href={m.url} target="_blank" rel="noopener noreferrer">
-                      {m.name}
-                    </a>
-                  ) : (
-                    m.name
-                  )}
-                  {', '}
-                </span>
-              ))}
-              and{' '}
-              <a href="https://www.linkedin.com/in/henry-kim-uoft/" target="_blank" rel="noopener noreferrer">
-                Henry Kim
-              </a>{' '}
-              (me)
+              {tx('Team 013 — {members}and {me} (me)', {
+                members: TEAM.map((m) => (
+                  <span key={m.name}>
+                    {m.url ? (
+                      <a href={m.url} target="_blank" rel="noopener noreferrer">
+                        {m.name}
+                      </a>
+                    ) : (
+                      m.name
+                    )}
+                    {', '}
+                  </span>
+                )),
+                me: (
+                  <a href="https://www.linkedin.com/in/henry-kim-uoft/" target="_blank" rel="noopener noreferrer">
+                    Henry Kim
+                  </a>
+                ),
+              })}
             </p>
             <p>
-              Client:{' '}
-              <a
-                href="https://www.linkedin.com/in/alexandre-j-w-klaus/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Alexandre Klaus
-              </a>
-              ,{' '}
-              <a
-                href="https://www.instagram.com/skuletm_kup/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Skule™ Kup
-              </a>{' '}
-              director
+              {tx('Client: {client}, {kup} director', {
+                client: (
+                  <a
+                    href="https://www.linkedin.com/in/alexandre-j-w-klaus/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Alexandre Klaus
+                  </a>
+                ),
+                kup: (
+                  <a
+                    href="https://www.instagram.com/skuletm_kup/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Skule™ Kup
+                  </a>
+                ),
+              })}
             </p>
           </div>
           <div
@@ -417,153 +425,102 @@ export function GyroscopeWand() {
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
             <p>
-              Skule™ Kup is a year-long competition between U of T's engineering disciplines. One
-              of its games is Discipline Feud, where teams race to guess the most common answers
-              to survey questions, and whoever signals first gets to answer. The signalling is the
-              problem. When several people react at once, the organizers have to judge who was
-              first, the judgment gets disputed, and the game slows down. Our team of six spent
-              the winter semester designing a fix.
+              {t("Skule™ Kup is a year-long competition between U of T's engineering disciplines. One of its games is Discipline Feud, where teams race to guess the most common answers to survey questions, and whoever signals first gets to answer. The signalling is the problem. When several people react at once, the organizers have to judge who was first, the judgment gets disputed, and the game slows down. Our team of six spent the winter semester designing a fix.")}
             </p>
             <br />
             <p>
-              Here is the whole project the way we presented it: the final deck from April 9th,
-              2026. Turn through it below, or open it in its own tab. The rest of this page is the
-              story behind it.
+              {t('The final deck from April 9th, 2026, as we presented it. Turn through it below, or open it in its own tab. The rest of this page is how we got there.')}
             </p>
             <br />
             <PdfDeck
               src={`${MEDIA}/deck.pdf`}
-              title="Buzzer Beaters, the final presentation"
-              captions={DECK_NOTES}
+              title={t('Buzzer Beaters, the final presentation')}
+              captions={DECK_NOTES.map((n) => t(n))}
             />
-            <p className="story-head">A real client</p>
+            <p className="story-head">{t('A real client')}</p>
             <p>
-              APS112 gives first-year teams a real client, and ours was Alexandre Klaus, a
-              second-year Engineering Science student and the current Skule™ Kup director. His
-              brief was specific: detect the first responder reliably, handle a changing number of
-              contestants in real time, and keep the system safe and portable. The requirements
-              came from visiting the rooms themselves. We measured the EngSoc Arena at 46 decibels
-              of ambient sound and noted its lighting controls and table heights, so the design
-              would fit the room it will be used in.
+              {t('APS112 gives first-year teams a real client, and ours was Alexandre Klaus, a second-year Engineering Science student and the current Skule™ Kup director. His brief was specific: detect the first responder reliably, handle a changing number of contestants in real time, and keep the system safe and portable. The requirements came from visiting the rooms themselves. We measured the EngSoc Arena at 46 decibels of ambient sound and noted its lighting controls and table heights, so the design would fit the room it will be used in.')}
             </p>
             <br />
-            <p className="story-head">Three ideas on a whiteboard</p>
+            <p className="story-head">{t('Three ideas on a whiteboard')}</p>
             <p>
-              My formal role was quality assurance, but the contribution I care most about
-              happened at a whiteboard. Earlier in the term, my first peer evaluation told me
-              plainly that I should be more present in team discussions. I took that seriously.
-              During idea selection, I came to one of our in-person meetings prepared and
-              presented three design directions on the whiteboard: a hard-hat concept with
-              built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each
-              one I walked through the detection method, the physical layout, and how it would be
-              used on game day. After several rounds of deliberation the team chose the wand, and
-              the client responded well to the less conventional ideas.
+              {t('My formal role was quality assurance. The part I care most about happened at a whiteboard. Earlier in the term, my first peer evaluation said plainly that I should be more present in team discussions. So during idea selection I came to one of our in-person meetings prepared and put three design directions on the whiteboard: a hard-hat concept with built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each one I walked through the detection method, the physical layout, and how it would be used on game day. After several rounds of deliberation the team chose the wand. The client also responded well to the less conventional ideas.')}
             </p>
             <br />
             <figure className="story-figure">
               <img
                 src={`${MEDIA}/photo-22.jpg`}
-                alt="The whiteboard from that meeting: three numbered options — a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system — with notes on collecting all data in one place and lighting up the first responder."
+                alt={t('The whiteboard from that meeting, with three numbered options: a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system. Notes beside them on collecting all data in one place and lighting up the first responder.')}
                 width={1600}
                 height={1200}
                 loading="lazy"
               />
-              <figcaption>The whiteboard itself: hard-hat, gyroscope light stick, general buzzer.</figcaption>
+              <figcaption>{t('The whiteboard itself: hard-hat, gyroscope light stick, general buzzer.')}</figcaption>
             </figure>
             <p>
-              The idea is simple to say: instead of pressing a button, you raise the wand. Motion
-              detection identifies the first wand to move, and each discipline gets its own topper
-              sealed in a clear globe, so every wand shows its discipline's symbol.
+              {t("The idea: instead of pressing a button, you raise the wand. Motion detection picks out the first wand to move. Each discipline gets its own topper sealed in a clear globe, so every wand shows its discipline's symbol.")}
             </p>
             <br />
             <p>
-              In the report, the three directions became formal designs. The team had generated 72
-              ideas, consolidated them to 38, voted them down to 10, and kept three. The CDS drew
-              each one out properly, and the figures below are from those pages.
+              {t('In the report the three directions became formal designs. Before that, the team had generated 72 ideas, consolidated them to 38, voted them down to 10, and kept three. The CDS draws each one out, and the figures below are from those pages.')}
             </p>
             <br />
             <p>
-              Alternative Design 1 was the Skule™ Wand: a handheld device that reads a response as
-              angular velocity, with an inertial measurement unit in every wand and an I²C
-              multiplexer collecting all eight signals into one Arduino.
+              {t('Alternative Design 1 was the Skule™ Wand: a handheld device that reads a response as angular velocity, with an inertial measurement unit in every wand and an I²C multiplexer collecting all eight signals into one Arduino.')}
             </p>
             <br />
-            <FigureCarousel slides={WAND_DESIGN} label="Alternative Design 1: the Skule Wand" />
+            <FigureCarousel slides={tr(WAND_DESIGN)} label={t('Alternative Design 1: the Skule Wand')} />
             <p>
-              Alternative Design 2 was the Hard-Hat Smack: eight hard hats, each with a
-              force-sensitive pod on the crown that you slap, reporting over Bluetooth to an ESP32.
-              Viscoelastic foam inside the hat protects the head that does the slapping.
+              {t('Alternative Design 2 was the Hard-Hat Smack: eight hard hats, each with a force-sensitive pod on the crown that you slap, reporting over Bluetooth to an ESP32. Viscoelastic foam inside the hat protects the head that does the slapping.')}
             </p>
             <br />
-            <FigureCarousel slides={HARDHAT_DESIGN} label="Alternative Design 2: the Hard-Hat Smack" />
+            <FigureCarousel slides={tr(HARDHAT_DESIGN)} label={t('Alternative Design 2: the Hard-Hat Smack')} />
             <p>
-              Alternative Design 3 was the Boom-Box: the classic buzzer rebuilt around a T-handle,
-              with a piezo buzzer in every box and an Arduino Mega in the hub.
+              {t('Alternative Design 3 was the Boom-Box: the classic buzzer rebuilt around a T-handle, with a piezo buzzer in every box and an Arduino Mega in the hub.')}
             </p>
             <br />
-            <FigureCarousel slides={BOOMBOX_DESIGN} label="Alternative Design 3: the Boom-Box" />
+            <FigureCarousel slides={tr(BOOMBOX_DESIGN)} label={t('Alternative Design 3: the Boom-Box')} />
             <p>
-              The Pugh method decided it. With the wand as the datum, the Hard-Hat Smack scored
-              minus three and the Boom-Box minus one, mostly on weight and size, and the Skule™
-              Wand became the proposed design.
+              {t('The Pugh method decided it. With the wand as the datum, the Hard-Hat Smack scored minus three and the Boom-Box minus one, mostly on weight and size, and the Skule™ Wand became the proposed design.')}
             </p>
             <br />
-            <p className="story-head">Modeling it</p>
+            <p className="story-head">{t('Modeling it')}</p>
             <p>
-              To make the concept concrete I built a prototype model in Blender, finishing it the
-              day before the CDS deadline. The model works out the full assembly: a gripped
-              handle, a globe mount, an LED puck that lights when a wand wins the round, and the
-              globe with a discipline topper inside. I modeled eight toppers, one per discipline.
+              {t('To make the concept concrete I built a prototype model in Blender, finishing it the day before the CDS deadline. The model works out the full assembly: a gripped handle, a globe mount, an LED puck that lights when a wand wins the round, and the globe with a discipline topper inside. I modeled eight toppers, one per discipline.')}
             </p>
             <br />
-            <FigureCarousel slides={MODELING} label="Blender model and renders" />
+            <FigureCarousel slides={tr(MODELING)} label={t('Blender model and renders')} />
             <p>
-              The model below is the Blender file itself, converted for the web. Drag to orbit,
-              scroll to zoom.
+              {t('The model below is the Blender file itself, converted for the web. Drag to orbit, scroll to zoom.')}
             </p>
             <br />
             <ModelViewer
               src={`${MEDIA}/wand.glb`}
               poster={{
                 src: `${MEDIA}/render-1.jpg`,
-                alt: 'Poster for the interactive 3D model: the lineup of eight wands.',
+                alt: t('Poster for the interactive 3D model: the lineup of eight wands.'),
                 width: 1600,
                 height: 1027,
               }}
-              caption="All eight wands, in 3D — modeled in Blender™."
+              caption={t('All eight wands in 3D, modeled in Blender™.')}
             />
-            <p className="story-head">Making it move</p>
+            <p className="story-head">{t('Making it move')}</p>
             <p>
-              I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with
-              a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both
-              sensors, derives speed and acceleration magnitudes from the readings, and compares
-              them against a threshold. The first wand past the threshold locks the round, lights
-              its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which
-              wand was first. The code self-checks too: it scans the I2C bus, verifies each
-              sensor's identity register, and runs the sensor's self-test before trusting it. A
-              note on the name: we pitched the concept with a gyroscope, and the bench prototype
-              detects motion with accelerometers.
+              {t("I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both sensors, derives speed and acceleration magnitudes from the readings, and compares them against a threshold. The first wand past the threshold locks the round, lights its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which wand was first. The code self-checks too: it scans the I2C bus, verifies each sensor's identity register, and runs the sensor's self-test before trusting it. A note on the name: we pitched the concept with a gyroscope, and the bench prototype detects motion with accelerometers.")}
             </p>
             <br />
-            <FigureCarousel slides={BENCH} label="Firmware bench work" />
+            <FigureCarousel slides={tr(BENCH)} label={t('Firmware bench work')} />
             <p>
-              Getting there took legwork outside the code. I visited MyFab to understand what we
-              could actually manufacture, asked upper-year students for advice, and at one meeting
-              brought in a physical gyroscope so the team could handle the thing we kept talking
-              about.
+              {t('Getting there took legwork outside the code. I visited MyFab to understand what we could actually manufacture, asked upper-year students for advice, and at one meeting brought in a physical gyroscope so the team could handle the thing we kept talking about.')}
             </p>
             <br />
-            <FigureCarousel slides={LEGWORK} label="MyFab and hardware legwork" />
-            <p className="story-head">From model to hardware</p>
+            <FigureCarousel slides={tr(LEGWORK)} label={t('MyFab and hardware legwork')} />
+            <p className="story-head">{t('From model to hardware')}</p>
             <p>
-              After the model, we built it. We printed five handles, capped them with clear
-              globes, and wired two of them up as live wands into a breadboard hub carrying the
-              Arduino, the multiplexer, the LEDs, and the buzzer. One assembled wand weighs 106
-              grams on a kitchen scale; the CDS had calculated 102. The number mattered, because
-              portability was in the client's brief from the first meeting.
+              {t("After the model, we built it. We printed five handles, capped them with clear globes, and wired two of them up as live wands into a breadboard hub carrying the Arduino, the multiplexer, the LEDs, and the buzzer. One assembled wand weighs 106 grams on a kitchen scale; the CDS had calculated 102. The number mattered, because portability was in the client's brief from the first meeting.")}
             </p>
             <br />
-            <FigureCarousel slides={BUILD} label="Building the wands" />
+            <FigureCarousel slides={tr(BUILD)} label={t('Building the wands')} />
             <figure className="story-figure story-clip">
               <video
                 src={`${MEDIA}/demo-shake.mp4`}
@@ -572,9 +529,9 @@ export function GyroscopeWand() {
                 preload="metadata"
                 width={720}
                 height={1280}
-                aria-label="Bench demo: shaking the wand lights the globe"
+                aria-label={t('Bench demo: shaking the wand lights the globe')}
               />
-              <figcaption>Shake the wand, and the globe lights.</figcaption>
+              <figcaption>{t('Shake the wand, and the globe lights.')}</figcaption>
             </figure>
             <figure className="story-figure story-clip">
               <video
@@ -584,47 +541,32 @@ export function GyroscopeWand() {
                 preload="metadata"
                 width={720}
                 height={1280}
-                aria-label="Bench demo: two wands racing; the first to move wins the round"
+                aria-label={t('Bench demo: two wands racing; the first to move wins the round')}
               />
-              <figcaption>Both wands wired up: the first one to move wins the round.</figcaption>
+              <figcaption>{t('Both wands wired up: the first one to move wins the round.')}</figcaption>
             </figure>
-            <p className="story-head">The paper trail</p>
+            <p className="story-head">{t('The paper trail')}</p>
             <p>
-              Alongside the hardware, the course asked for formal documents, and the writing took
-              as much work as the build. The Project Requirements came first, in early March. The
-              Conceptual Design Specification followed three weeks later: 95 pages of problem
-              framing, morph charts, alternative designs, and measures of success. The night
-              before the CDS was due we were 700 words over the limit at 2 a.m., and the whole
-              team stayed on call until seven in the morning cutting words and fixing formatting.
-              As quality assurance manager I did the final proofreading and kept our submissions
-              on time. Everything below opens right here on the page.
+              {t('Alongside the hardware, the course asked for formal documents, and the writing took as much work as the build. The Project Requirements came first, in early March. The Conceptual Design Specification followed three weeks later: 95 pages of problem framing, morph charts, alternative designs, and measures of success. The night before the CDS was due we were 700 words over the limit at 2 a.m., and the whole team stayed on call until seven in the morning cutting words and fixing formatting. As quality assurance manager I did the final proofreading and kept our submissions on time. Everything below opens right here on the page.')}
             </p>
             <br />
-            <FigureCarousel slides={PAPERWORK} label="Morph chart and schedule from the CDS" />
-            <DocShelf docs={DOCS} base={MEDIA} />
+            <FigureCarousel slides={tr(PAPERWORK)} label={t('Morph chart and schedule from the CDS')} />
+            <DocShelf docs={DOCS.map((d) => ({ ...d, title: t(d.title), meta: t(d.meta) }))} base={MEDIA} />
             <p className="doc-note">
-              Student numbers and personal contact details are redacted from the published copies.
+              {t('Student numbers and personal contact details are redacted from the published copies.')}
             </p>
-            <p className="story-head">The feedback loop</p>
+            <p className="story-head">{t('The feedback loop')}</p>
             <p>
-              This course taught me to treat peer feedback the way I treat a bug report. The first
-              evaluation said I needed to engage more; I answered it with the whiteboard session
-              and the prototype, and I later wrote the whole loop up in the Team Feedback Analysis
-              above. By the second evaluation, teammates were writing about the late nights on the
-              CDS and the resources I kept bringing to meetings. The feedback also gave me new
-              things to work on, like sharing more during discussions and responding faster
-              online. I would rather know these things in first year than discover them at a job.
+              {t('I treated the peer feedback like a bug report. The first evaluation said I needed to engage more. I answered it with the whiteboard session and the prototype, and later wrote the whole loop up in the Team Feedback Analysis above. By the second evaluation, teammates were writing about the late nights on the CDS and the resources I kept bringing to meetings. It also gave me new things to work on: sharing more during discussions, and responding faster online. I would rather find these out in first year than at a job.')}
             </p>
             <br />
             <p>
-              Kamilia wrote afterward that working on this team was one of the highlights of her
-              first year. It was one of mine too.
+              {t('Kamilia wrote afterward that working on this team was one of the highlights of her first year. It was one of mine too.')}
             </p>
             <br />
-            <FigureCarousel slides={PRESENTING} label="Presentation day" />
+            <FigureCarousel slides={tr(PRESENTING)} label={t('Presentation day')} />
             <p>
-              We hope to build the production version with Alexandre and see the wand make its
-              debut at a future Skule™ Kup event.
+              {t('We hope to build the production version with Alexandre and see the wand in use at a future Skule™ Kup event.')}
             </p>
             <br />
             <div className="end-mark" aria-hidden="true" />

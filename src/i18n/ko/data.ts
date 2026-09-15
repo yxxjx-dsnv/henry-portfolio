@@ -1,0 +1,49 @@
+// Korean for the explanatory paragraphs in the data files (projects, activities) — row titles, dates and
+// course names stay English by the owner's choice. English on the left, Korean on the right.
+const ko: Record<string, string> = {
+
+  'My work as an AI/Robotics Engineering Intern at Incheon Robotics: implementing the AI/ML voice recognition that lets an operator control the whole grid-based ASRS without touching the screen, plus the robot build itself. The machine, the Deep-N fleet scheduling behind it, the Gwangju deployment, and an interactive 3D simulation of the system all live on its own page.':
+    'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 하는 일입니다. AI/ML 음성 인식을 구현하고 로봇 제작에도 참여합니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어하게 하는 기능입니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
+  'Built in one day at the IEEE × AWS "Hack the Student Life" hackathon (Amazon Toronto): a real-time dashboard showing how crowded each campus library is, floor by floor. My first hackathon. The full story, photos, and demo live on its own page.':
+    'IEEE × AWS "Hack the Student Life" 해커톤(Amazon Toronto)에서 하루 만에 만든 대시보드입니다. 캠퍼스 도서관마다 층별 혼잡도를 실시간으로 보여 줍니다. 제 첫 해커톤이었습니다. 전체 이야기와 사진, 데모는 별도 페이지에 있습니다.',
+  'My startup, on hold for now: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront automatically. The vision, the Profit Score, and the research behind it live on its own page.':
+    '지금은 잠시 멈춰 둔 제 스타트업입니다. AI 리셀 분석 플랫폼으로, 상품의 수익성을 점수로 매기고 스토어에 자동으로 등록해 가격까지 조정합니다. 비전과 Profit Score, 그 뒤의 리서치는 별도 페이지에 있습니다.',
+  "APS112 (Engineering Strategies & Practice II) design project for a real client: a motion-detecting wand that finds the first responder in Skule™ Kup's Discipline Feud games. I wrote the two-wand Arduino firmware and built the Blender prototype. The story, renders, reports, and code live on its own page.":
+    'APS112(Engineering Strategies & Practice II)에서 실제 클라이언트를 위해 진행한 설계 프로젝트입니다. Skule™ Kup의 Discipline Feud 게임에서 가장 먼저 반응한 사람을 찾아내는 동작 감지 완드였습니다. 저는 완드 두 개를 잇는 Arduino 펌웨어를 작성하고 Blender 프로토타입을 만들었습니다. 이야기와 렌더링, 보고서, 코드는 별도 페이지에 있습니다.',
+  'A 1,200 mm box girder built from one sheet of matboard and two tubes of contact cement, designed through seven documented iterations with Python-computed load envelopes (predicted failure load 1,096 N). The story, reports, and photos live on its own page.':
+    '매트보드 한 장과 접착제(contact cement) 두 통으로 만든 1,200 mm 박스 거더입니다. Python으로 계산한 하중 포락선을 놓고 일곱 번의 반복 설계를 기록하며 완성했습니다(예측 파괴 하중 1,096 N). 이야기와 보고서, 사진은 별도 페이지에 있습니다.',
+  'A handmade pendulum measured against theory in four experiments (angle, damping, length, and Q-factor), with Python curve fitting and full uncertainty propagation. The report, graphs, code, and rig live on its own page.':
+    '직접 만든 진자를 각도, 감쇠, 길이, Q 인자의 네 가지 실험으로 이론과 비교했습니다. Python 곡선 피팅과 불확실도 전파를 모두 적용했습니다. 보고서와 그래프, 코드, 실험 장치는 별도 페이지에 있습니다.',
+  "The weekly labs from U of T's introduction to programming, in C: calculations, loops, an elementary cellular automaton, Connect Four, Reversi, and an ER-triage linked list. Each one runs in your browser: a full clang compiler built to WebAssembly compiles and executes the code on the page, so you can edit my submission and press Run. Lives on its own page.":
+    '토론토 대학교 프로그래밍 입문 과목의 주간 랩 과제를 C로 풀었습니다. 계산, 반복문, 1차원 세포 자동자, Connect Four, Reversi, 응급실 분류용 연결 리스트까지. 각 과제는 브라우저에서 바로 실행됩니다. WebAssembly로 빌드한 clang 컴파일러가 페이지 안에서 코드를 컴파일하고 실행하므로 제 제출물을 고쳐서 Run을 눌러 볼 수 있습니다. 별도 페이지에 있습니다.',
+
+  'Incheon Robotics builds ASRS (automated storage and retrieval systems) for warehouse logistics: a grid of bins, a fleet of low-power robots that each carry up to 30 kg, a modular elevator that scales the rack vertically, and a kiosk where an operator calls for a bin the way you would order from a vending machine. Its Deep-N AI retrieval, patented in Korea, reaches a bin stacked ten layers deep in about 36 seconds and cuts the floor space a warehouse needs by roughly 80%. The first full deployment, a logistics hub in Gwangju, went live in December 2025 and took the site from eighteen operators to six. The company is headquartered at the Incheon Global Campus in Songdo, with an R&D centre in Mapo, Seoul.':
+    'Incheon Robotics는 물류 창고를 위한 자동창고 시스템(ASRS)을 만듭니다. 빈(bin)이 격자로 쌓인 랙, 각각 30 kg까지 나르는 저전력 로봇 플릿, 랙을 수직으로 확장하는 모듈형 엘리베이터, 운영자가 자판기에서 주문하듯 빈을 호출하는 키오스크로 이루어집니다. 국내 특허를 받은 Deep-N AI 출고 기술은 열 층 깊이에 쌓인 빈을 약 36초 만에 꺼내고 창고에 필요한 바닥 면적을 약 80% 줄입니다. 첫 번째 본격 도입 현장인 광주 물류 허브는 2025년 12월 가동을 시작해 운영 인력을 18명에서 6명으로 줄였습니다. 본사는 송도 인천글로벌캠퍼스에, 연구소는 서울 마포에 있습니다.',
+  'I joined on August 10, 2026 and report directly to the CEO. My main assignment is the voice layer on that kiosk: an operator speaks, an AI works out what they asked for, and a robot on the floor goes to get it. Alongside that I work on the robot build itself, the hardware.':
+    '저는 2026년 8월 10일 합류해 대표이사에게 직접 보고하며 일하고 있습니다. 주 업무는 그 키오스크의 음성 계층입니다. 운영자가 말하면 AI가 무엇을 요청했는지 파악하고 현장의 로봇이 그것을 가지러 갑니다. 이와 함께 로봇 제작, 즉 하드웨어 쪽 일도 맡고 있습니다.',
+  'The company is foreign-founded but operates in Korea, so the role has a second half: as a fluent Korean speaker I work on the company website and on its communication with partners and customers.':
+    '외국인이 창업해 한국에서 운영하는 회사라 이 역할에는 또 다른 절반이 있습니다. 한국어가 유창한 구성원으로서 회사 웹사이트와 파트너·고객을 향한 커뮤니케이션을 맡고 있습니다.',
+  'Selected as one of 11 U of T Engineering students from 75+ applicants for a week inside an operating gold mine in Geraldton, Ontario, rotating through open-pit operations, the mill, geology, maintenance, and emergency response. The full story, with photographs, lives on its own page.':
+    '온타리오주 제럴턴의 가동 중인 금광에서 일주일을 보냈습니다. 75명이 넘는 지원자 가운데 선발된 토론토 대학교 공학부 학생 11명 중 한 명이었습니다. 노천 채굴 작업, 선광장, 지질, 정비, 비상 대응 부서를 차례로 돌았습니다. 사진과 함께한 전체 이야기는 별도 페이지에 있습니다.',
+  "The University of Toronto Korean Engineering Students' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025 and became an executive in January 2026.":
+    '토론토 대학교 한인 공학 학생회(UTKESA)는 학업 지원, 커리어 개발, 네트워킹으로 한인 공학도들을 잇는 단체입니다. 2025년 9월 행사부 인턴으로 들어가 2026년 1월 임원이 되었습니다.',
+  "In the Event Department I help plan and run UTKESA's social and professional events, handling logistics and collaborations.":
+    '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영하며 물류와 협업을 맡고 있습니다.',
+  "On the event team I supported UTKESA's Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum's Korean Gallery, Canada's only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The executive team raised the contribution over the year; it is documented on UTKESA's LinkedIn.":
+    '행사팀에서 Korea Root Initiative와 함께한 UTKESA의 삼일절 기부를 도왔습니다. 로열 온타리오 박물관 한국관을 지키기 위한 기부였습니다. 캐나다 유일의 상설 한국관인데 전담 큐레이터가 없어 폐관 위기에 놓여 있었습니다. 임원진이 한 해 동안 모은 이 기부금은 UTKESA LinkedIn에 기록되어 있습니다.',
+  'Developed an AI resale analytics platform that predicts a product\'s resale profit and automates its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.':
+    '상품의 리셀 수익을 예측하고 Shopify 등록을 자동화하는 AI 리셀 분석 플랫폼을 개발했습니다. 소싱과 가격 책정에서 감에 기대는 부분을 줄이려는 것이었습니다. 아직 출시하지 않았고 지금은 잠시 멈춰 둔 상태입니다.',
+  'Elected to run the Class of 2025’s senior events: Spirit Week, the Grad Cruise, and the graduation ceremony. I handled the budgets and the problems that came up.':
+    '2025년 졸업반의 주요 행사를 맡도록 선출되었습니다. 스피릿 위크, 졸업 크루즈, 졸업식이었습니다. 예산과 그때그때 생기는 문제를 제가 맡았습니다.',
+  'Treasurer, then President, of a club whose fundraising and community service had gone quiet. I set up financial tracking, grew membership through eco-awareness projects like campus recycling, and expanded its local volunteering.':
+    '모금과 지역 봉사가 뜸해진 클럽에서 회계를 맡았다가 회장이 되었습니다. 재정 관리 체계를 세우고, 교내 재활용 같은 환경 인식 프로젝트로 회원을 늘리고, 지역 봉사 활동을 넓혔습니다.',
+  'Took a loose group and made it a certified BC non-profit, with proper departments and automated volunteer systems. We ran refugee aid campaigns, grew donations by 40%, and partnered with local organizations.':
+    '느슨하던 모임을 브리티시컬럼비아주 공인 비영리 단체로 만들었습니다. 부서를 갖추고 봉사자 관리를 자동화했습니다. 난민 지원 캠페인을 열어 기부금을 40% 늘렸고 지역 단체들과 손을 잡았습니다.',
+  'Organized the club’s cultural showcases, traditional food festivals, and Korean language workshops for the school, and grew participation.':
+    '학교를 위한 문화 공연, 전통 음식 축제, 한국어 워크숍을 기획했고 클럽 참여를 늘렸습니다.',
+  'Assisted the advanced Korean classes, preparing students for the TOPIK exam with custom lesson plans and real-life examples, plus Q&A and one-on-one tutoring.':
+    '고급 한국어 수업을 도왔습니다. 맞춤 수업 계획과 실생활 예시, 질의응답과 일대일 지도로 학생들의 TOPIK 시험을 준비시켰습니다.',
+
+};
+
+export default ko;

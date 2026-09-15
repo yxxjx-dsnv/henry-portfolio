@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLang } from '../i18n';
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
 type LoadingTask = ReturnType<(typeof import('pdfjs-dist'))['getDocument']>;
+
+// t() for an attribute: fills {name} placeholders with plain values (tx() returns elements)
+const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (m, k) => String(v[k] ?? m));
 
 // A continuous, in-page PDF reader: every page stacked vertically and rendered
 // as it scrolls into view (pdf.js, bundled locally, loaded only when the flow
@@ -16,6 +20,7 @@ export function PdfFlow({
   title: string;
   captions?: string[];
 }) {
+  const { t, tx } = useLang();
   const wrapRef = useRef<HTMLDivElement>(null);
   const docRef = useRef<PDFDocument | null>(null);
   const loadingRef = useRef<LoadingTask | null>(null);
@@ -90,11 +95,13 @@ export function PdfFlow({
   if (status === 'error') {
     return (
       <p className="pdf-status">
-        The in-page reader couldn't open this document —{' '}
-        <a href={src} target="_blank" rel="noopener noreferrer">
-          open it in its own tab
-        </a>{' '}
-        instead.
+        {tx("The in-page reader couldn't open this document — {link} instead.", {
+          link: (
+            <a href={src} target="_blank" rel="noopener noreferrer">
+              {t('open it in its own tab')}
+            </a>
+          ),
+        })}
       </p>
     );
   }
@@ -104,7 +111,7 @@ export function PdfFlow({
       <div className="pdf-flow-scroll" ref={wrapRef} tabIndex={0} aria-label={title}>
         {status === 'loading' ? (
           <p className="pdf-status" role="status">
-            loading {title}…
+            {tx('loading {title}…', { title })}
           </p>
         ) : (
           Array.from({ length: pages }, (_, i) => (
@@ -112,7 +119,7 @@ export function PdfFlow({
               <canvas
                 className="pdf-flow-page"
                 data-page={i + 1}
-                aria-label={`${title}, page ${i + 1} of ${pages}`}
+                aria-label={fill(t('{title}, page {n} of {m}'), { title, n: i + 1, m: pages })}
               />
               {captions?.[i] && <figcaption className="pdf-flow-caption">{captions[i]}</figcaption>}
             </figure>
@@ -121,7 +128,7 @@ export function PdfFlow({
       </div>
       <p className="doc-escape">
         <a href={src} target="_blank" rel="noopener noreferrer">
-          open in its own tab
+          {t('open in its own tab')}
         </a>
       </p>
     </div>

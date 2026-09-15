@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLang } from '../i18n';
 
 type Props = {
   src: string; // .glb path
@@ -12,6 +13,7 @@ type Props = {
 // nothing moves unasked. Falls back to the poster with a download link when
 // WebGL is unavailable.
 export function ModelViewer({ src, poster, caption, label }: Props) {
+  const { t, tx } = useLang();
   const [active, setActive] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const mountRef = useRef<HTMLDivElement>(null);
@@ -168,7 +170,7 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
             height={poster.height}
             loading="lazy"
           />
-          <span className="model-cta">View in 3D</span>
+          <span className="model-cta">{t('View in 3D')}</span>
         </button>
       ) : (
         <div
@@ -176,19 +178,18 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
           ref={mountRef}
           tabIndex={-1}
           role="application"
-          aria-label={`${label ?? 'Interactive 3D model of the wand'}. Drag to orbit, scroll to zoom.`}
+          aria-label={`${label ? t(label) : t('Interactive 3D model of the wand')}. ${t('Drag to orbit, scroll to zoom.')}`}
         >
           <span className="model-status" role="status" aria-live="polite">
-            {status === 'loading' && 'loading the model…'}
-            {status === 'error' && (
-              <>
-                3D isn't available here —{' '}
-                <a href={src} download>
-                  download the model
-                </a>{' '}
-                instead.
-              </>
-            )}
+            {status === 'loading' && t('loading the model…')}
+            {status === 'error' &&
+              tx("3D isn't available here, so {link} instead.", {
+                link: (
+                  <a href={src} download>
+                    {t('download the model')}
+                  </a>
+                ),
+              })}
           </span>
         </div>
       )}

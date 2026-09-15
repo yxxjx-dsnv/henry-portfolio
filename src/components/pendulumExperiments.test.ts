@@ -1,5 +1,7 @@
 import { REPORT, fitQuadratic, trackOf } from './pendulumPhysics';
-import { BY_HAND, EXPERIMENTS, completeExperiment, experiment, fitOf, measure, prepare, protractorReading } from './pendulumExperiments';
+import { BY_HAND, EXPERIMENTS, completeExperiment, experiment, fitOf, measure, prepare, protractorReading, type Note } from './pendulumExperiments';
+
+const worded = (n: Note) => n.key.replace(/\{(\w+)\}/g, (_, k) => n.values[k]);
 
 /** mulberry32: a seeded lab day, so the scatter is the same every test run. */
 const seeded = (seed: number) => () => {
@@ -37,15 +39,15 @@ test('the ideal experiments land on the report’s fits', () => {
   expect(Math.abs(a - REPORT.T0)).toBeLessThan(0.003);
   expect(Math.abs(b / a)).toBeLessThan(0.002);
   expect(c / a).toBeGreaterThan(0.06);
-  expect(fitOf('angle', angle)!.note).toMatch(/T₀ 0\.93\d s · curvature C 0\.0[67]\d/);
+  expect(worded(fitOf('angle', angle)!.note)).toMatch(/T₀ 0\.93\d s · curvature C 0\.0[67]\d/);
 
   const decay = completeExperiment('decay', 0, [], null);
-  expect(fitOf('decay', decay)!.note).toMatch(/τ 17\d s · Q (58|59|60)\d/);
+  expect(worded(fitOf('decay', decay)!.note)).toMatch(/τ 17\d s · Q (58|59|60)\d/);
 
   const length = completeExperiment('length', 0, [], null);
   const lf = fitOf('length', length)!;
   expect(Math.abs(lf.line(REPORT.L) - REPORT.k * REPORT.L ** REPORT.n)).toBeLessThan(0.01);
-  expect(lf.note).toMatch(/k 1\.9\d · n 0\.43\d/);
+  expect(worded(lf.note)).toMatch(/k 1\.9\d · n 0\.43\d/);
 
   const q = completeExperiment('q', 0, [], null);
   const qf = fitOf('q', q)!;

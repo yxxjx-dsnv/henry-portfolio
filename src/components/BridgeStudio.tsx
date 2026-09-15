@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AnimationAction, AnimationMixer, Material, Mesh, Object3D, Quaternion, Vector3 } from 'three';
+import { useLang } from '../i18n';
 
 const MEDIA = '/media/civ102-bridge';
 const GLB = `${MEDIA}/bridge.glb`;
@@ -11,6 +12,8 @@ const SHEET_H = 0.813;
 // it and reads the cars' positions back for the HUD.
 const SUP = [0.028, 1.228]; // support centres, Bridge-local metres (handout §1.5)
 const AXLE_N = 400 / 6;
+// test-day readout: the loop reports the stage and the load on the span; the JSX words it
+type Hud = { stage: 'pass1' | 'held' | 'pass2' | 'broke'; n: number };
 
 // Explode/assemble studio for the Holy Bridge. Every piece from the assembly
 // drawing carries its laid-flat pose in the GLB (`userData.sheet`), so one
@@ -21,6 +24,7 @@ const AXLE_N = 400 / 6;
 // test-day run, which starts with the rig on show and only knows Run/Reset/X-ray.
 export function BridgeStudio({ className, variant = 'studio' }: { className?: string; variant?: 'studio' | 'testday' }) {
   const testday = variant === 'testday';
+  const { t, tx } = useLang();
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -29,7 +33,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
   const [inside, setInside] = useState(false);
   const [playing, setPlaying] = useState(false); // the build run: one piece at a time
   const [testing, setTesting] = useState(false); // test day: the train rolls until the splice lets go
-  const [hud, setHud] = useState(''); // test-day readout, written by the loop
+  const [hud, setHud] = useState<Hud | null>(null); // test-day readout, written by the loop
   const [count, setCount] = useState(0); // pieces in the loaded model
   const mountRef = useRef<HTMLDivElement>(null);
   const flags = useRef({ target: 0, inside: false, playing: false, testing: false });
@@ -321,7 +325,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
 
           if (test) {
             // the clip owns the pieces while it plays; the HUD reads the cars back
-            const t = run.time;
+            const clipT = run.time;
             let onSpan = 0;
             for (const car of cars)
               for (const a of [-axle, axle]) {
@@ -329,15 +333,14 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                 if (x > SUP[0] && x < SUP[1]) onSpan += AXLE_N;
               }
             const lead = trainNode.position.x + (cars[0]?.position.x ?? 0);
-            const text =
-              t >= tBreak
-                ? '267 N on the span — the splice lets go · failure load 133 N'
-                : t >= tPass2
-                  ? `pass 2 · two cars, 267 N · ${Math.round(onSpan)} N on the span`
-                  : t >= tBack || lead > SUP[1] + axle
-                    ? 'pass 1 held · 133 N · the car comes back for pass 2'
-                    : `pass 1 · one car, 133 N · ${Math.round(onSpan)} N on the span`;
-            if (text !== test.hud) setHud((test.hud = text));
+            const stage: Hud['stage'] =
+              clipT >= tBreak ? 'broke' : clipT >= tPass2 ? 'pass2' : clipT >= tBack || lead > SUP[1] + axle ? 'held' : 'pass1';
+            const n = Math.round(onSpan);
+            const key = `${stage}:${n}`;
+            if (key !== test.hud) {
+              test.hud = key;
+              setHud({ stage, n });
+            }
           } else {
             for (const p of pieces) {
               const si = play ? Math.min(1, Math.max(0, (s - p.start) / SPAN)) : s;
@@ -390,6 +393,15 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
     };
   }, [active]);
 
+  const hudLine = (h: Hud) =>
+    h.stage === 'broke'
+      ? t('267 N on the span · the splice lets go · failure load 133 N')
+      : h.stage === 'pass2'
+        ? tx('pass 2 · two cars, 267 N · {n} N on the span', { n: h.n })
+        : h.stage === 'held'
+          ? t('pass 1 held · 133 N · the car comes back for pass 2')
+          : tx('pass 1 · one car, 133 N · {n} N on the span', { n: h.n });
+
   return (
     <figure
       className={`story-figure model-viewer bridge-studio${className ? ` ${className}` : ''}`}
@@ -401,14 +413,14 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             src={`${MEDIA}/${testday ? 'fig-testday-render.jpg' : 'fig-bridge-render.jpg'}`}
             alt={
               testday
-                ? 'Rendered model of test day: the blue box girder through two wooden A-frames on the lab bench, resting on plywood stacks under the steel beam, the three-car train part-way across on its tethers.'
-                : 'Rendered model of the Holy Bridge: a blue matboard box girder seen from its open end, the white interior and a diaphragm visible inside.'
+                ? t('Rendered model of test day: the blue box girder through two wooden A-frames on the lab bench, resting on plywood stacks under the steel beam, the three-car train part-way across on its tethers.')
+                : t('Rendered model of the Holy Bridge: a blue matboard box girder seen from its open end, the white interior and a diaphragm visible inside.')
             }
             width={1600}
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">{testday ? 'Run test day' : 'View in 3D'}</span>
+          <span className="model-cta">{testday ? t('Run test day') : t('View in 3D')}</span>
         </button>
       ) : (
         <div className="asrs-frame">
@@ -417,29 +429,28 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             ref={mountRef}
             tabIndex={-1}
             role="application"
-            aria-label="The box girder, piece by piece. Drag to orbit, scroll to zoom; the slider lays the bridge flat on its sheet."
+            aria-label={t('The box girder, piece by piece. Drag to orbit, scroll to zoom; the slider lays the bridge flat on its sheet.')}
           >
             <span className="model-status" role="status" aria-live="polite">
-              {status === 'loading' && 'loading the model…'}
-              {status === 'error' && (
-                <>
-                  3D isn't available here —{' '}
-                  <a href={GLB} download>
-                    download the model
-                  </a>{' '}
-                  instead.
-                </>
-              )}
+              {status === 'loading' && t('loading the model…')}
+              {status === 'error' &&
+                tx("3D isn't available here, so {link} instead.", {
+                  link: (
+                    <a href={GLB} download>
+                      {t('download the model')}
+                    </a>
+                  ),
+                })}
             </span>
             {status === 'ready' && (
               <pre className="asrs-hud" aria-hidden="true">
                 {testing
-                  ? hud
+                  ? hud && hudLine(hud)
                   : testday
-                    ? 'load case 1 · 400 N train, one car at a time · ready'
+                    ? t('load case 1 · 400 N train, one car at a time · ready')
                     : target === 100
-                      ? `${count} pieces · one 1016 × 813 mm sheet`
-                      : `explode ${target}%`}
+                      ? tx('{count} pieces · one 1016 × 813 mm sheet', { count })
+                      : tx('explode {target}%', { target })}
               </pre>
             )}
           </div>
@@ -450,9 +461,9 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                   type="button"
                   className={`asrs-btn${testing ? ' asrs-btn-on' : ''}`}
                   onClick={() => setTesting((v) => !v)}
-                  title="Load case 1 in stages: one car across and back, then two cars until the top-flange splice lets go"
+                  title={t('Load case 1 in stages: one car across and back, then two cars until the top-flange splice lets go')}
                 >
-                  {testing ? '■ Reset' : '▶ Run'}
+                  {testing ? t('■ Reset') : t('▶ Run')}
                 </button>
               ) : (
                 <>
@@ -460,19 +471,19 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                     type="button"
                     className={`asrs-btn${playing ? ' asrs-btn-on' : ''}`}
                     onClick={() => setPlaying((v) => !v)}
-                    title="One piece at a time: from the sheet to the bridge, or back again"
+                    title={t('One piece at a time: from the sheet to the bridge, or back again')}
                   >
-                    {playing ? '■ Stop' : target >= 50 ? '▶ Assemble' : '▶ Take apart'}
+                    {playing ? t('■ Stop') : target >= 50 ? t('▶ Assemble') : t('▶ Take apart')}
                   </button>
                   <button type="button" className="asrs-btn" onClick={() => setTarget(100)}>
-                    Lay flat
+                    {t('Lay flat')}
                   </button>
                   <input
                     type="range"
                     min={0}
                     max={100}
                     value={target}
-                    aria-label="Explode"
+                    aria-label={t('Explode')}
                     onChange={(ev) => setTarget(Number(ev.target.value))}
                   />
                 </>
@@ -482,18 +493,18 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
                 className={`asrs-btn${inside ? ' asrs-btn-on' : ''}`}
                 onClick={() => setInside((v) => !v)}
               >
-                ⦿ X-ray
+                {t('⦿ X-ray')}
               </button>
 
-              <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
+              <span className="asrs-hint">{t('drag to orbit · ctrl+drag to pan · scroll to zoom')}</span>
             </div>
           )}
         </div>
       )}
       <figcaption>
         {testday
-          ? 'Test day, replayed from the photos: load case 1 goes in stages — one car across and back, then two together. Ours carried the single car; with two cars on the span, 267 N, the lead car reached the top-flange splice at 1,016 mm and it let go: the near web\'s glued splice parts cleanly, the far web tears, the cars drop onto their tethers. Failure load 133 N, the pass before.'
-          : 'The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet; X-ray shows the diaphragms and the splice patches — none on the top sheet.'}
+          ? t("Test day, replayed from the photos. Load case 1 goes in stages: one car across and back, then two together. Ours carried the single car. With two cars on the span, 267 N, the lead car reached the top-flange splice at 1,016 mm and it let go: the near web's glued splice parts cleanly, the far web tears, the cars drop onto their tethers. Failure load 133 N, the pass before.")
+          : t('The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet. X-ray shows the diaphragms and the splice patches, none of them on the top sheet.')}
       </figcaption>
     </figure>
   );

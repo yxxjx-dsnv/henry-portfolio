@@ -13,6 +13,7 @@ import {
 } from './asrsScene';
 import { loadRobotAsset, makeRobot, liftPose, liftFraction, clampFraction, type Robot } from './asrsRobot';
 import { Fleet, PITCH, LEVEL_H, PHASE_LABEL, cellPos, type FleetOpts } from './asrsFleet';
+import { useLang } from '../i18n';
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -63,6 +64,7 @@ const fmtT = (t: number) => {
 };
 
 export function AsrsSim() {
+  const { t } = useLang();
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
@@ -401,7 +403,7 @@ export function AsrsSim() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/fig-system-render.jpg`}
-            alt="Render of the simulated rack: two storage levels of blue bins on white posts and cradles over a station deck, the elevator tower at one end, a kiosk at the front, three robots."
+            alt={t("Render of the simulated rack: two storage levels of blue bins on white posts and cradles over a station deck, the elevator tower at one end, a kiosk at the front, three robots.")}
             width={1600}
             height={991}
             loading="lazy"
@@ -415,7 +417,7 @@ export function AsrsSim() {
             ref={mountRef}
             tabIndex={-1}
             role="application"
-            aria-label="Live 3D simulation of the ASRS: robots fetching bins from two storage levels, riding the elevator, and presenting them at the picking station. Drag to orbit, scroll to zoom."
+            aria-label={t("Live 3D simulation of the ASRS: robots fetching bins from two storage levels, riding the elevator, and presenting them at the picking station. Drag to orbit, scroll to zoom.")}
           >
             <span className="model-status" role="status" aria-live="polite">
               {status === 'loading' && 'building the warehouse…'}
@@ -485,14 +487,7 @@ export function AsrsSim() {
           )}
         </div>
       )}
-      <figcaption>
-        The whole system, running, on the Blender-built rack: three robots working two storage
-        levels over the station deck, waiting on the landing for the elevator and riding it
-        between decks, carrying each bin lifted clear of the cradles — so a loaded machine keeps
-        to the aisles while an empty one drives under the stored bins. Routing is A* around
-        whatever squares the other robots hold, so paths never cross. Track follows one robot;
-        X-ray ghosts the warehouse so you can watch the machines work through it.
-      </figcaption>
+      <figcaption>{t("The whole system on the Blender-built rack: three robots working two storage levels over the station deck, waiting on the landing for the elevator and riding it between decks, each bin carried lifted clear of the cradles, so a loaded machine keeps to the aisles while an empty one drives under the stored bins. Routing is A* around whatever squares the other robots hold, so paths never cross. Track follows one robot; X-ray ghosts the warehouse so you can watch the machines work through it.")}</figcaption>
     </figure>
   );
 }

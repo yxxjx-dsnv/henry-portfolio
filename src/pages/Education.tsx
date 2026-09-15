@@ -5,11 +5,13 @@ import { useDisclosureRow } from '../hooks/useDisclosureRow';
 import { education } from '../data/education';
 import { profile } from '../data/profile';
 import type { EducationEntry } from '../types';
+import { useLang } from '../i18n';
 
 // A program row. When it has more to say (a lead line, courses, projects), it
 // reveals a detail box on hover or focus — the same quiet disclosure the
 // Projects and Extra-Curricular timelines use — so the list stays clean.
 function EduEntry({ entry }: { entry: EducationEntry }) {
+  const { t } = useLang();
   const hasDetail = !!entry.lead || !!entry.detail?.length || !!entry.projects;
   const { rowProps, detailId, pinned } = useDisclosureRow(hasDetail);
   return (
@@ -31,7 +33,7 @@ function EduEntry({ entry }: { entry: EducationEntry }) {
               {entry.detail?.map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
-              {entry.projects && <p className="edu-proj">{entry.projects}</p>}
+              {entry.projects && <p className="edu-proj">{t(entry.projects)}</p>}
             </div>
           </div>
         </div>
@@ -41,6 +43,7 @@ function EduEntry({ entry }: { entry: EducationEntry }) {
 }
 
 export function Education() {
+  const { t } = useLang();
   return (
     <section className="section">
       <Hero title="Education" subtitle={`last updated: ${profile.lastUpdated.education}`} />
@@ -87,7 +90,7 @@ export function Education() {
                       ))}
                     </div>
                     <p className="doc-note">
-                      The student numbers and home address are redacted from the published copy.
+                      {t('The student numbers and home address are redacted from the published copy.')}
                     </p>
                   </div>
                 </div>

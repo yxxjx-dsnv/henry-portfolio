@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLang } from '../i18n';
 
+// The city and the language travel together: Toronto reads English, Seoul Korean.
 const CITIES = [
-  { label: 'Toronto', tz: 'America/Toronto' },
-  { label: 'Seoul', tz: 'Asia/Seoul' },
+  { label: 'Toronto', tz: 'America/Toronto', lang: 'en' },
+  { label: 'Seoul', tz: 'Asia/Seoul', lang: 'ko' },
 ] as const;
 
 const fmtFor = (tz: string) =>
@@ -13,11 +15,13 @@ const fmtFor = (tz: string) =>
     hour12: true, // "2:32 PM"
   });
 
-// A quiet clock that ticks once a minute. Click it and a plane crosses:
-// Seoul -> Toronto flies eastward (left to right), Toronto -> Seoul flies
-// westward (right to left) — as it does over the globe.
+// A quiet clock that ticks once a minute, and the site's language switch. Click it
+// and a plane crosses: Seoul -> Toronto flies eastward (left to right), Toronto ->
+// Seoul flies westward (right to left) — as it does over the globe. The site changes
+// language mid-flight, when the plane lands on the other city.
 export function LocalTime() {
-  const [city, setCity] = useState(0);
+  const { lang, setLang } = useLang();
+  const city = lang === 'ko' ? 1 : 0;
   const [time, setTime] = useState<string | null>(null);
   const [flight, setFlight] = useState<'east' | 'west' | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -51,13 +55,20 @@ export function LocalTime() {
     const next = (city + 1) % CITIES.length;
     // to Toronto = eastward (left->right); to Seoul = westward (right->left)
     setFlight(CITIES[next].label === 'Toronto' ? 'east' : 'west');
-    timers.current.push(setTimeout(() => setCity(next), 550)); // swap mid-flight
+    timers.current.push(setTimeout(() => setLang(CITIES[next].lang), 550)); // swap mid-flight
     timers.current.push(setTimeout(() => setFlight(null), 1200));
   };
 
   if (!time) return null;
+  const action = lang === 'en' ? '한국어로 보기' : 'View in English';
   return (
-    <button type="button" className="sidebar-time" title="Switch city" onClick={fly}>
+    <button
+      type="button"
+      className="sidebar-time"
+      title={action}
+      aria-label={`${CITIES[city].label} — ${time} · ${action}`}
+      onClick={fly}
+    >
       <span className={`time-label${flight ? ' is-swapping' : ''}`}>
         {CITIES[city].label} — {time}
       </span>

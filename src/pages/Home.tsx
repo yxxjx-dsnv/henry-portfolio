@@ -4,11 +4,18 @@ import { KoreaTrigger } from '../components/KoreaEasterEgg';
 import { DotField } from '../components/DotField';
 import { DailyQuote } from '../components/DailyQuote';
 import { profile } from '../data/profile';
+import { useLang } from '../i18n';
 
 export function Home() {
+  const { t, tx } = useLang();
+  const ext = (href: string, label: string) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {label}
+    </a>
+  );
   return (
     <section className="section">
-      <Hero title="Henry Kim" playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
+      <Hero title={t('Henry Kim')} playful subtitle={`last updated: ${profile.lastUpdated.home}`} />
       <DotField />
       <DailyQuote />
       <section className="about-section">
@@ -16,59 +23,65 @@ export function Home() {
           <p>Some things about me:</p>
           <div className="section-title">
             <li>
-              19-years-old, born in <KoreaTrigger>South Korea</KoreaTrigger> — Second Year
-              Electrical &amp; Computer Engineering (ECE) student at the{' '}
-              <a href="https://www.utoronto.ca" target="_blank" rel="noopener noreferrer">
-                University of Toronto
-              </a>
-              .
+              {tx('19, born in {korea}. Second-year Electrical & Computer Engineering (ECE) student at the {uoft}.', {
+                korea: <KoreaTrigger>{t('South Korea')}</KoreaTrigger>,
+                uoft: ext('https://www.utoronto.ca', t('University of Toronto')),
+              })}
             </li>
             <br />
             <li>
-              As of August 2026 I've joined{' '}
-              <a href="https://incheonrobotics.com" target="_blank" rel="noopener noreferrer">
-                Incheon Robotics
-              </a>{' '}
-              (주식회사 인천로보틱스) as an <b>AI/Robotics Engineering Intern</b>. They build
-              grid-based warehouse robots. My job is implementing AI/ML voice recognition that lets
-              an operator control the whole system without touching the screen. I work on the robot
-              build too. It all lives on{' '}
-              <Link to="/projects/incheon-robotics">its own page</Link>.
+              {tx(
+                "As of August 2026 I've joined {incheon} (주식회사 인천로보틱스) as an {role}. They build grid-based warehouse robots. My job is {job} that lets an operator control the whole system without touching the screen. I work on the robot build too. It all lives on {page}.",
+                {
+                  incheon: ext('https://incheonrobotics.com', 'Incheon Robotics'),
+                  role: <u><b>{t('AI/Robotics Engineering Intern')}</b></u>,
+                  job: <u><b>{t('implementing AI/ML voice recognition system')}</b></u>,
+                  page: <Link to="/projects/incheon-robotics">{t('its own page')}</Link>,
+                },
+              )}
             </li>
             <br />
             <li>
-              Before that I spent about three months as a freelance <b>AX engineer</b> at Branphic
-              Inc., where I designed, built, deployed, and maintained 9+ internal automation tools
-              end to end — working across Claude, ChatGPT, and Codex — moving the
-              company's day-to-day operations onto AI automation.
+              {tx(
+                "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with {claude}, {chatgpt}, and {codex}, which moved the company's day-to-day operations onto AI automation.",
+                {
+                  role: <u><b>{t('AX engineer')}</b></u>,
+                  claude: ext('https://claude.com/product/claude-code', 'Claude Code'),
+                  chatgpt: ext('https://chat.openai.com', 'ChatGPT'),
+                  codex: ext('https://openai.com/blog/openai-codex', 'OpenAI Codex'),
+                },
+              )}
             </li>
             <br />
             <li>
-              (
-              <u>
-                <b>On hold</b>
-              </u>
-              ) I'm building a startup called{' '}
-              <a target="_blank" rel="noopener noreferrer">
-                MONO
-              </a>
-              , which uses AI and automation to analyze global resale markets, helping users identify
-              profitable opportunities more efficiently. I lead the project as the Founder &amp; CEO.
+              {tx(
+                "({hold}) I'm building a startup called {mono}. It uses AI and automation to analyze global resale markets and helps users find profitable opportunities faster. I lead it as Founder & CEO.",
+                {
+                  hold: (
+                    <u>
+                      <b>{t('On hold')}</b>
+                    </u>
+                  ),
+                  mono: (
+                    <a target="_blank" rel="noopener noreferrer">
+                      MONO
+                    </a>
+                  ),
+                },
+              )}
             </li>
             <br />
             <li>
-              Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS
-              LEO Club, and Co-President of Unity 4 Charity (U4C).
+              {t('Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS LEO Club, and Co-President of Unity 4 Charity (U4C).')}
             </li>
             <br />
             <li>
-              Now, I served as an Executive member in Event Dept. at{' '}
-              <a href="https://www.instagram.com/utkesa_official/" target="_blank" rel="noopener noreferrer">
-                UTKESA
-              </a>
+              {tx("Now I'm an Executive member of the Event Dept. at {utkesa}.", {
+                utkesa: ext('https://www.instagram.com/utkesa_official/', 'UTKESA'),
+              })}
             </li>
             <br />
-            <li>I enjoy combining technology, design, and systems thinking to solve practical problems.</li>
+            <li>{t('I enjoy combining technology, design, and systems thinking to solve practical problems.')}</li>
           </div>
           <br />
           <br />
@@ -76,27 +89,31 @@ export function Home() {
             <p>Some things I'm interested in:</p>
             <div className="section-title">
               <li>
-                <b>Technology and startups</b> — especially where automation, artificial intelligence,
-                and user experience intersect. I'm fascinated by tools that can simplify life or create
-                new possibilities.
+                {tx(
+                  "{b}: especially where automation, Artificial Intelligence(AI), and user experience meet. I like tools that make life simpler or make something new possible.",
+                  { b: <b>Technology and startups</b> },
+                )}
               </li>
               <br />
               <li>
-                <b>Design and clarity</b> — I value clean, intentional design in both digital products
-                and communication. Good design, to me, makes things feel intuitive and respectful of the
-                user's time.
+                {tx(
+                  "{b}: I like clean, intentional design, in digital products and in how people communicate. Good design, to me, feels intuitive and doesn't waste the user's time.",
+                  { b: <b>Design and clarity</b> },
+                )}
               </li>
               <br />
               <li>
-                <b>Independent learning</b> — I like teaching myself new skills and using them
-                immediately: web development, writing, data analysis, and business strategy are all
-                things I've explored hands-on.
+                {tx(
+                  "{b}: I teach myself new skills and use them right away. Web development, writing, data analysis, and business strategy all came that way.",
+                  { b: <b>Independent learning</b> },
+                )}
               </li>
               <br />
               <li>
-                <b>Education and leadership</b> — I've seen firsthand how student-led initiatives can
-                create meaningful impact. I hope to keep exploring leadership grounded in action and
-                empathy.
+                {tx(
+                  "{b}: I've seen what student-led groups can do. I want to keep leading that way, with action and empathy.",
+                  { b: <b>Education and leadership</b> },
+                )}
               </li>
             </div>
           </div>
