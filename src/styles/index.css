@@ -988,6 +988,8 @@ html.dark-mode { color-scheme: dark; scrollbar-color: #3f3f3f #121212; }
 
 /* Desktop */
 @media (min-width: 769px) {
+    /* no rubber-band at the page's ends: the bounce showed the sidebar column stopping short */
+    html { overscroll-behavior-y: none; }
     .sidebar { position: sticky; left: 0; }
     #side-tab { display: none !important; }
     .close-btn { display: none !important; }
@@ -2273,11 +2275,11 @@ body.dark-mode .trk-status { color: #e6e6e6; background: rgba(16, 16, 16, 0.8); 
 body.dark-mode .trk-progress { color: #a8a8a8; }
 .trk-seg { display: inline-flex; gap: 4px; }
 
-/* the language switch: a two-segment control pinned to the sidebar's bottom-left,
+/* the language switch: a two-segment control pinned to the sidebar's bottom-right,
    EN | 한, the current language raised on its own lighter tile */
 .lang-switch {
     position: absolute;
-    left: 30px;
+    right: 30px;
     bottom: 30px;
     display: inline-flex;
     gap: 2px;
@@ -2306,8 +2308,8 @@ body.dark-mode .trk-progress { color: #a8a8a8; }
 .lang-switch button:hover { color: #1a1a1a; }
 .lang-switch button[aria-pressed='true'] { color: #1a1a1a; background: #ffffff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); cursor: default; }
 .lang-switch button:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }
-body.dark-mode .lang-switch { background: #1a1a1f; }
-body.dark-mode .lang-switch button { color: #8e8e98; }
+body.dark-mode .lang-switch { background: #171717; }
+body.dark-mode .lang-switch button { color: #8a8a8a; }
 body.dark-mode .lang-switch button:hover { color: #f1f1f1; }
-body.dark-mode .lang-switch button[aria-pressed='true'] { color: #f1f1f1; background: #33333b; box-shadow: none; }
+body.dark-mode .lang-switch button[aria-pressed='true'] { color: #f1f1f1; background: #303030; box-shadow: none; }
 body.dark-mode .lang-switch button:focus-visible { outline-color: #f1f1f1; }
