@@ -31,10 +31,11 @@ export function Home() {
             <br />
             <li>
               {tx(
-                "As of August 2026 I've joined {incheon} (주식회사 인천로보틱스) as an {role}. They build grid-based warehouse robots. My job is implementing AI/ML voice recognition that lets an operator control the whole system without touching the screen. I work on the robot build too. It all lives on {page}.",
+                "As of August 2026 I've joined {incheon} (주식회사 인천로보틱스) as an {role}. They build grid-based warehouse robots. My job is {job} that lets an operator control the whole system without touching the screen. I work on the robot build too. It all lives on {page}.",
                 {
                   incheon: ext('https://incheonrobotics.com', 'Incheon Robotics'),
-                  role: <b>{t('AI/Robotics Engineering Intern')}</b>,
+                  role: <u><b>{t('AI/Robotics Engineering Intern')}</b></u>,
+                  job: <u><b>{t('implementing AI/ML voice recognition system')}</b></u>,
                   page: <Link to="/projects/incheon-robotics">{t('its own page')}</Link>,
                 },
               )}
@@ -42,8 +43,13 @@ export function Home() {
             <br />
             <li>
               {tx(
-                "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with Claude, ChatGPT, and Codex, which moved the company's day-to-day operations onto AI automation.",
-                { role: <b>{t('AX engineer')}</b> },
+                "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with {claude}, {chatgpt}, and {codex}, which moved the company's day-to-day operations onto AI automation.",
+                {
+                  role: <u><b>{t('AX engineer')}</b></u>,
+                  claude: ext('https://claude.com/product/claude-code', 'Claude Code'),
+                  chatgpt: ext('https://chat.openai.com', 'ChatGPT'),
+                  codex: ext('https://openai.com/blog/openai-codex', 'OpenAI Codex'),
+                },
               )}
             </li>
             <br />
