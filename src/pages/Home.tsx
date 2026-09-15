@@ -90,7 +90,7 @@ export function Home() {
             <div className="section-title">
               <li>
                 {tx(
-                  "{b}: especially where automation, artificial intelligence, and user experience meet. I like tools that make life simpler or make something new possible.",
+                  "{b}: especially where automation, Artificial Intelligence(AI), and user experience meet. I like tools that make life simpler or make something new possible.",
                   { b: <b>Technology and startups</b> },
                 )}
               </li>

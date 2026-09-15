@@ -21,8 +21,8 @@ const ko: Record<string, string> = {
   "Now I'm an Executive member of the Event Dept. at {utkesa}.": '현재는 {utkesa} 행사부 임원으로 활동하고 있습니다.',
   'I enjoy combining technology, design, and systems thinking to solve practical problems.':
     '기술과 디자인, 시스템적 사고를 결합해 실질적인 문제를 푸는 일을 즐깁니다.',
-  "{b}: especially where automation, artificial intelligence, and user experience meet. I like tools that make life simpler or make something new possible.":
-    '{b}: 특히 자동화, 인공지능, 사용자 경험이 만나는 지점에 관심이 많습니다. 삶을 단순하게 하거나 새로운 일을 가능하게 하는 도구를 좋아합니다.',
+  "{b}: especially where automation, Artificial Intelligence(AI), and user experience meet. I like tools that make life simpler or make something new possible.":
+    '{b}: 특히 자동화, 인공지능(AI), 사용자 경험이 만나는 지점에 관심이 많습니다. 삶을 단순하게 하거나 새로운 일을 가능하게 하는 도구를 좋아합니다.',
   "{b}: I like clean, intentional design, in digital products and in how people communicate. Good design, to me, feels intuitive and doesn't waste the user's time.":
     '{b}: 디지털 제품이든 커뮤니케이션이든 깔끔하고 의도가 분명한 디자인을 좋아합니다. 좋은 디자인은 직관적이고 사용자의 시간을 낭비하지 않는다고 생각합니다.',
   "{b}: I teach myself new skills and use them right away. Web development, writing, data analysis, and business strategy all came that way.":
