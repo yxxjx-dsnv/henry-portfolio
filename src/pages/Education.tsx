@@ -104,7 +104,7 @@ export function Education() {
                 <Fragment key={g.school.name}>
                   {i > 0 && <span className="edu-logo-sep" aria-hidden="true" />}
                   <a
-                    className="edu-logo"
+                    className={`edu-logo${g.school.roundLogo ? ' edu-logo-round' : ''}`}
                     href={g.school.url}
                     target="_blank"
                     rel="noopener noreferrer"

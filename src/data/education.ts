@@ -3,7 +3,12 @@ import type { EducationGroup } from '../types';
 // Grouped by school (대분류), with program history nested under each (소분류).
 export const education: EducationGroup[] = [
   {
-    school: { name: 'University of Toronto', url: 'https://www.utoronto.ca', logo: '/media/education/uoft.svg' },
+    school: {
+      name: 'University of Toronto',
+      url: 'https://www.utoronto.ca',
+      logo: '/media/education/uoft.svg',
+      roundLogo: true,
+    },
     degree: 'Faculty of Applied Science & Engineering',
     docs: [
       {

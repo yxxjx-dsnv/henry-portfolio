@@ -33,7 +33,8 @@ export type EducationDoc = {
 };
 
 export type EducationGroup = {
-  school: { name: string; url: string; logo?: string };
+  // roundLogo: a seal drawn in one dark colour, so it needs a light ground to read on a dark page
+  school: { name: string; url: string; logo?: string; roundLogo?: boolean };
   degree?: string; // e.g. "Bachelor of Applied Science in Engineering"
   years?: string; // overall span shown on the right, e.g. "2025 – 2029"
   entries: EducationEntry[]; // newest first

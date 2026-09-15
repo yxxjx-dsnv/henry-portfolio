@@ -1299,13 +1299,19 @@ body.dark-mode .edu-doc .pdf-deck-track { border: none; background: transparent;
     background: #d9d9d9;
 }
 body.dark-mode .edu-logo-sep { background: #3a3a3a; }
+/* the U of T seal is navy line-work on nothing, which disappears into a dark page. It gets a
+   white ground of its own — always on where there is no cursor to hover with, and faded in
+   with the colour on the devices that do, so the row stays quiet until it is reached for. */
+.edu-logo-round img { border-radius: 50%; background-color: #ffffff; }
 @media screen and (hover: hover) {
     .edu-logo img {
         filter: grayscale(1);
         opacity: 0.7;
-        transition: filter var(--t-slow), opacity var(--t-slow);
+        transition: filter var(--t-slow), opacity var(--t-slow), background-color var(--t-slow);
     }
     .edu-logo:hover img { filter: grayscale(0); opacity: 1; }
+    .edu-logo-round img { background-color: transparent; }
+    .edu-logo-round:hover img { background-color: #ffffff; }
 }
 
 /* ============================================================
