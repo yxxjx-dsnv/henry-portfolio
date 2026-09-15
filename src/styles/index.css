@@ -988,23 +988,10 @@ html.dark-mode { color-scheme: dark; scrollbar-color: #3f3f3f #121212; }
 
 /* Desktop */
 @media (min-width: 769px) {
-    /* the sidebar's column continues past the page's ends, so a rubber-band bounce at the
-       top or bottom shows the same grey, not the column stopping short: a fixed strip behind
-       the sidebar (fixed boxes add no scroll length), centred the way .main-container is —
-       sidebar 200 + gap 40 + content 600 = 840 */
-    html { overscroll-behavior-y: none; }
-    body::after {
-        content: '';
-        position: fixed;
-        top: -100vh;
-        bottom: -100vh;
-        left: max(0px, calc(50% - 420px));
-        width: 200px;
-        background: #f8f8f8;
-        z-index: -1;
-        pointer-events: none;
-    }
-    body.dark-mode::after { background: #1e1e1e; }
+    /* no rubber-band at the page's ends: the bounce showed the sidebar column stopping short.
+       Set on body as well as html — the viewport takes the value from body when html's
+       overflow is visible, the same propagation as overflow, and Safari follows that. */
+    html, body { overscroll-behavior-y: none; }
     .sidebar { position: sticky; left: 0; }
     #side-tab { display: none !important; }
     .close-btn { display: none !important; }
