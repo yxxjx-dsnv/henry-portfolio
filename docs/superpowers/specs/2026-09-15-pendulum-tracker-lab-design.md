@@ -60,10 +60,18 @@ asked for this in place of a fixed answer — while the fits stay inside the rep
 (the seeded test checks T₀ within 0.006 s, C between 0.05 and 0.09, Q at 0.221 m within 40).
 `prepare(trial, null)` is the ideal release, used for the exact-reference tests.
 
-**First visit.** The lab runs Lab 1 by itself at 8× as soon as the rig is up, with a banner
-saying what is happening and, once done, what the points are; a status pill on the video names
-the experiment, the trial and the last measurement; each tab's blurb replaces the progress
-line when idle, and a finished run invites another lab day.
+**Hands on.** The owner rejected an auto-run with banners ("too much text, too fast, I still
+don't know what to do"). The lab now works without reading: the ball hangs still with one
+hint ("pull the ball and let go"); the viewer grabs it (a pointer within 5 cm of the bob in
+the swing plane, orbit disabled while held), drags it round the pivot and lets go, and that
+release is the experiment — tracked live, and after four seconds its period lands on the
+current graph at the protractor reading of the release angle (`BY_HAND`: the hand error is the
+viewer's own, only the knot, the air and the tracker scatter). On the length experiments a
+click on a knot re-ties the bob there (or the cm chips). A hand release on Amplitude vs time
+grows the envelope as it decays; on Q vs length its Q is recorded when the 200 s are up or on
+⏭. "▶ run all N" still plays the report's whole procedure at 1× (4× optional); ⏭ finishes
+whatever is running instantly. The result line is numbers only — this lab's fit beside the
+report's — with no equations; the header has no buttons; each tab's question is a tooltip.
 
 `completeExperiment` runs the remaining trials without playing them ("finish now") and is
 what the tests exercise (ideal releases): the twin lands on T₀ 0.934 s, C 0.069, τ 177 s, Q 590 (count 592),

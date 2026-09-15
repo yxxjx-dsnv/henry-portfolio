@@ -2256,6 +2256,7 @@ body.dark-mode .trk-table tr:last-child td { color: #8ab4ff; }
     position: absolute;
     left: 10px;
     top: 10px;
+    font-size: 12.5px;
     padding: 4px 9px;
     color: #1c1c1c;
     background: rgba(255, 255, 255, 0.8);
@@ -2265,20 +2266,6 @@ body.dark-mode .trk-table tr:last-child td { color: #8ab4ff; }
     max-width: calc(100% - 20px);
 }
 body.dark-mode .trk-status { color: #e6e6e6; background: rgba(16, 16, 16, 0.8); border-color: rgba(255, 255, 255, 0.14); }
-.trk-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px 12px;
-    font-size: 12.5px;
-    line-height: 1.5;
-    color: #1f5fd0;
-    background: rgba(47, 123, 255, 0.08);
-    border-bottom: 1px solid rgba(47, 123, 255, 0.25);
-}
-body.dark-mode .trk-banner { color: #8ab4ff; background: rgba(47, 123, 255, 0.12); }
-.trk-banner-close { margin-left: auto; padding: 0 4px; font: inherit; font-size: 16px; line-height: 1; color: inherit; background: none; border: 0; cursor: pointer; opacity: 0.7; }
-.trk-banner-close:hover { opacity: 1; }
 .trk-progress { color: #6a6a6a; }
 body.dark-mode .trk-progress { color: #a8a8a8; }
 .trk-seg { display: inline-flex; gap: 4px; }

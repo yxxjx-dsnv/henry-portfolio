@@ -1,5 +1,5 @@
 import { REPORT, fitQuadratic, trackOf } from './pendulumPhysics';
-import { EXPERIMENTS, completeExperiment, experiment, fitOf, measure, prepare } from './pendulumExperiments';
+import { BY_HAND, EXPERIMENTS, completeExperiment, experiment, fitOf, measure, prepare, protractorReading } from './pendulumExperiments';
 
 /** mulberry32: a seeded lab day, so the scatter is the same every test run. */
 const seeded = (seed: number) => () => {
@@ -37,18 +37,15 @@ test('the ideal experiments land on the report’s fits', () => {
   expect(Math.abs(a - REPORT.T0)).toBeLessThan(0.003);
   expect(Math.abs(b / a)).toBeLessThan(0.002);
   expect(c / a).toBeGreaterThan(0.06);
-  expect(fitOf('angle', angle)!.note).toMatch(/T₀ = 0\.93/);
+  expect(fitOf('angle', angle)!.note).toMatch(/T₀ 0\.93\d s · curvature C 0\.0[67]\d/);
 
   const decay = completeExperiment('decay', 0, [], null);
-  const note = fitOf('decay', decay)!.note;
-  expect(note).toMatch(/τ = 17\d s/);
-  expect(note).toMatch(/Q = πτ\/T = (58|59|60)\d/);
-  expect(note).toMatch(/Q = 4N = (5|6)\d\d/);
+  expect(fitOf('decay', decay)!.note).toMatch(/τ 17\d s · Q (58|59|60)\d/);
 
   const length = completeExperiment('length', 0, [], null);
   const lf = fitOf('length', length)!;
   expect(Math.abs(lf.line(REPORT.L) - REPORT.k * REPORT.L ** REPORT.n)).toBeLessThan(0.01);
-  expect(lf.note).toMatch(/k = 1\.9\d, n = 0\.43\d/);
+  expect(lf.note).toMatch(/k 1\.9\d · n 0\.43\d/);
 
   const q = completeExperiment('q', 0, [], null);
   const qf = fitOf('q', q)!;
@@ -74,6 +71,13 @@ test('a lab day scatters every release, but the fits stay inside the report’s 
   }
   const q = fitOf('q', completeExperiment('q', 0, [], seeded(6)))!;
   expect(Math.abs(q.line(0.221) - 594)).toBeLessThan(40);
+});
+
+test('a release by hand keeps the viewer’s angle and reads the protractor to the degree', () => {
+  const trial = { L: REPORT.L, theta0: 0.531, seconds: 6 };
+  const r = prepare(trial, seeded(9), BY_HAND);
+  expect(r.run.theta[0]).toBeCloseTo(0.531, 6);
+  expect(protractorReading(0.531)).toBeCloseTo((30 * Math.PI) / 180, 6);
 });
 
 test('finishing from part-way keeps the points already taken', () => {

@@ -199,12 +199,12 @@ export function Pendulum() {
             </p>
             <br />
             <p>
-              The rig lives on below as a digital twin. It swings to the report's damped model
-              with an exact restoring force, inside a window built like the Tracker session that
-              read the real video: the red marks on the bob, the x and y plots and the frame table
-              fill at thirty frames a second as it moves. Each of the four experiments can be run
-              on it the way it was run in the room, one release after another, every trial
-              measured off its tracked frames, with the measured points laid over the result.
+              The rig lives on below as a digital twin, inside a window built like the Tracker
+              session that read the real video. Pull the ball back and let go: it swings to the
+              report's damped model, the red marks, the plots and the frame table fill at thirty
+              frames a second, and each release becomes a point on the graph of whichever
+              experiment is open, beside the report's own measurements. Or let the lab run the
+              whole procedure by itself.
             </p>
             <br />
             <PendulumLab />

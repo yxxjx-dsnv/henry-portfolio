@@ -32,7 +32,6 @@ export type Experiment = {
   y: string;
   xRange: [number, number];
   yRange: [number, number];
-  speed: number; // the playback the lab picks for it
   data: string; // the report's data file laid over the result
   trials: Trial[];
 };
@@ -50,7 +49,6 @@ export const EXPERIMENTS: Experiment[] = [
     y: 'Period (s)',
     xRange: [-1.5, 1.5],
     yRange: [0.9, 1.12],
-    speed: 1,
     data: 'period-vs-angle.txt',
     // ±10° to ±80° in 10° steps at the reference length, a few periods each
     trials: angles.map((i) => ({ L: REPORT.L, theta0: i * 10 * DEG, seconds: 4 })),
@@ -64,7 +62,6 @@ export const EXPERIMENTS: Experiment[] = [
     y: 'Amplitude (rad)',
     xRange: [0, 200],
     yRange: [0.15, 0.5],
-    speed: 32,
     data: 'amplitude-decay.txt',
     trials: [{ L: REPORT.L, theta0: REPORT.theta0, seconds: 200 }],
   },
@@ -77,7 +74,6 @@ export const EXPERIMENTS: Experiment[] = [
     y: 'Period (s)',
     xRange: [0.03, 0.32],
     yRange: [0.45, 1.25],
-    speed: 1,
     data: 'period-vs-length.txt',
     trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 6 })),
   },
@@ -90,7 +86,6 @@ export const EXPERIMENTS: Experiment[] = [
     y: 'Q-factor',
     xRange: [0.03, 0.32],
     yRange: [250, 850],
-    speed: 32,
     data: 'q-factor-vs-length.txt',
     trials: REPORT.lengths.map((L) => ({ L, theta0: REPORT.theta0, seconds: 200 })),
   },
@@ -117,15 +112,20 @@ export const JITTER = {
 /** One release as it actually happens: the trial as set, plus the day's scatter. Pass `null`
  *  for the ideal release — the model exactly at the report's constants. */
 export type Release = { run: Run; L: number; noise: number };
-export function prepare(trial: Trial, rng: Rng | null = Math.random): Release {
+export function prepare(trial: Trial, rng: Rng | null = Math.random, jitter = JITTER): Release {
   const j = rng ? (sd: number) => sd * gauss(rng) : () => 0;
-  const L = trial.L + j(JITTER.length);
+  const L = trial.L + j(jitter.length);
   const c = constantsFor(trial.L);
   const T0 = c.T0 * Math.sqrt(L / trial.L); // the period goes with √L
-  const tau = c.tau * (1 + j(JITTER.tau));
-  const run = simulate(T0, tau, trial.theta0 + j(JITTER.angle), trial.seconds, trial.seconds > 60 ? 1 / 300 : 1 / 600, j(JITTER.omega));
-  return { run, L, noise: rng ? JITTER.track : 0 };
+  const tau = c.tau * (1 + j(jitter.tau));
+  const run = simulate(T0, tau, trial.theta0 + j(jitter.angle), trial.seconds, trial.seconds > 60 ? 1 / 300 : 1 / 600, j(jitter.omega));
+  return { run, L, noise: rng ? jitter.track : 0 };
 }
+
+/** A release by the viewer's own hand: the angle is theirs, so only the knot, the air and
+ *  the tracker scatter; the graph records the protractor reading, to the degree. */
+export const BY_HAND = { ...JITTER, angle: 0 };
+export const protractorReading = (theta: number) => (Math.round((theta * 180) / Math.PI) * Math.PI) / 180;
 
 /** What one tracked trial contributes to the experiment's graph. */
 export function measure(id: ExpId, trial: Trial, tr: Track): Point[] {
@@ -153,7 +153,7 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const [a, b, c] = fitQuadratic(xs, ys);
     return {
       line: (x) => a + b * x + c * x * x,
-      note: `fit T = T₀(1 + Bθ + Cθ²): T₀ = ${f3(a)} s, B = ${f3(b / a)}, C = ${f3(c / a)} · report: 0.936 s, −0.001, 0.080. An ideal pendulum's curvature is the textbook θ²/16 (0.0625); the real one bent a little more — the report's apparatus notes say why.`,
+      note: `T₀ ${f3(a)} s · curvature C ${f3(c / a)} — report 0.936 s · 0.080`,
     };
   }
   if (id === 'decay') {
@@ -161,10 +161,9 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const { A, tau } = fitExp(xs, ys);
     const T = (xs[xs.length - 1] - xs[0]) / (xs.length - 1); // one positive peak per period
     const Q = (Math.PI * tau) / T;
-    const n = points.findIndex((p) => p.y <= points[0].y * Math.exp(-Math.PI / 4)); // the report's Q/4 count
     return {
       line: (x) => A * Math.exp(-x / tau),
-      note: `fit θ = θ₀e^(−t/τ): τ = ${tau.toFixed(0)} s, Q = πτ/T = ${Q.toFixed(0)}${n > 0 ? ` · counting swings to 46 %: N = ${n}, Q = 4N = ${4 * n}` : ''} · report: τ = 178 ± 1 s, Q = 597 ± 5 (hand count 592 ± 8).`,
+      note: `τ ${tau.toFixed(0)} s · Q ${Q.toFixed(0)} — report 178 s · 597`,
     };
   }
   if (id === 'length') {
@@ -172,14 +171,14 @@ export function fitOf(id: ExpId, points: Point[]): Fit | null {
     const { k, n } = fitPower(xs, ys);
     return {
       line: (x) => k * x ** n,
-      note: `fit T = kLⁿ: k = ${k.toFixed(2)}, n = ${n.toFixed(3)} · report: k = 1.94 ± 0.02, n = 0.433 ± 0.004 (theory: 2.0, 0.5). Released at 0.52 rad, like the report.`,
+      note: `T = k·Lⁿ with k ${k.toFixed(2)} · n ${n.toFixed(3)} — report 1.94 · 0.433`,
     };
   }
   if (points.length < 2) return null;
   const { a, b } = fitLinear(xs, ys);
   return {
     line: (x) => a * x + b,
-    note: `fit Q = aL + b: a = ${a.toFixed(0)}, b = ${b.toFixed(0)} · report: a = 1960 ± 30, b = 202 ± 5; the report's Q at 0.221 m, 594 ± 16, is the point they all agree on.`,
+    note: `Q ≈ ${a.toFixed(0)}·L + ${b.toFixed(0)} — report 1960·L + 202`,
   };
 }
 

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BufferAttribute, Object3D, Points } from 'three';
-import { FPS, REPORT, gauss, type Point, type Track } from './pendulumPhysics';
+import { FPS, REPORT, gauss, trackOf, type Point, type Track } from './pendulumPhysics';
 import {
+  BY_HAND,
   EXPERIMENTS,
   completeExperiment,
   experiment,
   fitOf,
   measure,
   prepare,
+  protractorReading,
   reportLine,
   type ExpId,
   type Release,
@@ -18,30 +20,27 @@ const MEDIA = '/media/pendulum';
 const GLB = `${MEDIA}/pendulum.glb`;
 const BOB_R = 0.021;
 const SWING_Z = 0.004; // the swing plane sits 4 mm in front of the protractor (glTF +Z)
-const MAX = 200 * FPS + 2; // the longest trial's frames
+const MAX = 200 * FPS + 2; // the longest run's frames
 const ROWS = 8; // the table rows that fit beside the video
+const HAND = 200; // a release by hand is tracked for up to 200 s, like the report's decay
+const SETTLE = 4; // seconds of frames before a hand release's period goes on the graph
 
 // The pendulum lab: the rig from the photos, swinging to the report's damped model, inside a
 // window laid out like the Tracker session that read the real video — the red marks on the
-// bob, the x(t) and y(t) plots and the frame table fill at 30 fps as it moves — and the four
-// experiments run on it one release at a time, each trial measured off those frames. Every
-// release carries a lab day's scatter (see JITTER), so no two runs give the same numbers.
-// The first experiment runs by itself when the lab opens, so a newcomer sees what it does.
+// bob, the x(t) and y(t) plots and the frame table fill at 30 fps as it moves. The viewer
+// pulls the ball and lets go; each release is tracked and becomes a point on the current
+// experiment's graph. "Run all" plays the report's whole procedure instead. Every release
+// carries a lab day's scatter (see JITTER), so no two runs give the same numbers.
 
-type Live = Release & { trial: Trial; exp: ExpId; idx: number }; // idx −1: a manual release
+type Live = Release & { trial: Trial; exp: ExpId; idx: number; recorded: boolean }; // idx −1: by hand
 
-const fmtX = (v: number) => (Object.is(v, -0) ? '0.000' : v.toFixed(3));
 type Unit = 'rad' | 'deg';
 const DEG = 180 / Math.PI;
+const fmtX = (v: number) => (Object.is(v, -0) ? '0.000' : v.toFixed(3));
 const fmtAngle = (th: number, unit: Unit, signed = false) => {
   const sign = signed && th > 0 ? '+' : '';
   return unit === 'rad' ? `${sign}${th.toFixed(3)} rad` : `${sign}${(th * DEG).toFixed(1)}°`;
 };
-/** How a trial reads in the progress line, in the chosen unit. */
-const labelOf = (t: Trial, exp: ExpId, unit: Unit) =>
-  exp === 'angle'
-    ? `release ${fmtAngle(t.theta0, unit, true)}`
-    : `L = ${t.L.toFixed(2)} m, release ${fmtAngle(t.theta0, unit, true)}${t.seconds >= 60 ? `, tracked ${t.seconds} s` : ''}`;
 type PlotStyle = { fg: string; bg: string; grid: string; accent: string; font: string };
 
 export function PendulumLab() {
@@ -50,48 +49,73 @@ export function PendulumLab() {
   );
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [exp, setExp] = useState<ExpId>('angle');
-  const [angle, setAngle] = useState(0.52);
-  const [length, setLength] = useState(REPORT.L);
-  const [speed, setSpeed] = useState(1);
-  const [paused, setPaused] = useState(false);
   const [unit, setUnit] = useState<Unit>('rad');
-  const [running, setRunning] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [length, setLength] = useState(REPORT.L);
+  const [running, setRunning] = useState(false); // the report's procedure, playing by itself
   const [trialIdx, setTrialIdx] = useState(-1);
+  const [busy, setBusy] = useState(false); // anything swinging under the tracker
   const [points, setPoints] = useState<Record<ExpId, Point[]>>({ angle: [], decay: [], length: [], q: [] });
   const [measured, setMeasured] = useState<Partial<Record<ExpId, Point[]>>>({});
   const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, th: 0, n: 0 });
   const [rows, setRows] = useState<string[][]>([]);
   const [lastResult, setLastResult] = useState('');
-  const [banner, setBanner] = useState(true); // the first-visit note, until the viewer takes over
+  const [released, setReleased] = useState(false); // the viewer has let go once: the hint can go
+  const [pull, setPull] = useState<number | null>(null); // the angle while the ball is held
   const mountRef = useRef<HTMLDivElement>(null);
   const plotX = useRef<HTMLCanvasElement>(null);
   const plotY = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<Live | null>(null);
-  const clockRef = useRef({ t: 0, speed: 1, paused: false });
+  const clockRef = useRef({ t: 0, speed: 1 });
   const bufRef = useRef<Track>({ t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 });
   const trailRef = useRef<{ points: Points; attr: BufferAttribute } | null>(null);
+  const dragRef = useRef({ on: false, theta: 0 });
   const doneRef = useRef<() => void>(() => {});
   const unitRef = useRef<Unit>('rad');
+  const expRef = useRef<ExpId>('angle');
+  const lengthRef = useRef(REPORT.L);
   const styleRef = useRef<PlotStyle | null>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
 
   const def = experiment(exp);
+  const lengthFor = (id: ExpId) => (id === 'length' || id === 'q' ? lengthRef.current : REPORT.L);
 
-  const start = useCallback((trial: Trial, id: ExpId, idx: number) => {
-    liveRef.current = { ...prepare(trial), trial, exp: id, idx };
+  const clearTrack = useCallback(() => {
     clockRef.current.t = 0;
     bufRef.current.n = 0;
     trailRef.current?.points.geometry.setDrawRange(0, 0);
+    setRows([]);
   }, []);
-
-  // the manual release the window shows when no experiment is running
-  const manualTrial = useCallback(
-    (id: ExpId): Trial => {
-      const L = id === 'length' || id === 'q' ? length : REPORT.L;
-      const th = id === 'angle' ? angle : REPORT.theta0;
-      return { L, theta0: th, seconds: id === 'decay' || id === 'q' ? 200 : 8 };
+  const hang = useCallback(() => {
+    liveRef.current = null;
+    setBusy(false);
+    clearTrack();
+  }, [clearTrack]);
+  // the report's procedure, trial by trial
+  const startTrial = useCallback(
+    (id: ExpId, idx: number) => {
+      const trial = experiment(id).trials[idx];
+      liveRef.current = { ...prepare(trial), trial, exp: id, idx, recorded: false };
+      setBusy(true);
+      clearTrack();
     },
-    [angle, length],
+    [clearTrack],
+  );
+  // a release by the viewer's hand, at the angle they let go of
+  const release = useCallback(
+    (theta: number) => {
+      const id = expRef.current;
+      const trial: Trial = { L: lengthFor(id), theta0: theta, seconds: HAND };
+      liveRef.current = { ...prepare(trial, Math.random, BY_HAND), trial, exp: id, idx: -1, recorded: false };
+      setRunning(false);
+      setTrialIdx(-1);
+      setBusy(true);
+      setReleased(true);
+      setLastResult('');
+      if (id === 'decay') setPoints((p) => ({ ...p, decay: [] })); // one decay on the graph at a time
+      clearTrack();
+    },
+    [clearTrack],
   );
 
   useEffect(() => {
@@ -114,78 +138,75 @@ export function PendulumLab() {
     };
   }, [exp, def.data]);
 
-  // a change of experiment, angle or length (while idle) shows that release
   useEffect(() => {
-    if (running) return;
-    start(manualTrial(exp), exp, -1);
-  }, [exp, manualTrial, running, start]);
-  useEffect(() => {
-    setSpeed(def.speed);
-    setPaused(false);
-  }, [def.speed]);
+    expRef.current = exp;
+    setRunning(false);
+    setTrialIdx(-1);
+    setLastResult('');
+    hang(); // a new experiment starts with the ball hanging
+  }, [exp, hang]);
   useEffect(() => {
     clockRef.current.speed = speed;
-    clockRef.current.paused = paused;
     unitRef.current = unit;
-  }, [speed, paused, unit]);
+    lengthRef.current = length;
+  }, [speed, unit, length]);
 
-  const runExperiment = useCallback(
-    (id: ExpId) => {
-      setPoints((p) => ({ ...p, [id]: [] }));
-      setLastResult('');
-      setRunning(true);
-      setTrialIdx(0);
-      setPaused(false);
-      start(experiment(id).trials[0], id, 0);
-    },
-    [start],
-  );
-  // the first experiment runs by itself once the rig is up, at a pace that finishes in seconds
-  useEffect(() => {
-    if (status !== 'ready') return;
-    setSpeed(8);
-    runExperiment('angle');
-  }, [status, runExperiment]);
+  const runAll = () => {
+    setPoints((p) => ({ ...p, [exp]: [] }));
+    setLastResult('');
+    setRunning(true);
+    setTrialIdx(0);
+    startTrial(exp, 0);
+  };
+  const record = (live: Live, pts: Point[]) => {
+    setPoints((p) => ({ ...p, [live.exp]: live.exp === 'decay' ? pts : [...p[live.exp], ...pts] }));
+    const last = pts[pts.length - 1];
+    if (last)
+      setLastResult(live.exp === 'decay' ? `${pts.length} peaks` : live.exp === 'q' ? `Q ${last.y.toFixed(0)}` : `T ${last.y.toFixed(3)} s`);
+  };
+  /** A hand release's measurement, the angle taken as the protractor reading. */
+  const measureHand = (live: Live, tr: Track): Point[] =>
+    measure(live.exp, live.trial, tr).map((p) => (live.exp === 'angle' ? { ...p, x: protractorReading(live.trial.theta0) } : p));
   const finishNow = () => {
     const live = liveRef.current;
-    if (!live || live.idx < 0) return;
-    const done = completeExperiment(exp, live.idx, points[exp]);
-    setPoints((p) => ({ ...p, [exp]: done }));
-    setRunning(false);
-    setTrialIdx(-1);
-    start(def.trials[def.trials.length - 1], exp, -1);
+    if (!live) return;
+    if (live.idx >= 0) {
+      setPoints((p) => ({ ...p, [exp]: completeExperiment(exp, live.idx, p[exp]) }));
+      setRunning(false);
+      setTrialIdx(-1);
+    } else {
+      const full = trackOf(live.run, live.L, live.trial.seconds, FPS, live.noise, Math.random);
+      if (live.exp === 'decay' || live.exp === 'q' || !live.recorded) record(live, measureHand(live, full));
+    }
+    hang();
   };
-  const reset = () => {
+  const clear = () => {
     setPoints((p) => ({ ...p, [exp]: [] }));
+    setLastResult('');
     setRunning(false);
     setTrialIdx(-1);
-    start(manualTrial(exp), exp, -1);
+    hang();
   };
-  // a trial's time is up: measure it off the frames, then the next one — or loop a manual release
+  // a run's time is up: measure it off the frames, then the next trial — or hang the ball
   doneRef.current = () => {
     const live = liveRef.current;
     if (!live) return;
+    const buf = bufRef.current;
+    const tr = { t: buf.t, x: buf.x, y: buf.y, n: buf.n };
     if (live.idx < 0) {
-      clockRef.current.t = 0;
-      bufRef.current.n = 0;
-      trailRef.current?.points.geometry.setDrawRange(0, 0);
+      if (live.exp === 'decay' || live.exp === 'q') record(live, measureHand(live, tr));
+      hang();
       return;
     }
-    const buf = bufRef.current;
-    const pts = measure(live.exp, live.trial, { t: buf.t, x: buf.x, y: buf.y, n: buf.n });
-    setPoints((p) => ({ ...p, [live.exp]: [...p[live.exp], ...pts] }));
-    const last = pts[pts.length - 1];
-    setLastResult(
-      live.exp === 'decay' ? `${pts.length} peaks tracked` : live.exp === 'q' ? `Q = ${last.y.toFixed(0)}` : `period ${last.y.toFixed(3)} s`,
-    );
+    record(live, measure(live.exp, live.trial, tr));
     const trials = experiment(live.exp).trials;
     if (live.idx + 1 < trials.length) {
       setTrialIdx(live.idx + 1);
-      start(trials[live.idx + 1], live.exp, live.idx + 1);
+      startTrial(live.exp, live.idx + 1);
     } else {
       setRunning(false);
       setTrialIdx(-1);
-      start(live.trial, live.exp, -1);
+      hang();
     }
   };
 
@@ -338,9 +359,96 @@ export function PendulumLab() {
         orbit.minDistance = 0.2;
         orbit.maxDistance = 2.5;
 
+        // the viewer's hand: a pointer near the ball grabs it, drags it round the pivot in the
+        // swing plane, and lets go; a click on a knot re-ties the bob there (length experiments)
+        const raycaster = new THREE.Raycaster();
+        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -SWING_Z);
+        const hit = new THREE.Vector3();
+        const ndc = new THREE.Vector2();
+        const toPlane = (clientX: number, clientY: number) => {
+          const r = webgl.domElement.getBoundingClientRect();
+          ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+          raycaster.setFromCamera(ndc, camera);
+          return raycaster.ray.intersectPlane(plane, hit) ? { x: hit.x, y: hit.y } : null;
+        };
+        const nearBob = (p: { x: number; y: number }) => {
+          const L = lengthFor(expRef.current);
+          const th = arm.rotation.z;
+          return Math.hypot(p.x - L * Math.sin(th), p.y + L * Math.cos(th)) < 0.05;
+        };
+        const knotAt = (p: { x: number; y: number }) => {
+          const th = arm.rotation.z;
+          const s = p.x * Math.sin(th) - p.y * Math.cos(th); // distance down the string
+          const off = Math.hypot(p.x - s * Math.sin(th), p.y + s * Math.cos(th));
+          const k = Math.round(s / 0.05);
+          return off < 0.012 && k >= 1 && k <= 6 && Math.abs(s - 0.05 * k) < 0.02 ? 0.05 * k : null;
+        };
+        const el = webgl.domElement;
+        const onDown = (e: PointerEvent) => {
+          const p = toPlane(e.clientX, e.clientY);
+          if (!p) return;
+          if (nearBob(p)) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            el.setPointerCapture(e.pointerId);
+            orbit.enabled = false;
+            liveRef.current = null; // the hand takes over from whatever was swinging
+            setRunning(false);
+            setTrialIdx(-1);
+            dragRef.current = { on: true, theta: Math.max(-1.5, Math.min(1.5, Math.atan2(p.x, -p.y))) };
+            setPull(dragRef.current.theta);
+            el.style.cursor = 'grabbing';
+            return;
+          }
+          const id = expRef.current;
+          if ((id === 'length' || id === 'q') && !liveRef.current) {
+            const L = knotAt(p);
+            if (L !== null) {
+              e.stopImmediatePropagation();
+              setLength(L);
+            }
+          }
+        };
+        const onMove = (e: PointerEvent) => {
+          const p = toPlane(e.clientX, e.clientY);
+          if (dragRef.current.on) {
+            if (p) {
+              dragRef.current.theta = Math.max(-1.5, Math.min(1.5, Math.atan2(p.x, -p.y)));
+              setPull(dragRef.current.theta);
+            }
+            return;
+          }
+          el.style.cursor = p && nearBob(p) ? 'grab' : '';
+        };
+        const onUp = (e: PointerEvent) => {
+          if (!dragRef.current.on) return;
+          dragRef.current.on = false;
+          orbit.enabled = true;
+          el.style.cursor = '';
+          if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+          setPull(null);
+          release(dragRef.current.theta);
+        };
+        el.addEventListener('pointerdown', onDown, true);
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerup', onUp);
+        el.addEventListener('pointercancel', onUp);
+        cleanupExtra.push(() => {
+          el.removeEventListener('pointerdown', onDown, true);
+          el.removeEventListener('pointermove', onMove);
+          el.removeEventListener('pointerup', onUp);
+          el.removeEventListener('pointercancel', onUp);
+        });
+
         let last = 0;
         let lastUi = 0;
         let lastStyle = 0;
+        let lastEnvelope = 0;
+        const pose = (th: number, L: number) => {
+          arm.rotation.z = th;
+          thread.scale.y = L - BOB_R;
+          bob.position.y = -L;
+        };
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
           if (!last) last = now;
@@ -351,17 +459,22 @@ export function PendulumLab() {
             restyle();
           }
           const live = liveRef.current;
-          if (live) {
+          if (dragRef.current.on) {
+            const L = lengthFor(expRef.current);
+            const th = dragRef.current.theta;
+            pose(th, L);
+            if (now - lastUi > 100) {
+              lastUi = now;
+              setFrame((f) => ({ ...f, x: L * Math.sin(th), y: -L * Math.cos(th), th }));
+            }
+          } else if (live) {
             const clock = clockRef.current;
-            if (!clock.paused) clock.t += dt * clock.speed;
+            clock.t += dt * clock.speed;
             if (clock.t >= live.trial.seconds) {
               doneRef.current();
             } else {
               const { run, trial, L, noise } = live;
-              const th = run.theta[Math.min(run.theta.length - 1, Math.floor(clock.t / run.dt))];
-              arm.rotation.z = th;
-              thread.scale.y = L - BOB_R;
-              bob.position.y = -L;
+              pose(run.theta[Math.min(run.theta.length - 1, Math.floor(clock.t / run.dt))], L);
               // the frames Tracker would have stepped through since the last draw
               const buf = bufRef.current;
               const pos = trailAttr.array as Float32Array;
@@ -389,6 +502,18 @@ export function PendulumLab() {
                   drawPlot(plotY.current, buf, 'y', trial.seconds, st);
                 }
               }
+              // a hand release: its period goes on the graph once a few swings are in, a decay
+              // envelope grows as the peaks come
+              if (live.idx < 0) {
+                const tr = { t: buf.t, x: buf.x, y: buf.y, n: buf.n };
+                if (!live.recorded && (live.exp === 'angle' || live.exp === 'length') && clock.t >= SETTLE) {
+                  live.recorded = true;
+                  record(live, measureHand(live, tr));
+                } else if (live.exp === 'decay' && now - lastEnvelope > 1000) {
+                  lastEnvelope = now;
+                  record(live, measureHand(live, tr));
+                }
+              }
               if (now - lastUi > 100 && buf.n > 0) {
                 lastUi = now;
                 const i = buf.n - 1;
@@ -402,6 +527,8 @@ export function PendulumLab() {
                 setRows(out);
               }
             }
+          } else {
+            pose(0, lengthFor(expRef.current)); // hanging still
           }
           orbit.update();
           webgl.render(scene, camera);
@@ -425,24 +552,31 @@ export function PendulumLab() {
         renderer.dispose();
       }
     };
+    // the loop reads everything live through refs; `release` and `record` are stable enough
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   const pts = points[exp];
   const fit = useMemo(() => fitOf(exp, pts), [exp, pts]);
   const A0 = exp === 'decay' ? (measured.decay?.[0]?.y ?? pts[0]?.y ?? REPORT.theta0) : REPORT.theta0;
-  const progress = running
-    ? `trial ${trialIdx + 1} of ${def.trials.length} · ${def.trials[trialIdx] ? labelOf(def.trials[trialIdx], exp, unit) : ''}`
-    : pts.length
-      ? `${def.trials.length} trials done — Run again for another lab day`
-      : def.blurb;
-  const statusLine = running
-    ? `${def.lab} · trial ${trialIdx + 1}/${def.trials.length}${lastResult ? ` · last: ${lastResult}` : ''}`
-    : `${def.lab} · ${def.name}${pts.length ? ' · done' : ''}`;
   // the angle experiment's graph reads in the chosen unit; the fits stay in radians
   const xf = exp === 'angle' && unit === 'deg' ? DEG : 1;
   const scaled = (p?: Point[]) => (xf === 1 ? p : p?.map((q) => ({ ...q, x: q.x * xf })));
   const inRad = (f?: (x: number) => number) => (f && xf !== 1 ? (x: number) => f(x / xf) : f);
-  const chartNote = fit?.note ?? (pts.length ? `${pts.length} of ${def.trials.length} trials measured — the fit needs a few more` : `Run ${def.lab.toLowerCase()} on the twin: ${def.trials.length === 1 ? 'one release, ' : `${def.trials.length} releases, `}each measured off its tracked frames.`);
+  const knots = exp === 'length' || exp === 'q';
+  const statusLine =
+    pull !== null
+      ? `pulled to ${fmtAngle(pull, unit, true)}`
+      : running
+        ? `trial ${trialIdx + 1} of ${def.trials.length}${lastResult ? ` · ${lastResult}` : ''}`
+        : busy
+          ? `tracking ${frame.t.toFixed(0)} s${lastResult ? ` · ${lastResult}` : ''}`
+          : released
+            ? lastResult || 'hanging'
+            : knots
+              ? '✋ pull the ball and let go · click a knot to re-tie'
+              : '✋ pull the ball and let go';
+  const chartNote = fit?.note ?? (pts.length ? `${pts.length} point${pts.length > 1 ? 's' : ''} — a few more for the fit` : 'each release adds a point');
 
   return (
     <figure className="story-figure model-viewer" id="pendulum-lab">
@@ -455,7 +589,7 @@ export function PendulumLab() {
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">Run the lab</span>
+          <span className="model-cta">Try the pendulum</span>
         </button>
       ) : (
         <div className="asrs-frame trk" ref={frameRef}>
@@ -465,38 +599,14 @@ export function PendulumLab() {
             <span className="trk-clock">
               frame {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
-            {status === 'ready' && (
-              <span className="trk-buttons">
-                <button type="button" className="asrs-btn" onClick={() => setPaused((p) => !p)} aria-label={paused ? 'Play' : 'Pause'}>
-                  {paused ? '▶' : '❚❚'}
-                </button>
-                {[1, 8, 32].map((s) => (
-                  <button key={s} type="button" className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`} onClick={() => setSpeed(s)}>
-                    {s}×
-                  </button>
-                ))}
-              </span>
-            )}
           </div>
-          {banner && status === 'ready' && (
-            <div className="trk-banner" role="note">
-              <span>
-                {running
-                  ? 'The lab is running its first experiment by itself: 16 releases from −80° to +80°, each swing tracked at 30 frames a second and its period measured — watch the points land on the graph below. Pause with ❚❚, or pick another experiment from the tabs.'
-                  : 'That was Lab 1, run by itself: the blue points on the graph are its measurements, the black ones the report’s. Run it again for another lab day, or pick another experiment from the tabs.'}
-              </span>
-              <button type="button" className="trk-banner-close" onClick={() => setBanner(false)} aria-label="Dismiss">
-                ×
-              </button>
-            </div>
-          )}
           <div className="trk-body">
             <div
               className="trk-video"
               ref={mountRef}
               tabIndex={-1}
               role="application"
-              aria-label="The pendulum rig in 3D, tracked as it swings. Drag to orbit, ctrl+drag to pan, scroll to zoom."
+              aria-label="The pendulum rig in 3D. Drag the ball to pull it back and let go; drag elsewhere to orbit, scroll to zoom."
             >
               <span className="model-status" role="status" aria-live="polite">
                 {status === 'loading' && 'building the rig…'}
@@ -515,18 +625,18 @@ export function PendulumLab() {
             </div>
             <div className="trk-side">
               <div className="trk-plot">
-                <canvas ref={plotX} aria-label="mass A: x against t" />
+                <canvas ref={plotX} aria-label="the bob's x against time" />
                 <span className="trk-read">
                   t = {frame.t.toFixed(3)} s · x = {fmtX(frame.x)} m
                 </span>
               </div>
               <div className="trk-plot">
-                <canvas ref={plotY} aria-label="mass A: y against t" />
+                <canvas ref={plotY} aria-label="the bob's y against time" />
                 <span className="trk-read">
                   t = {frame.t.toFixed(3)} s · y = {fmtX(frame.y)} m
                 </span>
               </div>
-              <div className="trk-table" aria-label="mass A frame table">
+              <div className="trk-table" aria-label="frame table">
                 <table>
                   <thead>
                     <tr>
@@ -558,41 +668,40 @@ export function PendulumLab() {
                     key={e.id}
                     type="button"
                     className={`asrs-step${e.id === exp ? ' asrs-step-on' : ''}`}
-                    onClick={() => {
-                      if (running) return;
-                      setBanner(false);
-                      setExp(e.id);
-                    }}
-                    disabled={running && e.id !== exp}
+                    title={e.blurb}
+                    onClick={() => setExp(e.id)}
                   >
                     {e.lab} · {e.name}
                   </button>
                 ))}
               </div>
               <div className="asrs-controls">
-                {!running ? (
-                  <button
-                    type="button"
-                    className="asrs-btn asrs-btn-on"
-                    onClick={() => {
-                      setBanner(false);
-                      setSpeed(def.speed);
-                      runExperiment(exp);
-                    }}
-                  >
-                    ▶ Run {def.lab.toLowerCase()}
+                {busy ? (
+                  <button type="button" className="asrs-btn" onClick={finishNow}>
+                    ⏭ finish
                   </button>
                 ) : (
-                  <button type="button" className="asrs-btn" onClick={finishNow}>
-                    ⏭ finish now
+                  <button type="button" className="asrs-btn" onClick={runAll}>
+                    ▶ run all {def.trials.length}
                   </button>
                 )}
-                {pts.length > 0 && !running && (
-                  <button type="button" className="asrs-btn" onClick={reset}>
+                {pts.length > 0 && (
+                  <button type="button" className="asrs-btn" onClick={clear}>
                     ↺ clear
                   </button>
                 )}
-                <span className="trk-progress">{progress}</span>
+                {knots &&
+                  REPORT.lengths.map((L) => (
+                    <button
+                      key={L}
+                      type="button"
+                      className={`asrs-btn${L === length ? ' asrs-btn-on' : ''}`}
+                      disabled={busy}
+                      onClick={() => setLength(L)}
+                    >
+                      {Math.round(L * 100)} cm
+                    </button>
+                  ))}
                 <span className="trk-seg" role="group" aria-label="Angle unit">
                   {(['rad', 'deg'] as Unit[]).map((u) => (
                     <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} onClick={() => setUnit(u)}>
@@ -600,34 +709,14 @@ export function PendulumLab() {
                     </button>
                   ))}
                 </span>
-                {exp === 'angle' && (
-                  <label className="lab-field">
-                    release {fmtAngle(angle, unit)}
-                    <input
-                      type="range"
-                      min={-1.4}
-                      max={1.4}
-                      step={0.01}
-                      value={angle}
-                      disabled={running}
-                      aria-label="Release angle"
-                      onChange={(ev) => setAngle(Number(ev.target.value))}
-                    />
-                  </label>
-                )}
-                {(exp === 'length' || exp === 'q') &&
-                  REPORT.lengths.map((L) => (
-                    <button
-                      key={L}
-                      type="button"
-                      className={`asrs-btn${L === length ? ' asrs-btn-on' : ''}`}
-                      disabled={running}
-                      onClick={() => setLength(L)}
-                    >
-                      {L.toFixed(2)} m
+                <span className="trk-seg" role="group" aria-label="Playback speed">
+                  {[1, 4].map((s) => (
+                    <button key={s} type="button" className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`} onClick={() => setSpeed(s)}>
+                      {s}×
                     </button>
                   ))}
-                <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
+                </span>
+                <span className="asrs-hint">drag elsewhere to orbit · scroll to zoom</span>
               </div>
               <Chart
                 title={def.name}
@@ -646,12 +735,9 @@ export function PendulumLab() {
         </div>
       )}
       <figcaption>
-        The rig, rebuilt from the photos, driven by the report's own damped-pendulum model with an
-        exact restoring force, inside a window laid out like the Tracker session that read the real
-        video. Each experiment runs on it release by release, every trial measured off the tracked
-        frames, then the measured points are laid over what it produced. Every release carries a lab
-        day's scatter — the hand at the protractor, the knot, the air, the tracker — so no two runs
-        give the same numbers, and the fits land inside the report's error bars.
+        The rig from the photos, swinging to the report's own damped model. Pull the ball and let
+        go: the window tracks it the way Tracker tracked the real video, and each release becomes a
+        point on the graph beside the report's measurements.
       </figcaption>
     </figure>
   );
@@ -667,13 +753,13 @@ function envelopeOf(track: Point[]): Point[] {
   return out;
 }
 
-// ── the live plots, drawn the way Tracker draws them: red steps on white ────
+// ── the live plots: red steps in the page's own colours ─────────────────────
 
 function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y', seconds: number, st: PlotStyle) {
   if (!canvas) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const W = canvas.clientWidth || 300;
-  const H = canvas.clientHeight || 118;
+  const H = canvas.clientHeight || 100;
   if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
@@ -684,7 +770,7 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   g.fillStyle = st.bg;
   g.fillRect(0, 0, W, H);
   const m = { l: 46, r: 8, t: 16, b: 26 };
-  const unit = which === 'x' ? 100 : 1; // x reads in ×10⁻² m, as Tracker labelled it
+  const scaleF = which === 'x' ? 100 : 1; // x reads in ×10⁻² m, as Tracker labelled it
   const v = which === 'x' ? buf.x : buf.y;
   let lo = Infinity;
   let hi = -Infinity;
@@ -699,7 +785,9 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   const pad = (hi - lo) * 0.08 || 0.01;
   lo -= pad;
   hi += pad;
-  const sx = (t: number) => m.l + (t / seconds) * (W - m.l - m.r);
+  // the time axis grows with the run: a hand release is tracked for up to 200 s
+  const span = Math.min(seconds, Math.max(8, 2 ** Math.ceil(Math.log2(Math.max(8, buf.n / FPS)))));
+  const sx = (t: number) => m.l + (t / span) * (W - m.l - m.r);
   const sy = (y: number) => H - m.b - ((y - lo) / (hi - lo)) * (H - m.t - m.b);
   g.strokeStyle = st.grid;
   g.lineWidth = 1;
@@ -711,14 +799,14 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   g.fillStyle = st.fg;
   g.font = `10px ${st.font}`;
   g.textAlign = 'center';
-  g.fillText(`mass A · ${which}(t)`, m.l + (W - m.l - m.r) / 2, 11);
+  g.fillText(`${which}(t)`, m.l + (W - m.l - m.r) / 2, 11);
   g.fillText('t (s)', m.l + (W - m.l - m.r) / 2, H - 4);
   for (let k = 0; k <= 2; k++) {
-    const t = (seconds * k) / 2;
+    const t = (span * k) / 2;
     g.fillText(String(+t.toFixed(1)), sx(t), H - m.b + 11);
   }
   g.textAlign = 'right';
-  for (const y of [lo + pad, (lo + hi) / 2, hi - pad]) g.fillText((y * unit).toFixed(which === 'x' ? 0 : 2), m.l - 3, sy(y) + 3);
+  for (const y of [lo + pad, (lo + hi) / 2, hi - pad]) g.fillText((y * scaleF).toFixed(which === 'x' ? 0 : 2), m.l - 3, sy(y) + 3);
   if (which === 'x') {
     g.textAlign = 'left';
     g.fillText('×10⁻²', 2, 11);
@@ -736,7 +824,7 @@ function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y'
   }
 }
 
-// ── the result chart: measured points, the report's fit, and the twin ──────
+// ── the result chart: measured points, the report's fit, and this lab's releases ─
 
 type Series = {
   twin: Point[];
@@ -780,7 +868,7 @@ function Chart({
   const [hover, setHover] = useState<Point | null>(null);
   return (
     <div className="lab-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: measured points, the report's fit, and the twin`}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: the report's points and fit, and this lab's releases`}>
         {ticks(yRange[0], yRange[1]).map((v) => (
           <g key={`y${v}`}>
             <line x1={m.l} x2={W - m.r} y1={sy(v)} y2={sy(v)} className="lab-grid" />
@@ -820,9 +908,9 @@ function Chart({
         )}
       </svg>
       <div className="lab-legend">
-        <span><i className="lab-key lab-key-measured" /> measured</span>
+        <span><i className="lab-key lab-key-measured" /> report</span>
         <span><i className="lab-key lab-key-report" /> report fit</span>
-        <span><i className="lab-key lab-key-twin" /> twin</span>
+        <span><i className="lab-key lab-key-twin" /> this lab</span>
       </div>
     </div>
   );
