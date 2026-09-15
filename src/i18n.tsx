@@ -36,7 +36,7 @@ const makeCtx = (lang: Lang, setLang: (l: Lang) => void): Ctx => ({
 
 const LangContext = createContext<Ctx>(makeCtx('en', () => {}));
 
-/** ?lang=ko on the link, then the reader's last choice, then a Korean browser. */
+/** ?lang=ko on the link, then the reader's last choice, then the device's own language. */
 export function initialLang(): Lang {
   if (typeof window === 'undefined') return 'en';
   const q = new URLSearchParams(window.location.search).get('lang');
@@ -47,7 +47,9 @@ export function initialLang(): Lang {
   } catch {
     /* private mode */
   }
-  return (navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+  // the device's first preferred language decides for a first-time visitor
+  const device = navigator.languages?.[0] || navigator.language || '';
+  return device.toLowerCase().startsWith('ko') ? 'ko' : 'en';
 }
 
 export function LangProvider({ children }: { children: ReactNode }) {

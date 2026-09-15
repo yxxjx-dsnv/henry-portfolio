@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { profile } from '../data/profile';
 import { LocalTime } from './LocalTime';
-import { useLang } from '../i18n';
 
 const EMAIL = profile.social.email.replace(/^mailto:/, '');
 
@@ -20,7 +19,6 @@ const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' :
 
 export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
   const location = useLocation();
-  const { lang, setLang } = useLang();
   const navRef = useRef<HTMLUListElement>(null);
   const [dotY, setDotY] = useState<number | null>(null);
   // The nav dot travels to whichever link is active — "you are here".
@@ -151,20 +149,6 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           Colophon
         </NavLink>
       </p>
-      <div className="lang-switch" role="group" aria-label="Language">
-        {(['en', 'ko'] as const).map((l) => (
-          <button
-            key={l}
-            type="button"
-            lang={l}
-            aria-pressed={lang === l}
-            title={l === 'en' ? 'English' : '한국어'}
-            onClick={() => setLang(l)}
-          >
-            {l === 'en' ? 'EN' : '한'}
-          </button>
-        ))}
-      </div>
     </nav>
   );
 }

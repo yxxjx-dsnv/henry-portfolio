@@ -22,8 +22,12 @@ strings (project and activity paragraphs) are translated at render time in Proje
 ActivityItem; APS105 writeups likewise on their page. Libre Baskerville has no Hangul, so
 `Noto Serif KR` follows it in the stack; `html[lang=ko]` gets `word-break: keep-all`.
 
-The toggle (`.lang-toggle`, Sidebar) shows the language you would switch to: `한` on the
-English site, `EN` on the Korean. The command palette has a "Switch language" action.
+**The switch is the clock.** The sidebar's local time (`LocalTime`) was already a button that
+flew a small plane between Toronto and Seoul; it now carries the language with it. Toronto
+reads English, Seoul Korean, the language changes mid-flight when the plane lands, and the
+city always matches the language the site is in. Its title and accessible name say what a
+click does ("한국어로 보기" / "View in English"). There is no separate toggle button. The
+command palette also has a "Switch language" action.
 
 ## Coverage
 

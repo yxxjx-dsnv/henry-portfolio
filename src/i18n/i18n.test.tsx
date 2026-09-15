@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { LangProvider, initialLang, interpolate, translate, useLang } from '../i18n';
 import { KO } from './ko';
@@ -35,6 +36,21 @@ test('the reader starts in English, switches to Korean, and the choice is rememb
 test('?lang=ko on the link opens the Korean site', () => {
   window.history.replaceState({}, '', '/?lang=ko');
   expect(initialLang()).toBe('ko');
+});
+
+test("a first-time visitor gets the device's own language", () => {
+  const device = (tag: string) => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue([tag]);
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue(tag);
+  };
+  device('ko-KR');
+  expect(initialLang()).toBe('ko');
+  device('en-CA');
+  expect(initialLang()).toBe('en');
+  // a choice already made outranks the device
+  localStorage.setItem('lang', 'ko');
+  expect(initialLang()).toBe('ko');
+  vi.restoreAllMocks();
 });
 
 test('an untranslated line stays English; placeholders keep their elements', () => {
