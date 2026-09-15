@@ -23,6 +23,14 @@ export type Point = { x: number; y: number; dy?: number };
 
 export const FPS = 30; // the frame rate the report's decay video was tracked at
 
+export type Rng = () => number;
+
+/** A standard normal draw (Box–Muller) from a uniform generator. */
+export function gauss(rng: Rng): number {
+  const u = Math.max(1e-12, rng());
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+}
+
 /** A Tracker table: the bob at every frame, the pivot as the origin, y up (metres). */
 export type Track = { t: Float32Array; x: Float32Array; y: Float32Array; n: number };
 
@@ -31,8 +39,9 @@ export function thetaAt(run: Run, t: number): number {
   return run.theta[Math.max(0, Math.min(run.theta.length - 1, Math.round(t / run.dt)))];
 }
 
-/** Sample a run the way Tracker sampled the video: the bob's (x, y) at `fps`, up to `seconds`. */
-export function trackOf(run: Run, L: number, seconds: number, fps = FPS): Track {
+/** Sample a run the way Tracker sampled the video: the bob's (x, y) at `fps`, up to `seconds`,
+ *  with `noise` metres of the autotracker's sub-pixel jitter on every frame when an rng is given. */
+export function trackOf(run: Run, L: number, seconds: number, fps = FPS, noise = 0, rng?: Rng): Track {
   const n = Math.min(Math.floor(seconds * fps) + 1, Math.floor((run.theta.length - 1) * run.dt * fps) + 1);
   const t = new Float32Array(n);
   const x = new Float32Array(n);
@@ -40,8 +49,8 @@ export function trackOf(run: Run, L: number, seconds: number, fps = FPS): Track 
   for (let i = 0; i < n; i++) {
     const th = thetaAt(run, i / fps);
     t[i] = i / fps;
-    x[i] = L * Math.sin(th);
-    y[i] = -L * Math.cos(th);
+    x[i] = L * Math.sin(th) + (rng ? noise * gauss(rng) : 0);
+    y[i] = -L * Math.cos(th) + (rng ? noise * gauss(rng) : 0);
   }
   return { t, x, y, n };
 }
@@ -70,8 +79,9 @@ export function envelopeFromTrack(tr: Track): Point[] {
 }
 
 /** θ'' = −(2π/T0)² sin θ − (2/τ) θ' — the report's model [1] with an exact restoring force.
- *  T0 is the small-angle period the twin is calibrated to (it fixes g/L). */
-export function simulate(T0: number, tau: number, theta0: number, tEnd: number, dt = 1 / 600): Run {
+ *  T0 is the small-angle period the twin is calibrated to (it fixes g/L); omega0 is any
+ *  angular velocity the hand gave the bob on release. */
+export function simulate(T0: number, tau: number, theta0: number, tEnd: number, dt = 1 / 600, omega0 = 0): Run {
   const w2 = (2 * Math.PI) / T0;
   const k = w2 * w2;
   const c = 2 / tau;
@@ -79,7 +89,7 @@ export function simulate(T0: number, tau: number, theta0: number, tEnd: number, 
   const theta = new Float32Array(n);
   const omega = new Float32Array(n);
   let th = theta0;
-  let om = 0;
+  let om = omega0;
   const f = (t: number, o: number) => -k * Math.sin(t) - c * o;
   for (let i = 0; i < n; i++) {
     theta[i] = th;

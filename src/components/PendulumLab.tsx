@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BufferAttribute, Object3D, Points } from 'three';
-import { FPS, REPORT, type Point, type Run, type Track } from './pendulumPhysics';
+import { FPS, REPORT, gauss, type Point, type Track } from './pendulumPhysics';
 import {
   EXPERIMENTS,
   completeExperiment,
   experiment,
   fitOf,
   measure,
+  prepare,
   reportLine,
-  runOf,
   type ExpId,
+  type Release,
   type Trial,
 } from './pendulumExperiments';
 
@@ -23,9 +24,11 @@ const ROWS = 8; // the table rows that fit beside the video
 // The pendulum lab: the rig from the photos, swinging to the report's damped model, inside a
 // window laid out like the Tracker session that read the real video — the red marks on the
 // bob, the x(t) and y(t) plots and the frame table fill at 30 fps as it moves — and the four
-// experiments run on it one release at a time, each trial measured off those frames.
+// experiments run on it one release at a time, each trial measured off those frames. Every
+// release carries a lab day's scatter (see JITTER), so no two runs give the same numbers.
+// The first experiment runs by itself when the lab opens, so a newcomer sees what it does.
 
-type Live = { run: Run; trial: Trial; exp: ExpId; idx: number }; // idx −1: a manual release
+type Live = Release & { trial: Trial; exp: ExpId; idx: number }; // idx −1: a manual release
 
 const fmtX = (v: number) => (Object.is(v, -0) ? '0.000' : v.toFixed(3));
 type Unit = 'rad' | 'deg';
@@ -58,6 +61,8 @@ export function PendulumLab() {
   const [measured, setMeasured] = useState<Partial<Record<ExpId, Point[]>>>({});
   const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, th: 0, n: 0 });
   const [rows, setRows] = useState<string[][]>([]);
+  const [lastResult, setLastResult] = useState('');
+  const [banner, setBanner] = useState(true); // the first-visit note, until the viewer takes over
   const mountRef = useRef<HTMLDivElement>(null);
   const plotX = useRef<HTMLCanvasElement>(null);
   const plotY = useRef<HTMLCanvasElement>(null);
@@ -73,7 +78,7 @@ export function PendulumLab() {
   const def = experiment(exp);
 
   const start = useCallback((trial: Trial, id: ExpId, idx: number) => {
-    liveRef.current = { run: runOf(trial), trial, exp: id, idx };
+    liveRef.current = { ...prepare(trial), trial, exp: id, idx };
     clockRef.current.t = 0;
     bufRef.current.n = 0;
     trailRef.current?.points.geometry.setDrawRange(0, 0);
@@ -124,13 +129,23 @@ export function PendulumLab() {
     unitRef.current = unit;
   }, [speed, paused, unit]);
 
-  const runExperiment = () => {
-    setPoints((p) => ({ ...p, [exp]: [] }));
-    setRunning(true);
-    setTrialIdx(0);
-    setPaused(false);
-    start(def.trials[0], exp, 0);
-  };
+  const runExperiment = useCallback(
+    (id: ExpId) => {
+      setPoints((p) => ({ ...p, [id]: [] }));
+      setLastResult('');
+      setRunning(true);
+      setTrialIdx(0);
+      setPaused(false);
+      start(experiment(id).trials[0], id, 0);
+    },
+    [start],
+  );
+  // the first experiment runs by itself once the rig is up, at a pace that finishes in seconds
+  useEffect(() => {
+    if (status !== 'ready') return;
+    setSpeed(8);
+    runExperiment('angle');
+  }, [status, runExperiment]);
   const finishNow = () => {
     const live = liveRef.current;
     if (!live || live.idx < 0) return;
@@ -159,6 +174,10 @@ export function PendulumLab() {
     const buf = bufRef.current;
     const pts = measure(live.exp, live.trial, { t: buf.t, x: buf.x, y: buf.y, n: buf.n });
     setPoints((p) => ({ ...p, [live.exp]: [...p[live.exp], ...pts] }));
+    const last = pts[pts.length - 1];
+    setLastResult(
+      live.exp === 'decay' ? `${pts.length} peaks tracked` : live.exp === 'q' ? `Q = ${last.y.toFixed(0)}` : `period ${last.y.toFixed(3)} s`,
+    );
     const trials = experiment(live.exp).trials;
     if (live.idx + 1 < trials.length) {
       setTrialIdx(live.idx + 1);
@@ -338,8 +357,7 @@ export function PendulumLab() {
             if (clock.t >= live.trial.seconds) {
               doneRef.current();
             } else {
-              const { run, trial } = live;
-              const L = trial.L;
+              const { run, trial, L, noise } = live;
               const th = run.theta[Math.min(run.theta.length - 1, Math.floor(clock.t / run.dt))];
               arm.rotation.z = th;
               thread.scale.y = L - BOB_R;
@@ -351,8 +369,8 @@ export function PendulumLab() {
               while (buf.n < MAX && buf.n / FPS <= clock.t) {
                 const ts = buf.n / FPS;
                 const ths = run.theta[Math.min(run.theta.length - 1, Math.round(ts / run.dt))];
-                const x = L * Math.sin(ths);
-                const y = -L * Math.cos(ths);
+                const x = L * Math.sin(ths) + noise * gauss(Math.random); // the autotracker's jitter
+                const y = -L * Math.cos(ths) + noise * gauss(Math.random);
                 buf.t[buf.n] = ts;
                 buf.x[buf.n] = x;
                 buf.y[buf.n] = y;
@@ -415,8 +433,11 @@ export function PendulumLab() {
   const progress = running
     ? `trial ${trialIdx + 1} of ${def.trials.length} · ${def.trials[trialIdx] ? labelOf(def.trials[trialIdx], exp, unit) : ''}`
     : pts.length
-      ? `${def.trials.length} trials done`
-      : 'a single release — press Run for the experiment';
+      ? `${def.trials.length} trials done — Run again for another lab day`
+      : def.blurb;
+  const statusLine = running
+    ? `${def.lab} · trial ${trialIdx + 1}/${def.trials.length}${lastResult ? ` · last: ${lastResult}` : ''}`
+    : `${def.lab} · ${def.name}${pts.length ? ' · done' : ''}`;
   // the angle experiment's graph reads in the chosen unit; the fits stay in radians
   const xf = exp === 'angle' && unit === 'deg' ? DEG : 1;
   const scaled = (p?: Point[]) => (xf === 1 ? p : p?.map((q) => ({ ...q, x: q.x * xf })));
@@ -434,13 +455,13 @@ export function PendulumLab() {
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">Open the lab in Tracker</span>
+          <span className="model-cta">Run the lab</span>
         </button>
       ) : (
         <div className="asrs-frame trk" ref={frameRef}>
           <div className="trk-head">
             <span className="trk-title">Tracker</span>
-            <span className="trk-muted">mass A · the bob, pivot as origin</span>
+            <span className="trk-muted">tracking the bob · pivot as origin</span>
             <span className="trk-clock">
               frame {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
@@ -457,6 +478,18 @@ export function PendulumLab() {
               </span>
             )}
           </div>
+          {banner && status === 'ready' && (
+            <div className="trk-banner" role="note">
+              <span>
+                {running
+                  ? 'The lab is running its first experiment by itself: 16 releases from −80° to +80°, each swing tracked at 30 frames a second and its period measured — watch the points land on the graph below. Pause with ❚❚, or pick another experiment from the tabs.'
+                  : 'That was Lab 1, run by itself: the blue points on the graph are its measurements, the black ones the report’s. Run it again for another lab day, or pick another experiment from the tabs.'}
+              </span>
+              <button type="button" className="trk-banner-close" onClick={() => setBanner(false)} aria-label="Dismiss">
+                ×
+              </button>
+            </div>
+          )}
           <div className="trk-body">
             <div
               className="trk-video"
@@ -470,9 +503,14 @@ export function PendulumLab() {
                 {status === 'error' && "3D isn't available in this browser."}
               </span>
               {status === 'ready' && (
-                <span className="trk-read" aria-hidden="true">
-                  x = {fmtX(frame.x)} m · y = {fmtX(frame.y)} m · θ = {fmtAngle(frame.th, unit)}
-                </span>
+                <>
+                  <span className="trk-status" role="status" aria-live="polite">
+                    {statusLine}
+                  </span>
+                  <span className="trk-read" aria-hidden="true">
+                    x = {fmtX(frame.x)} m · y = {fmtX(frame.y)} m · θ = {fmtAngle(frame.th, unit)}
+                  </span>
+                </>
               )}
             </div>
             <div className="trk-side">
@@ -522,6 +560,7 @@ export function PendulumLab() {
                     className={`asrs-step${e.id === exp ? ' asrs-step-on' : ''}`}
                     onClick={() => {
                       if (running) return;
+                      setBanner(false);
                       setExp(e.id);
                     }}
                     disabled={running && e.id !== exp}
@@ -532,7 +571,15 @@ export function PendulumLab() {
               </div>
               <div className="asrs-controls">
                 {!running ? (
-                  <button type="button" className="asrs-btn asrs-btn-on" onClick={runExperiment}>
+                  <button
+                    type="button"
+                    className="asrs-btn asrs-btn-on"
+                    onClick={() => {
+                      setBanner(false);
+                      setSpeed(def.speed);
+                      runExperiment(exp);
+                    }}
+                  >
                     ▶ Run {def.lab.toLowerCase()}
                   </button>
                 ) : (
@@ -602,7 +649,9 @@ export function PendulumLab() {
         The rig, rebuilt from the photos, driven by the report's own damped-pendulum model with an
         exact restoring force, inside a window laid out like the Tracker session that read the real
         video. Each experiment runs on it release by release, every trial measured off the tracked
-        frames, then the measured points are laid over what it produced.
+        frames, then the measured points are laid over what it produced. Every release carries a lab
+        day's scatter — the hand at the protractor, the knot, the air, the tracker — so no two runs
+        give the same numbers, and the fits land inside the report's error bars.
       </figcaption>
     </figure>
   );

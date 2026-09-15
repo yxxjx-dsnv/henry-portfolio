@@ -52,8 +52,21 @@ amplitude envelopes from the positive peaks), and the report's fit runs over the
 | Lab 2 · Period vs length | 0.05…0.30 m at +30°, 6 s each | period | T = kLⁿ |
 | Lab 2 · Q vs length | the six lengths, tracked 200 s each | Q from the envelope fit | Q = aL + b |
 
+Every release carries a lab day's scatter (`prepare`, `JITTER`): the hand at a 1° protractor
+(σ 0.7°) and a nudge on release (σ 0.03 rad/s), the knot a hair off (σ 0.5 mm, the period
+following √L), the air and the pivot damping differently (σ 1.5 % on τ), and the autotracker's
+sub-pixel jitter on every frame (σ 0.4 mm). So no two runs give the same numbers — the owner
+asked for this in place of a fixed answer — while the fits stay inside the report's error bars
+(the seeded test checks T₀ within 0.006 s, C between 0.05 and 0.09, Q at 0.221 m within 40).
+`prepare(trial, null)` is the ideal release, used for the exact-reference tests.
+
+**First visit.** The lab runs Lab 1 by itself at 8× as soon as the rig is up, with a banner
+saying what is happening and, once done, what the points are; a status pill on the video names
+the experiment, the trial and the last measurement; each tab's blurb replaces the progress
+line when idle, and a finished run invites another lab day.
+
 `completeExperiment` runs the remaining trials without playing them ("finish now") and is
-what the tests exercise: the twin lands on T₀ 0.934 s, C 0.069, τ 177 s, Q 590 (count 592),
+what the tests exercise (ideal releases): the twin lands on T₀ 0.934 s, C 0.069, τ 177 s, Q 590 (count 592),
 k 1.94, n 0.434, a 1912, b 204 against the report's 0.936, 0.080, 178, 597 (592), 1.94, 0.433,
 1960, 202. The C gap is the same honest one as before.
 

@@ -1,7 +1,8 @@
 // The four experiments of the PHY180 project, as procedures the twin can run one release at
-// a time: what each trial is, how the tracked frames of a trial are turned into a number,
-// and the fit the report ran on the numbers. Pure functions; the lab component plays the
-// trials and pendulumExperiments.test.ts runs them straight through.
+// a time: what each trial is, the lab-day scatter every release carries, how the tracked
+// frames of a trial are turned into a number, and the fit the report ran on the numbers.
+// Pure functions; the lab component plays the trials and pendulumExperiments.test.ts runs
+// them straight through.
 import {
   REPORT,
   calibrate,
@@ -10,10 +11,12 @@ import {
   fitLinear,
   fitPower,
   fitQuadratic,
+  gauss,
   periodFromTrack,
   simulate,
   trackOf,
   type Point,
+  type Rng,
   type Run,
   type Track,
 } from './pendulumPhysics';
@@ -24,6 +27,7 @@ export type Experiment = {
   id: ExpId;
   lab: string;
   name: string;
+  blurb: string; // the question the experiment asks, for someone who has just opened the lab
   x: string;
   y: string;
   xRange: [number, number];
@@ -41,6 +45,7 @@ export const EXPERIMENTS: Experiment[] = [
     id: 'angle',
     lab: 'Lab 1',
     name: 'Period vs angle',
+    blurb: 'Pull the bob back further — does a swing take longer? The textbook says the period should not change.',
     x: 'Release angle (rad)',
     y: 'Period (s)',
     xRange: [-1.5, 1.5],
@@ -54,6 +59,7 @@ export const EXPERIMENTS: Experiment[] = [
     id: 'decay',
     lab: 'Lab 1',
     name: 'Amplitude vs time',
+    blurb: 'Release it at 30° and leave it: how fast does the swing die away, and what Q-factor does that give?',
     x: 'Time (s)',
     y: 'Amplitude (rad)',
     xRange: [0, 200],
@@ -66,6 +72,7 @@ export const EXPERIMENTS: Experiment[] = [
     id: 'length',
     lab: 'Lab 2',
     name: 'Period vs length',
+    blurb: 'Re-tie the bob knot by knot, 5 cm to 30 cm: the period should follow T = 2√L.',
     x: 'Length (m)',
     y: 'Period (s)',
     xRange: [0.03, 0.32],
@@ -78,6 +85,7 @@ export const EXPERIMENTS: Experiment[] = [
     id: 'q',
     lab: 'Lab 2',
     name: 'Q vs length',
+    blurb: 'Does a shorter pendulum lose its energy faster? The decay is tracked at each of the six lengths.',
     x: 'Length (m)',
     y: 'Q-factor',
     xRange: [0.03, 0.32],
@@ -95,9 +103,28 @@ export function constantsFor(L: number): { T0: number; tau: number } {
   return Math.abs(L - REPORT.L) < 1e-9 ? { T0: REPORT.T0, tau: REPORT.tau } : calibrate(L);
 }
 
-export function runOf(trial: Trial): Run {
+/** What a lab day adds to every release, one standard deviation each: the hand cannot set the
+ *  protractor or let go perfectly, the knot sits a hair off the mark, the air and the pivot
+ *  damp a little differently each time, and the autotracker jitters within a pixel. */
+export const JITTER = {
+  angle: 0.012, // rad — about 0.7°, the hand at a 1° protractor
+  omega: 0.03, // rad/s — a nudge on release
+  length: 0.0005, // m — the report's ±0.5 mm
+  tau: 0.015, // fraction — air density, temperature, the pivot
+  track: 0.0004, // m — Tracker's sub-pixel jitter on the bob
+};
+
+/** One release as it actually happens: the trial as set, plus the day's scatter. Pass `null`
+ *  for the ideal release — the model exactly at the report's constants. */
+export type Release = { run: Run; L: number; noise: number };
+export function prepare(trial: Trial, rng: Rng | null = Math.random): Release {
+  const j = rng ? (sd: number) => sd * gauss(rng) : () => 0;
+  const L = trial.L + j(JITTER.length);
   const c = constantsFor(trial.L);
-  return simulate(c.T0, c.tau, trial.theta0, trial.seconds, trial.seconds > 60 ? 1 / 300 : 1 / 600);
+  const T0 = c.T0 * Math.sqrt(L / trial.L); // the period goes with √L
+  const tau = c.tau * (1 + j(JITTER.tau));
+  const run = simulate(T0, tau, trial.theta0 + j(JITTER.angle), trial.seconds, trial.seconds > 60 ? 1 / 300 : 1 / 600, j(JITTER.omega));
+  return { run, L, noise: rng ? JITTER.track : 0 };
 }
 
 /** What one tracked trial contributes to the experiment's graph. */
@@ -165,8 +192,11 @@ export function reportLine(id: ExpId, A0 = REPORT.theta0): (x: number) => number
 }
 
 /** Run trials `from` onward without playing them — the lab's "finish now", and the tests. */
-export function completeExperiment(id: ExpId, from = 0, points: Point[] = []): Point[] {
+export function completeExperiment(id: ExpId, from = 0, points: Point[] = [], rng: Rng | null = Math.random): Point[] {
   const out = points.slice();
-  for (const trial of experiment(id).trials.slice(from)) out.push(...measure(id, trial, trackOf(runOf(trial), trial.L, trial.seconds)));
+  for (const trial of experiment(id).trials.slice(from)) {
+    const r = prepare(trial, rng);
+    out.push(...measure(id, trial, trackOf(r.run, r.L, trial.seconds, undefined, r.noise, rng ?? undefined)));
+  }
   return out;
 }
