@@ -70,7 +70,7 @@ export const education: EducationGroup[] = [
         program: 'Dogwood Diploma · Advanced Program (AP)',
         date: 'Sep 2022 - Jun 2025',
         term: 'Grade 10 – 12',
-        lead: 'Grade 11–12 GPA (excluding external credit courses): 4.00 / 4.0',
+        lead: 'Grade 11–12 GPA: 3.88 / 4.0',
         detail: [
           'AP Calculus AB',
           'AP Macroeconomics',
