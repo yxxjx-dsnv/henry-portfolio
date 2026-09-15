@@ -21,8 +21,9 @@ body {
     font-family: 'Libre Baskerville', 'Noto Serif KR', Georgia, 'Times New Roman', 'Apple SD Gothic Neo', serif;
     background-color: var(--background-color);
 }
-/* Korean: no breaks inside a word, a touch more leading */
-html[lang='ko'] body { word-break: keep-all; overflow-wrap: anywhere; line-height: 1.75; }
+/* Korean: no breaks inside a word. Leading is left alone so the chrome and the
+   rhythm of every page stay identical in both languages. */
+html[lang='ko'] body { word-break: keep-all; overflow-wrap: anywhere; }
 
 a {
     color: var(--link-color);
@@ -43,7 +44,7 @@ a {
 .sidebar {
     width: 200px;
     min-height: 100vh;
-    padding: 30px 30px;
+    padding: 30px 30px 84px; /* room for the language switch pinned at the foot */
     background-color: #f8f8f8;
     font-size: 14px;
     position: sticky;
@@ -2272,27 +2273,32 @@ body.dark-mode .trk-status { color: #e6e6e6; background: rgba(16, 16, 16, 0.8); 
 body.dark-mode .trk-progress { color: #a8a8a8; }
 .trk-seg { display: inline-flex; gap: 4px; }
 
-/* the language toggle at the foot of the sidebar: a rounded square, 한 ↔ EN */
+/* the language switch: a rounded square pinned to the sidebar's bottom-left corner,
+   showing the language you would switch to (한 on the English site, EN on the Korean) */
 .lang-toggle {
+    position: absolute;
+    left: 30px;
+    bottom: 30px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    margin: 14px 0 0;
+    width: 36px;
+    height: 36px;
     padding: 0;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--text-color);
-    background: transparent;
-    border: 1.5px solid currentColor;
-    border-radius: 9px;
+    letter-spacing: 0.04em;
+    color: #4a4a4a;
+    background: #ebebeb;
+    border: 0;
+    border-radius: 10px;
     cursor: pointer;
-    opacity: 0.75;
-    transition: opacity var(--t), transform var(--t), background-color var(--t);
+    transition: background-color var(--t), color var(--t), transform var(--t);
 }
-.lang-toggle:hover { opacity: 1; transform: translateY(-1px); }
-.lang-toggle:active { transform: translateY(0); }
-body.dark-mode .lang-toggle { color: #dad9e2; }
+.lang-toggle:hover { background: #1a1a1a; color: #ffffff; }
+.lang-toggle:active { transform: scale(0.96); }
+.lang-toggle:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 2px; }
+body.dark-mode .lang-toggle { color: #cfcfd6; background: #2c2c2c; }
+body.dark-mode .lang-toggle:hover { background: #f1f1f1; color: #121212; }
+body.dark-mode .lang-toggle:focus-visible { outline-color: #f1f1f1; }
