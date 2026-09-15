@@ -3,7 +3,7 @@ const ko: Record<string, string> = {
   // ── the page ──
   'All projects': '모든 프로젝트',
   'IEEE × AWS hackathon — March 13, 2026': 'IEEE × AWS 해커톤 — 2026년 3월 13일',
-  'Team 6SIX7 — {members}, and {me} (me)': '6SIX7 팀 — {members}, 그리고 {me} (저)',
+  'Team 6SIX7 — {members}, and {me} (me)': 'Team 6SIX7 — {members}, 그리고 {me} (저)',
   'Code': '코드',
   "The Campus Pulse logo: navy line-art of campus towers rising into a bar chart and a pulse curve, above the wordmark 'CAMPUS PULSE'.":
     "Campus Pulse 로고: 캠퍼스 건물들이 막대 그래프와 맥박 곡선으로 솟아오르는 남색 선화 아래에 'CAMPUS PULSE' 워드마크가 있습니다.",

@@ -10,7 +10,7 @@ const ko: Record<string, string> = {
     '2026년 8월부터 {incheon}(주식회사 인천로보틱스)에 {role}으로 합류했습니다. 그리드 기반 창고 로봇을 만드는 회사입니다. 제가 맡은 일은 운영자가 화면을 만지지 않고도 시스템 전체를 제어할 수 있게 하는 AI/ML 음성 인식을 구현하는 것이며, 로봇 제작에도 함께 참여하고 있습니다. 자세한 내용은 {page}에 정리해 두었습니다.',
   'AX engineer': 'AX 엔지니어',
   "Before that I spent about three months as a freelance {role} at Branphic Inc., where I designed, built, deployed, and maintained 9+ internal automation tools end to end — working across Claude, ChatGPT, and Codex — moving the company's day-to-day operations onto AI automation.":
-    '그 전에는 Branphic Inc.에서 약 3개월간 프리랜서 {role}로 일하며, Claude·ChatGPT·Codex를 넘나들어 9개 이상의 사내 자동화 도구를 설계부터 구축, 배포, 유지보수까지 직접 맡아 회사의 일상 업무를 AI 자동화로 옮겼습니다.',
+    '그 전에는 Branphic Inc.에서 약 3개월간 프리랜서 {role}로 일하며, Claude·ChatGPT·Codex를 넘나들며 9개 이상의 사내 자동화 도구를 설계부터 구축, 배포, 유지보수까지 직접 맡아 회사의 일상 업무를 AI 자동화로 옮겼습니다.',
   'On hold': '보류 중',
   "({hold}) I'm building a startup called {mono}, which uses AI and automation to analyze global resale markets, helping users identify profitable opportunities more efficiently. I lead the project as the Founder & CEO.":
     '({hold}) AI와 자동화로 글로벌 리셀 시장을 분석해 수익성 있는 기회를 더 효율적으로 찾도록 돕는 스타트업 {mono}를 만들고 있습니다. 창업자 겸 CEO로 프로젝트를 이끌고 있습니다.',

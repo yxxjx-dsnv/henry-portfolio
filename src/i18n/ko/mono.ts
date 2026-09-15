@@ -33,7 +33,7 @@ const ko: Record<string, string> = {
   "A Shopify admin home screen for a store named 'One Shop One Kill', with a setup guide reading 'Get ready to sell' and a greeting 'Hi Henry'.": "'One Shop One Kill'이라는 스토어의 Shopify 관리자 홈 화면. 'Get ready to sell' 설정 안내와 'Hi Henry' 인사말이 보입니다.",
   "The Shopify store I set up to test MONO's listing flow.": "MONO의 등록 흐름을 시험하려고 연 Shopify 스토어.",
   "I pitched MONO, and the work behind it, as my capstone presentation. Here is the full deck, slide by slide.": "MONO와 그 뒤의 작업을 캡스톤 발표로 피칭했습니다. 전체 슬라이드를 한 장씩 볼 수 있습니다.",
-  "MONO has not launched yet. The next steps are the technical ones: build the Profit Score engine, connect it to live market data, and let it list and reprice on its own. I have been teaching myself the software side to get there, and if the Hana program comes through I will develop MONO with their support.": "MONO는 아직 출시 전입니다. 다음 단계는 기술적인 것들입니다. Profit Score 엔진을 만들고, 실시간 시장 데이터에 연결하고, 스스로 등록하고 가격을 조정하게 하는 것. 그곳에 닿기 위해 소프트웨어 쪽을 독학해 왔고, 하나 프로그램이 성사되면 그 지원으로 MONO를 개발할 것입니다.",
+  "MONO has not launched yet. The next steps are the technical ones: build the Profit Score engine, connect it to live market data, and let it list and reprice on its own. I have been teaching myself the software side to get there, and if the Hana program comes through I will develop MONO with their support.": "MONO는 아직 출시 전입니다. 다음 단계는 기술적인 것들입니다. Profit Score 엔진을 만들고, 실시간 시장 데이터에 연결하고, 스스로 등록하고 가격을 조정하게 하는 것. 거기까지 가기 위해 소프트웨어 쪽을 독학해 왔고, 하나 프로그램이 성사되면 그 지원으로 MONO를 개발할 것입니다.",
   "Resale analytics platform · Founder & CEO": "Resale analytics platform · Founder & CEO",
   "Why I started it": "Why I started it",
   "The Profit Score": "The Profit Score",
