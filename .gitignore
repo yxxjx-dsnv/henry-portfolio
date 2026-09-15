@@ -3,6 +3,7 @@ dist/
 .vite/
 __pycache__/
 .DS_Store
+*.blend1
 *.local
 
 # Obsidian project vault (personal notes; backed up via OneDrive)
