@@ -9,52 +9,52 @@ const ko: Record<string, string> = {
 
   // the story
   "Skule™ Kup is a year-long competition between U of T's engineering disciplines. One of its games is Discipline Feud, where teams race to guess the most common answers to survey questions, and whoever signals first gets to answer. The signalling is the problem. When several people react at once, the organizers have to judge who was first, the judgment gets disputed, and the game slows down. Our team of six spent the winter semester designing a fix.":
-    'Skule™ Kup은 토론토 대학교(U of T) 공학부의 여러 학과가 일 년 내내 겨루는 대회입니다. 그중 한 종목인 Discipline Feud에서는 팀들이 설문 질문에 가장 많이 나온 답을 먼저 맞히려 경쟁하고, 먼저 신호를 보낸 쪽이 답할 기회를 얻습니다. 문제는 바로 그 신호 방식이었습니다. 여러 사람이 동시에 반응하면 운영진이 누가 먼저였는지 판정해야 하고, 그 판정을 두고 이의가 나오며, 게임이 느려집니다. 여섯 명으로 이루어진 저희 팀은 겨울 학기 내내 이 문제를 해결할 장치를 설계했습니다.',
+    'Skule™ Kup은 토론토 대학교(U of T) 공학부의 여러 학과가 일 년 내내 겨루는 대회입니다. 그중 한 종목인 Discipline Feud에서는 팀들이 설문 질문에 가장 많이 나온 답을 먼저 맞히려 경쟁합니다. 먼저 신호를 보낸 쪽이 답할 기회를 얻습니다. 그런데 바로 그 신호 방식이 문제였습니다. 여러 사람이 동시에 반응하면 운영진이 누가 먼저였는지 판정해야 하고 그 판정을 두고 이의가 나오며 게임이 느려집니다. 저희 팀 여섯 명은 겨울 학기 내내 이 문제를 해결할 장치를 설계했습니다.',
   'Here is the whole project the way we presented it: the final deck from April 9th, 2026. Turn through it below, or open it in its own tab. The rest of this page is the story behind it.':
     '프로젝트 전체를 저희가 발표했던 그대로 담았습니다. 2026년 4월 9일의 최종 발표 자료입니다. 아래에서 한 장씩 넘겨 보시거나 새 탭에서 여실 수 있습니다. 이 페이지의 나머지는 그 뒤에 담긴 이야기입니다.',
   'Buzzer Beaters, the final presentation': 'Buzzer Beaters, 최종 발표',
   'A real client': '실제 클라이언트',
   'APS112 gives first-year teams a real client, and ours was Alexandre Klaus, a second-year Engineering Science student and the current Skule™ Kup director. His brief was specific: detect the first responder reliably, handle a changing number of contestants in real time, and keep the system safe and portable. The requirements came from visiting the rooms themselves. We measured the EngSoc Arena at 46 decibels of ambient sound and noted its lighting controls and table heights, so the design would fit the room it will be used in.':
-    'APS112는 1학년 팀에게 실제 클라이언트를 붙여 줍니다. 저희 클라이언트는 Engineering Science 2학년이자 현 Skule™ Kup 디렉터인 Alexandre Klaus였습니다. 요구 사항은 구체적이었습니다. 첫 응답자를 확실하게 감지할 것, 바뀌는 참가자 수에 실시간으로 대응할 것, 시스템을 안전하고 휴대하기 쉽게 만들 것. 요구 사항은 경기가 열리는 공간을 직접 찾아가 정리했습니다. EngSoc Arena의 주변 소음을 46데시벨로 측정하고 조명 제어 방식과 테이블 높이를 기록해, 설계가 실제로 쓰일 공간에 맞도록 했습니다.',
+    'APS112는 1학년 팀에게 실제 클라이언트를 붙여 줍니다. 저희 클라이언트는 Engineering Science 2학년이자 현 Skule™ Kup 디렉터인 Alexandre Klaus였습니다. 요구 사항은 구체적이었습니다. 첫 응답자를 확실하게 감지할 것, 바뀌는 참가자 수에 실시간으로 대응할 것, 시스템을 안전하고 휴대하기 쉽게 만들 것. 요구 사항은 경기가 열리는 공간을 직접 찾아가 정리했습니다. EngSoc Arena의 주변 소음을 46데시벨로 측정하고 조명 제어 방식과 테이블 높이를 기록해 설계가 실제로 쓰일 공간에 맞도록 했습니다.',
   'Three ideas on a whiteboard': '화이트보드 위의 세 가지 아이디어',
   'My formal role was quality assurance, but the contribution I care most about happened at a whiteboard. Earlier in the term, my first peer evaluation told me plainly that I should be more present in team discussions. I took that seriously. During idea selection, I came to one of our in-person meetings prepared and presented three design directions on the whiteboard: a hard-hat concept with built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each one I walked through the detection method, the physical layout, and how it would be used on game day. After several rounds of deliberation the team chose the wand, and the client responded well to the less conventional ideas.':
-    '저의 공식 역할은 품질 보증(QA)이었지만, 제가 가장 아끼는 기여는 화이트보드 앞에서 나왔습니다. 학기 초 첫 동료 평가에서 팀 토론에 더 적극적으로 참여해야 한다는 솔직한 피드백을 받았습니다. 저는 그 말을 진지하게 받아들였습니다. 아이디어 선정 단계에서 대면 회의에 준비를 해 가서, 화이트보드에 세 가지 설계 방향을 발표했습니다. 버저를 내장한 안전모 콘셉트, 자이로스코프(gyroscope) 기반 완드, 그리고 기존 방식의 버저 시스템입니다. 각 안마다 감지 방식, 물리적 구성, 경기 당일 사용 방법을 차례로 설명했습니다. 여러 차례 논의를 거쳐 팀은 완드를 골랐고, 클라이언트도 관습에서 벗어난 아이디어들에 좋은 반응을 보였습니다.',
+    '저의 공식 역할은 품질 보증(QA)이었지만 제가 가장 아끼는 기여는 화이트보드 앞에서 나왔습니다. 학기 초 첫 동료 평가에서 팀 토론에 더 적극적으로 참여해야 한다는 솔직한 피드백을 받았습니다. 저는 그 말을 진지하게 받아들였습니다. 아이디어 선정 단계에서 대면 회의에 준비를 해 가서 화이트보드에 세 가지 설계 방향을 발표했습니다. 버저를 내장한 안전모 콘셉트, 자이로스코프(gyroscope) 기반 완드, 기존 방식의 버저 시스템입니다. 각 안마다 감지 방식, 물리적 구성, 경기 당일 사용 방법을 차례로 설명했습니다. 여러 차례 논의를 거쳐 팀은 완드를 골랐습니다. 클라이언트도 관습에서 벗어난 아이디어들에 좋은 반응을 보였습니다.',
   'The whiteboard from that meeting: three numbered options — a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system — with notes on collecting all data in one place and lighting up the first responder.':
-    '그 회의의 화이트보드: 번호를 매긴 세 가지 안 — 센서 후보를 적어 둔 안전모, 허브 박스와 컴퓨터에 연결된 SKULE 완드 두 개를 그린 자이로스코프 라이트 스틱, 일반 버저 시스템 — 그리고 모든 데이터를 한곳에 모으고 첫 응답자에게 불을 켠다는 메모.',
+    '그 회의의 화이트보드: 번호를 매긴 세 가지 안 — 센서 후보를 적어 둔 안전모, 허브 박스와 컴퓨터에 연결된 SKULE 완드 두 개를 그린 자이로스코프 라이트 스틱, 일반 버저 시스템. 여기에 모든 데이터를 한곳에 모으고 첫 응답자에게 불을 켠다는 메모까지.',
   'The whiteboard itself: hard-hat, gyroscope light stick, general buzzer.': '그날의 화이트보드: 안전모, 자이로스코프 라이트 스틱, 일반 버저.',
   "The idea is simple to say: instead of pressing a button, you raise the wand. Motion detection identifies the first wand to move, and each discipline gets its own topper sealed in a clear globe, so every wand shows its discipline's symbol.":
-    '아이디어는 말로 하면 간단합니다. 버튼을 누르는 대신 완드를 들어 올립니다. 모션 감지가 가장 먼저 움직인 완드를 찾아내고, 학과마다 투명 구체 안에 밀봉된 고유의 토퍼가 있어 모든 완드가 자기 학과의 상징을 보여 줍니다.',
+    '아이디어는 말로 하면 간단합니다. 버튼을 누르는 대신 완드를 들어 올립니다. 모션 감지가 가장 먼저 움직인 완드를 찾아냅니다. 학과마다 투명 구체 안에 밀봉된 고유의 토퍼가 있어 모든 완드가 자기 학과의 상징을 보여 줍니다.',
   'In the report, the three directions became formal designs. The team had generated 72 ideas, consolidated them to 38, voted them down to 10, and kept three. The CDS drew each one out properly, and the figures below are from those pages.':
-    '보고서에서 세 방향은 정식 설계안이 되었습니다. 팀은 72개의 아이디어를 내고, 38개로 통합하고, 투표로 10개까지 추린 뒤 세 개를 남겼습니다. CDS는 각 안을 제대로 그려 냈고, 아래 그림들은 그 페이지에서 가져왔습니다.',
+    '보고서에서 세 방향은 정식 설계안이 되었습니다. 팀은 72개의 아이디어를 내고 38개로 통합하고 투표로 10개까지 추린 뒤 세 개를 남겼습니다. CDS는 각 안을 제대로 그려 냈고 아래 그림들은 그 페이지에서 가져왔습니다.',
   'Alternative Design 1 was the Skule™ Wand: a handheld device that reads a response as angular velocity, with an inertial measurement unit in every wand and an I²C multiplexer collecting all eight signals into one Arduino.':
-    '대안 설계 1은 Skule™ Wand였습니다. 응답을 각속도로 읽는 손에 쥐는 장치로, 완드마다 관성 측정 장치(IMU)를 넣고 I²C 멀티플렉서가 여덟 개의 신호를 모두 하나의 Arduino로 모읍니다.',
+    '대안 설계 1은 Skule™ Wand였습니다. 손에 쥐는 장치로, 응답을 각속도로 읽습니다. 완드마다 관성 측정 장치(IMU)를 넣고 I²C 멀티플렉서가 여덟 개의 신호를 모두 하나의 Arduino로 모읍니다.',
   'Alternative Design 1: the Skule Wand': '대안 설계 1: Skule Wand',
   'Alternative Design 2 was the Hard-Hat Smack: eight hard hats, each with a force-sensitive pod on the crown that you slap, reporting over Bluetooth to an ESP32. Viscoelastic foam inside the hat protects the head that does the slapping.':
-    '대안 설계 2는 Hard-Hat Smack이었습니다. 안전모 여덟 개의 정수리마다 손으로 내리치는 압력 감지 포드를 달고, Bluetooth로 ESP32에 신호를 보냅니다. 모자 안의 점탄성 폼이 내리치는 쪽의 머리를 보호합니다.',
+    '대안 설계 2는 Hard-Hat Smack이었습니다. 안전모 여덟 개의 정수리마다 손으로 내리치는 압력 감지 포드를 달고 Bluetooth로 ESP32에 신호를 보냅니다. 모자 안의 점탄성 폼이 내리치는 쪽의 머리를 보호합니다.',
   'Alternative Design 2: the Hard-Hat Smack': '대안 설계 2: Hard-Hat Smack',
   'Alternative Design 3 was the Boom-Box: the classic buzzer rebuilt around a T-handle, with a piezo buzzer in every box and an Arduino Mega in the hub.':
-    '대안 설계 3은 Boom-Box였습니다. 고전적인 버저를 T자 손잡이를 중심으로 다시 만든 것으로, 상자마다 피에조 버저를 넣고 허브에는 Arduino Mega를 두었습니다.',
+    '대안 설계 3은 Boom-Box였습니다. 고전적인 버저를 T자 손잡이를 중심으로 다시 만들었습니다. 상자마다 피에조 버저를 넣고 허브에는 Arduino Mega를 두었습니다.',
   'Alternative Design 3: the Boom-Box': '대안 설계 3: Boom-Box',
   'The Pugh method decided it. With the wand as the datum, the Hard-Hat Smack scored minus three and the Boom-Box minus one, mostly on weight and size, and the Skule™ Wand became the proposed design.':
-    '결정은 Pugh 방법(Pugh method)이 내렸습니다. 완드를 기준(datum)으로 두었을 때 Hard-Hat Smack은 −3점, Boom-Box는 −1점을 받았는데, 주로 무게와 크기에서 점수를 잃었습니다. 그렇게 Skule™ Wand가 제안 설계가 되었습니다.',
+    '결정은 Pugh 방법(Pugh method)이 내렸습니다. 완드를 기준(datum)으로 두었을 때 Hard-Hat Smack은 −3점, Boom-Box는 −1점을 받았는데 주로 무게와 크기에서 점수를 잃었습니다. 그렇게 Skule™ Wand가 제안 설계가 되었습니다.',
   'Modeling it': '모델링',
   'To make the concept concrete I built a prototype model in Blender, finishing it the day before the CDS deadline. The model works out the full assembly: a gripped handle, a globe mount, an LED puck that lights when a wand wins the round, and the globe with a discipline topper inside. I modeled eight toppers, one per discipline.':
-    '콘셉트를 구체화하기 위해 저는 Blender로 프로토타입 모델을 만들었고, CDS 마감 전날 완성했습니다. 이 모델은 전체 조립 구조를 풀어냅니다. 그립 손잡이, 구체 마운트, 완드가 라운드를 이기면 켜지는 원반형 LED 퍽, 그리고 학과 토퍼가 든 구체입니다. 토퍼는 학과마다 하나씩, 여덟 개를 모델링했습니다.',
+    '콘셉트를 구체화하기 위해 저는 Blender로 프로토타입 모델을 만들어 CDS 마감 전날 완성했습니다. 이 모델은 전체 조립 구조를 풀어냅니다. 그립 손잡이, 구체 마운트, 완드가 라운드를 이기면 켜지는 원반형 LED 퍽, 학과 토퍼가 든 구체입니다. 토퍼는 학과마다 하나씩, 여덟 개를 모델링했습니다.',
   'Blender model and renders': 'Blender 모델과 렌더',
   'The model below is the Blender file itself, converted for the web. Drag to orbit, scroll to zoom.':
-    '아래 모델은 Blender 파일 그대로를 웹용으로 변환한 것입니다. 드래그하면 회전하고, 스크롤하면 확대·축소됩니다.',
+    '아래 모델은 Blender 파일 그대로를 웹용으로 변환한 것입니다. 드래그하면 회전하고 스크롤하면 확대·축소됩니다.',
   'Poster for the interactive 3D model: the lineup of eight wands.': '인터랙티브 3D 모델의 포스터: 나란히 선 여덟 개의 완드.',
   'All eight wands, in 3D — modeled in Blender™.': '여덟 개의 완드 전부를 3D로 — Blender™로 모델링했습니다.',
   'Making it move': '움직이게 만들기',
   "I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both sensors, derives speed and acceleration magnitudes from the readings, and compares them against a threshold. The first wand past the threshold locks the round, lights its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which wand was first. The code self-checks too: it scans the I2C bus, verifies each sensor's identity register, and runs the sensor's self-test before trusting it. A note on the name: we pitched the concept with a gyroscope, and the bench prototype detects motion with accelerometers.":
-    '두 완드 벤치 프로토타입의 펌웨어도 제가 작성했습니다. TCA9548A I2C 멀티플렉서를 단 Arduino에서 돌아가며, 완드마다 모션 센서가 하나씩 들어 있습니다. 루프는 두 센서를 샘플링해 측정값에서 속도와 가속도의 크기를 구하고, 이를 임계값과 비교합니다. 임계값을 먼저 넘은 완드가 그 라운드를 잠그고, 자기 LED를 켜고, 허브의 버저로 자기만의 음을 울려서 어느 완드가 먼저였는지 모두가 들을 수 있습니다. 코드는 스스로 점검도 합니다. I2C 버스를 스캔하고, 각 센서의 식별 레지스터를 확인하고, 센서를 신뢰하기 전에 자체 테스트를 돌립니다. 이름에 대해 한마디 덧붙이자면, 콘셉트는 자이로스코프로 제안했지만 벤치 프로토타입은 가속도계로 움직임을 감지합니다.',
+    '두 완드 벤치 프로토타입의 펌웨어도 제가 작성했습니다. TCA9548A I2C 멀티플렉서를 단 Arduino에서 돌아가며 완드마다 모션 센서가 하나씩 들어 있습니다. 루프는 두 센서를 샘플링해 측정값에서 속도와 가속도의 크기를 구하고 이를 임계값과 비교합니다. 임계값을 먼저 넘은 완드가 그 라운드를 잠그고 자기 LED를 켭니다. 허브의 버저로 자기만의 음도 울립니다. 그래서 어느 완드가 먼저였는지 모두가 들을 수 있습니다. 코드는 스스로 점검도 합니다. I2C 버스를 스캔하고 각 센서의 식별 레지스터를 확인합니다. 센서를 신뢰하기 전에 자체 테스트도 돌립니다. 이름에 대해 한마디 덧붙이자면, 콘셉트는 자이로스코프로 제안했지만 벤치 프로토타입은 가속도계로 움직임을 감지합니다.',
   'Firmware bench work': '펌웨어 벤치 작업',
   'Getting there took legwork outside the code. I visited MyFab to understand what we could actually manufacture, asked upper-year students for advice, and at one meeting brought in a physical gyroscope so the team could handle the thing we kept talking about.':
-    '여기까지 오는 데는 코드 밖의 발품도 필요했습니다. 실제로 무엇을 제작할 수 있는지 알아보러 MyFab을 찾아갔고, 선배들에게 조언을 구했으며, 한 회의에는 실물 자이로스코프를 가져가 팀이 늘 이야기만 하던 물건을 직접 만져 볼 수 있게 했습니다.',
+    '여기까지 오는 데는 코드 밖의 발품도 필요했습니다. 실제로 무엇을 제작할 수 있는지 알아보러 MyFab을 찾아갔고 선배들에게 조언을 구했으며 한 회의에는 실물 자이로스코프를 가져가 팀이 늘 이야기만 하던 물건을 직접 만져 볼 수 있게 했습니다.',
   'MyFab and hardware legwork': 'MyFab과 하드웨어 발품',
   'From model to hardware': '모델에서 하드웨어로',
   "After the model, we built it. We printed five handles, capped them with clear globes, and wired two of them up as live wands into a breadboard hub carrying the Arduino, the multiplexer, the LEDs, and the buzzer. One assembled wand weighs 106 grams on a kitchen scale; the CDS had calculated 102. The number mattered, because portability was in the client's brief from the first meeting.":
-    '모델 다음에는 실물을 만들었습니다. 손잡이 다섯 개를 프린트해 투명 구체를 씌우고, 그중 두 개를 실제 작동하는 완드로 삼아 Arduino, 멀티플렉서, LED, 버저를 실은 브레드보드 허브에 배선했습니다. 조립된 완드 하나는 주방 저울에서 106그램이 나왔고, CDS의 계산값은 102그램이었습니다. 이 숫자가 중요했던 이유는, 휴대성이 첫 회의 때부터 클라이언트의 요구 사항에 들어 있었기 때문입니다.',
+    '모델 다음에는 실물을 만들었습니다. 손잡이 다섯 개를 프린트해 투명 구체를 씌우고 그중 두 개를 실제 작동하는 완드로 삼아 Arduino, 멀티플렉서, LED, 버저를 실은 브레드보드 허브에 배선했습니다. 조립된 완드 하나는 주방 저울에서 106그램이 나왔고 CDS의 계산값은 102그램이었습니다. 휴대성은 첫 회의 때부터 클라이언트의 요구 사항에 들어 있었으니 이 숫자가 중요했습니다.',
   'Building the wands': '완드 제작',
   'Bench demo: shaking the wand lights the globe': '벤치 시연: 완드를 흔들면 구체에 불이 켜집니다',
   'Shake the wand, and the globe lights.': '완드를 흔들면 구체에 불이 켜집니다.',
@@ -62,17 +62,17 @@ const ko: Record<string, string> = {
   'Both wands wired up: the first one to move wins the round.': '두 완드 모두 배선 완료: 먼저 움직인 쪽이 라운드를 이깁니다.',
   'The paper trail': '문서의 기록',
   'Alongside the hardware, the course asked for formal documents, and the writing took as much work as the build. The Project Requirements came first, in early March. The Conceptual Design Specification followed three weeks later: 95 pages of problem framing, morph charts, alternative designs, and measures of success. The night before the CDS was due we were 700 words over the limit at 2 a.m., and the whole team stayed on call until seven in the morning cutting words and fixing formatting. As quality assurance manager I did the final proofreading and kept our submissions on time. Everything below opens right here on the page.':
-    '하드웨어와 함께 과목은 정식 문서도 요구했고, 글쓰기에는 제작만큼의 품이 들었습니다. 3월 초에 프로젝트 요구사항(Project Requirements)이 먼저 나왔습니다. 3주 뒤에는 개념 설계 사양서(Conceptual Design Specification)가 이어졌습니다. 문제 정의, 모프 차트, 대안 설계, 성공 척도를 담은 95쪽짜리 문서입니다. CDS 마감 전날 밤 새벽 2시에 저희는 분량 제한을 700단어 넘긴 상태였고, 팀 전원이 아침 7시까지 통화를 유지한 채 단어를 줄이고 서식을 고쳤습니다. 품질 보증 담당으로서 저는 최종 교정을 맡고 제출 기한을 지켰습니다. 아래 문서는 모두 이 페이지에서 바로 열립니다.',
+    '하드웨어와 함께 과목은 정식 문서도 요구했습니다. 글쓰기에는 제작만큼의 품이 들었습니다. 3월 초에 프로젝트 요구사항(Project Requirements)이 먼저 나왔습니다. 3주 뒤에는 개념 설계 사양서(Conceptual Design Specification)가 이어졌습니다. 문제 정의, 모프 차트, 대안 설계, 성공 척도를 담은 95쪽짜리 문서입니다. CDS 마감 전날 밤 새벽 2시에 저희는 분량 제한을 700단어 넘긴 상태였습니다. 팀 전원이 아침 7시까지 통화를 유지한 채 단어를 줄이고 서식을 고쳤습니다. 품질 보증 담당으로서 저는 최종 교정을 맡고 제출 기한을 지켰습니다. 아래 문서는 모두 이 페이지에서 바로 열립니다.',
   'Morph chart and schedule from the CDS': 'CDS의 모프 차트와 일정표',
   'Student numbers and personal contact details are redacted from the published copies.': '공개본에서는 학번과 개인 연락처를 가렸습니다.',
   'The feedback loop': '피드백 루프',
   'This course taught me to treat peer feedback the way I treat a bug report. The first evaluation said I needed to engage more; I answered it with the whiteboard session and the prototype, and I later wrote the whole loop up in the Team Feedback Analysis above. By the second evaluation, teammates were writing about the late nights on the CDS and the resources I kept bringing to meetings. The feedback also gave me new things to work on, like sharing more during discussions and responding faster online. I would rather know these things in first year than discover them at a job.':
-    '이 과목은 동료 피드백을 버그 리포트 대하듯 다루는 법을 가르쳐 주었습니다. 첫 평가는 제가 더 적극적으로 참여해야 한다고 했고, 저는 화이트보드 세션과 프로토타입으로 답했으며, 나중에 그 과정 전체를 위의 팀 피드백 분석에 정리했습니다. 두 번째 평가에서는 팀원들이 CDS를 붙들고 지새운 밤들과 제가 회의마다 가져온 자료를 언급하고 있었습니다. 피드백은 토론 중에 더 많이 공유하기, 온라인에서 더 빨리 답하기처럼 새로 다듬을 점도 알려 주었습니다. 이런 점은 직장에서 뒤늦게 발견하기보다 1학년 때 알아 두는 편이 낫습니다.',
+    '이 과목은 동료 피드백을 버그 리포트 대하듯 다루는 법을 가르쳐 주었습니다. 첫 평가는 제가 더 적극적으로 참여해야 한다고 했고 저는 화이트보드 세션과 프로토타입으로 답했습니다. 나중에 그 과정 전체를 위의 팀 피드백 분석에 정리했습니다. 두 번째 평가에서는 팀원들이 CDS를 붙들고 지새운 밤들과 제가 회의마다 가져온 자료를 언급했습니다. 피드백은 토론 중에 더 많이 공유하기, 온라인에서 더 빨리 답하기처럼 새로 다듬을 점도 알려 주었습니다. 이런 점은 직장에서 뒤늦게 발견하기보다 1학년 때 알아 두는 편이 낫습니다.',
   'Kamilia wrote afterward that working on this team was one of the highlights of her first year. It was one of mine too.':
     'Kamilia는 나중에 이 팀에서 일한 것이 1학년의 가장 좋았던 순간 중 하나였다고 적었습니다. 저에게도 그랬습니다.',
   'Presentation day': '발표 당일',
   'We hope to build the production version with Alexandre and see the wand make its debut at a future Skule™ Kup event.':
-    '저희는 Alexandre와 함께 정식 버전을 만들어, 앞으로의 Skule™ Kup 행사에서 이 완드가 데뷔하는 모습을 보고 싶습니다.',
+    '저희는 Alexandre와 함께 정식 버전을 만들어 앞으로 열릴 Skule™ Kup 행사에서 이 완드가 데뷔하는 모습을 보고 싶습니다.',
 
   // the deck, one note per slide
   'Title slide: Buzzer Beaters, Team 13, presented to client Alexandre Klaus on April 9th.': '표지: Buzzer Beaters, 13팀. 4월 9일 클라이언트 Alexandre Klaus에게 발표했습니다.',
@@ -147,7 +147,7 @@ const ko: Record<string, string> = {
 
   // morph chart and schedule
   'The morphological chart from the CDS: functions and objectives as rows, means as columns, with colored concept paths drawn through the grid.':
-    'CDS의 모프 차트(morphological chart): 행은 기능과 목표, 열은 수단이며, 격자 위로 색깔별 콘셉트 경로를 그렸습니다.',
+    'CDS의 모프 차트(morphological chart): 행은 기능과 목표, 열은 수단이며 격자 위로 색깔별 콘셉트 경로를 그렸습니다.',
   'The morph chart: every function crossed against every means.': '모프 차트: 모든 기능을 모든 수단과 교차시켰습니다.',
   'Gantt chart for March and April 2026 covering prototyping, testing, iteration, and final presentation preparation, with owners per task.':
     '2026년 3월과 4월의 간트 차트: 프로토타이핑, 시험, 반복 개선, 최종 발표 준비를 담당자별로 정리했습니다.',
@@ -155,7 +155,7 @@ const ko: Record<string, string> = {
 
   // Blender model and renders
   'A laptop with Blender open on the left, showing the eight modeled wands, and the CDS document open on the right with a hand-drawn diagram of the hub electronics.':
-    '왼쪽에는 모델링한 여덟 개의 완드가 보이는 Blender, 오른쪽에는 허브 전자부 손그림 다이어그램이 있는 CDS 문서가 열린 노트북.',
+    '노트북 한 대. 왼쪽에는 모델링한 완드 여덟 개가 보이는 Blender, 오른쪽에는 허브 전자부 손그림 다이어그램이 실린 CDS 문서.',
   'March 21: the model on one side of the screen, the report on the other.': '3월 21일: 화면 한쪽에는 모델, 다른 쪽에는 보고서.',
   'Blender render: a lineup of eight blue wands, each topped with a clear globe containing a different discipline symbol, including a lightning bolt, a flask, a gear, a pickaxe, an eight-ball, and a calculator.':
     'Blender 렌더: 나란히 선 여덟 개의 파란 완드. 각 완드 위 투명 구체 안에는 번개, 플라스크, 톱니바퀴, 곡괭이, 8번 당구공, 계산기 등 서로 다른 학과 상징이 들어 있습니다.',
@@ -175,7 +175,7 @@ const ko: Record<string, string> = {
 
   // firmware bench work
   'A laptop running the Arduino IDE with a serial monitor open, wired to an Arduino Uno and a red accelerometer breakout on a makerspace bench.':
-    '메이커스페이스 작업대에서 Arduino Uno와 빨간 가속도계 브레이크아웃 보드에 연결된 채 Arduino IDE와 시리얼 모니터를 띄운 노트북.',
+    '메이커스페이스 작업대의 노트북. Arduino IDE와 시리얼 모니터를 띄운 채 Arduino Uno와 빨간 가속도계 브레이크아웃 보드에 연결돼 있습니다.',
   'Bringing up the sensor over I2C.': 'I2C로 센서를 처음 띄우는 중.',
   'Video: sensor readings streaming into the serial monitor while a hand moves the wired accelerometer over an Arduino.':
     '영상: 손으로 Arduino에 연결된 가속도계를 움직이는 동안 시리얼 모니터에 흘러 들어오는 센서 값.',
@@ -214,7 +214,7 @@ const ko: Record<string, string> = {
 
   // building the wands
   'Five 3D-printed blue wand handles with clear globes laid out on a table beside a breadboard hub wired to two of them.':
-    '테이블 위에 늘어놓은, 투명 구체가 달린 3D 프린팅 파란 완드 손잡이 다섯 개. 그중 두 개가 옆의 브레드보드 허브에 연결되어 있습니다.',
+    '투명 구체가 달린 3D 프린팅 파란 완드 손잡이 다섯 개를 테이블 위에 늘어놓았습니다. 그중 두 개가 옆의 브레드보드 허브에 연결되어 있습니다.',
   'Five printed wands; the bottom two are wired into the hub.': '프린트한 완드 다섯 개. 아래 두 개는 허브에 배선되어 있습니다.',
   'An assembled wand lying on a kitchen scale that reads 106 grams.': '106그램을 가리키는 주방 저울 위에 놓인 조립된 완드.',
   '106 grams.': '106그램.',

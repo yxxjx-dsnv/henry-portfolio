@@ -3,46 +3,46 @@
 const ko: Record<string, string> = {
 
   'My work as an AI/Robotics Engineering Intern at Incheon Robotics: implementing the AI/ML voice recognition that lets an operator control the whole grid-based ASRS without touching the screen, plus the robot build itself. The machine, the Deep-N fleet scheduling behind it, the Gwangju deployment, and an interactive 3D simulation of the system all live on its own page.':
-    'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 하는 일입니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어할 수 있게 하는 AI/ML 음성 인식을 구현하고, 로봇 제작에도 참여합니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
+    'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 하는 일입니다. AI/ML 음성 인식을 구현하고 로봇 제작에도 참여합니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어하게 하는 기능입니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
   'Built in one day at the IEEE × AWS "Hack the Student Life" hackathon (Amazon Toronto): a real-time dashboard showing how crowded each campus library is, floor by floor. My first hackathon. The full story, photos, and demo live on its own page.':
-    'IEEE × AWS "Hack the Student Life" 해커톤(Amazon Toronto)에서 하루 만에 만든, 캠퍼스 도서관마다 층별 혼잡도를 실시간으로 보여 주는 대시보드입니다. 제 첫 해커톤이었습니다. 전체 이야기와 사진, 데모는 별도 페이지에 있습니다.',
+    'IEEE × AWS "Hack the Student Life" 해커톤(Amazon Toronto)에서 하루 만에 만든 대시보드입니다. 캠퍼스 도서관마다 층별 혼잡도를 실시간으로 보여 줍니다. 제 첫 해커톤이었습니다. 전체 이야기와 사진, 데모는 별도 페이지에 있습니다.',
   'The startup I am building: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront on its own. The vision, the Profit Score, and the research behind it live on its own page.':
-    '제가 만들고 있는 스타트업입니다. 상품의 수익성을 점수로 매기고, 스토어에 스스로 등록하고 가격을 조정하는 AI 리셀 분석 플랫폼입니다. 비전과 Profit Score, 그 뒤의 리서치는 별도 페이지에 있습니다.',
+    '제가 만들고 있는 스타트업입니다. AI 리셀 분석 플랫폼으로, 상품의 수익성을 점수로 매기고 스토어에 스스로 등록해 가격까지 조정합니다. 비전과 Profit Score, 그 뒤의 리서치는 별도 페이지에 있습니다.',
   "APS112 (Engineering Strategies & Practice II) design project for a real client: a motion-detecting wand that finds the first responder in Skule™ Kup's Discipline Feud games. I wrote the two-wand Arduino firmware and built the Blender prototype. The story, renders, reports, and code live on its own page.":
-    'APS112(Engineering Strategies & Practice II)에서 실제 클라이언트를 위해 진행한 설계 프로젝트입니다. Skule™ Kup의 Discipline Feud 게임에서 가장 먼저 반응한 사람을 찾아내는 동작 감지 완드로, 저는 완드 두 개를 잇는 Arduino 펌웨어를 작성하고 Blender 프로토타입을 만들었습니다. 이야기와 렌더링, 보고서, 코드는 별도 페이지에 있습니다.',
+    'APS112(Engineering Strategies & Practice II)에서 실제 클라이언트를 위해 진행한 설계 프로젝트입니다. Skule™ Kup의 Discipline Feud 게임에서 가장 먼저 반응한 사람을 찾아내는 동작 감지 완드였습니다. 저는 완드 두 개를 잇는 Arduino 펌웨어를 작성하고 Blender 프로토타입을 만들었습니다. 이야기와 렌더링, 보고서, 코드는 별도 페이지에 있습니다.',
   'A 1,200 mm box girder built from one sheet of matboard and two tubes of contact cement, designed through seven documented iterations with Python-computed load envelopes (predicted failure load 1,096 N). The story, reports, and photos live on its own page.':
-    '매트보드 한 장과 접착제(contact cement) 두 통으로 만든 1,200 mm 박스 거더입니다. Python으로 계산한 하중 포락선을 바탕으로 일곱 번의 반복 설계를 기록하며 완성했습니다(예측 파괴 하중 1,096 N). 이야기와 보고서, 사진은 별도 페이지에 있습니다.',
+    '매트보드 한 장과 접착제(contact cement) 두 통으로 만든 1,200 mm 박스 거더입니다. Python으로 계산한 하중 포락선을 놓고 일곱 번의 반복 설계를 기록하며 완성했습니다(예측 파괴 하중 1,096 N). 이야기와 보고서, 사진은 별도 페이지에 있습니다.',
   'A handmade pendulum measured against theory across four experiments — angle, damping, length, and Q-factor — with Python curve-fitting and full uncertainty propagation. The report, graphs, code, and rig live on its own page.':
     '직접 만든 진자를 각도, 감쇠, 길이, Q 인자의 네 가지 실험으로 이론과 비교했습니다. Python 곡선 피팅과 불확실도 전파를 모두 적용했습니다. 보고서와 그래프, 코드, 실험 장치는 별도 페이지에 있습니다.',
   "The weekly labs from U of T's introduction to programming, in C: calculations, loops, an elementary cellular automaton, Connect Four, Reversi, and an ER-triage linked list. Each one runs in your browser: a full clang compiler built to WebAssembly compiles and executes the code on the page, so you can edit my submission and press Run. Lives on its own page.":
-    '토론토 대학교 프로그래밍 입문 과목의 주간 랩 과제를 C로 풀었습니다. 계산, 반복문, 1차원 세포 자동자, Connect Four, Reversi, 응급실 분류용 연결 리스트까지. 각 과제는 브라우저에서 바로 실행됩니다. WebAssembly로 빌드한 clang 컴파일러가 페이지 안에서 코드를 컴파일하고 실행하므로, 제 제출물을 고쳐서 Run을 눌러 볼 수 있습니다. 별도 페이지에 있습니다.',
+    '토론토 대학교 프로그래밍 입문 과목의 주간 랩 과제를 C로 풀었습니다. 계산, 반복문, 1차원 세포 자동자, Connect Four, Reversi, 응급실 분류용 연결 리스트까지. 각 과제는 브라우저에서 바로 실행됩니다. WebAssembly로 빌드한 clang 컴파일러가 페이지 안에서 코드를 컴파일하고 실행하므로 제 제출물을 고쳐서 Run을 눌러 볼 수 있습니다. 별도 페이지에 있습니다.',
 
   'Incheon Robotics builds ASRS — automated storage and retrieval systems — for warehouse logistics: a grid of bins, a fleet of low-power robots that each carry up to 30 kg, a modular elevator that scales the rack vertically, and a kiosk where an operator calls for a bin the way you would order from a vending machine. Its Deep-N AI retrieval, patented in Korea, reaches a bin stacked ten layers deep in about 36 seconds and cuts the floor space a warehouse needs by roughly 80%. The first full deployment — a logistics hub in Gwangju — went live in December 2025 and took the site from eighteen operators to six. The company is headquartered at the Incheon Global Campus in Songdo, with an R&D centre in Mapo, Seoul.':
-    'Incheon Robotics는 물류 창고를 위한 자동창고 시스템(ASRS)을 만듭니다. 빈(bin)이 격자로 쌓인 랙, 각각 30 kg까지 나르는 저전력 로봇 플릿, 랙을 수직으로 확장하는 모듈형 엘리베이터, 그리고 운영자가 자판기에서 주문하듯 빈을 호출하는 키오스크로 이루어집니다. 국내 특허를 받은 Deep-N AI 출고 기술은 열 층 깊이에 쌓인 빈을 약 36초 만에 꺼내고, 창고에 필요한 바닥 면적을 약 80% 줄입니다. 첫 번째 본격 도입 현장인 광주 물류 허브는 2025년 12월 가동을 시작해 운영 인력을 18명에서 6명으로 줄였습니다. 본사는 송도 인천글로벌캠퍼스에, 연구소는 서울 마포에 있습니다.',
+    'Incheon Robotics는 물류 창고를 위한 자동창고 시스템(ASRS)을 만듭니다. 빈(bin)이 격자로 쌓인 랙, 각각 30 kg까지 나르는 저전력 로봇 플릿, 랙을 수직으로 확장하는 모듈형 엘리베이터, 운영자가 자판기에서 주문하듯 빈을 호출하는 키오스크로 이루어집니다. 국내 특허를 받은 Deep-N AI 출고 기술은 열 층 깊이에 쌓인 빈을 약 36초 만에 꺼내고 창고에 필요한 바닥 면적을 약 80% 줄입니다. 첫 번째 본격 도입 현장인 광주 물류 허브는 2025년 12월 가동을 시작해 운영 인력을 18명에서 6명으로 줄였습니다. 본사는 송도 인천글로벌캠퍼스에, 연구소는 서울 마포에 있습니다.',
   'I joined on August 10, 2026, working under the direct supervision of the CEO. My main assignment is the voice layer on that kiosk: an operator speaks, an AI works out what was actually asked for, and the robots on the floor are dispatched to go get it — speech, to intent, to a machine that moves. Alongside it I work on the robot build itself, on the hardware.':
-    '저는 2026년 8월 10일 합류해 대표이사의 직접 지도 아래 일하고 있습니다. 주 업무는 그 키오스크의 음성 계층입니다. 운영자가 말하면 AI가 실제로 무엇을 요청했는지 파악하고, 현장의 로봇이 그것을 가지러 출발합니다. 말에서 의도로, 의도에서 움직이는 기계로 이어지는 흐름입니다. 이와 함께 로봇 제작, 즉 하드웨어 쪽 일도 맡고 있습니다.',
+    '저는 2026년 8월 10일 합류해 대표이사의 직접 지도 아래 일하고 있습니다. 주 업무는 그 키오스크의 음성 계층입니다. 운영자가 말하면 AI가 실제로 무엇을 요청했는지 파악하고 현장의 로봇이 그것을 가지러 출발합니다. 말에서 의도로, 의도에서 움직이는 기계로 이어지는 흐름입니다. 이와 함께 로봇 제작, 즉 하드웨어 쪽 일도 맡고 있습니다.',
   'The company is foreign-founded and operating in Korea, so the role has a second half. As a fluent Korean speaker I work directly on the company website and on its communication outward — the partners and customers who have to understand the machine before they can trust it.':
-    '외국인이 창업해 한국에서 운영하는 회사라, 이 역할에는 또 다른 절반이 있습니다. 한국어가 유창한 구성원으로서 회사 웹사이트와 대외 커뮤니케이션을 직접 맡고 있습니다. 기계를 신뢰하기 전에 먼저 이해해야 하는 파트너와 고객을 위한 일입니다.',
+    '외국인이 창업해 한국에서 운영하는 회사라 이 역할에는 또 다른 절반이 있습니다. 한국어가 유창한 구성원으로서 회사 웹사이트와 대외 커뮤니케이션을 직접 맡고 있습니다. 파트너와 고객을 위한 일입니다. 이들은 기계를 신뢰하기 전에 먼저 이해해야 합니다.',
   'Selected as one of 11 U of T Engineering students from 75+ applicants for a week inside an operating gold mine in Geraldton, Ontario, rotating through open-pit operations, the mill, geology, maintenance, and emergency response. The full story, with photographs, lives on its own page.':
-    '75명이 넘는 지원자 가운데 선발된 토론토 대학교 공학부 학생 11명 중 한 명으로, 온타리오주 제럴턴의 가동 중인 금광에서 일주일을 보냈습니다. 노천 채굴 작업, 선광장, 지질, 정비, 비상 대응 부서를 차례로 돌았습니다. 사진과 함께한 전체 이야기는 별도 페이지에 있습니다.',
+    '온타리오주 제럴턴의 가동 중인 금광에서 일주일을 보냈습니다. 75명이 넘는 지원자 가운데 선발된 토론토 대학교 공학부 학생 11명 중 한 명이었습니다. 노천 채굴 작업, 선광장, 지질, 정비, 비상 대응 부서를 차례로 돌았습니다. 사진과 함께한 전체 이야기는 별도 페이지에 있습니다.',
   "The University of Toronto Korean Engineering Students' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025 and became an executive in January 2026.":
     '토론토 대학교 한인 공학 학생회(UTKESA)는 학업 지원, 커리어 개발, 네트워킹으로 한인 공학도들을 잇는 단체입니다. 2025년 9월 행사부 인턴으로 들어가 2026년 1월 임원이 되었습니다.',
   "In the Event Department I help plan and run UTKESA's social and professional events, coordinating logistics and collaborations to create engaging experiences for U of T students.":
-    '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영하며, 물류와 협업을 조율해 토론토 대학교 학생들에게 즐거운 경험을 만들고 있습니다.',
+    '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영합니다. 물류와 협업을 조율해 토론토 대학교 학생들에게 즐거운 경험을 만들고 있습니다.',
   "On the event team, I supported UTKESA's Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum's Korean Gallery — Canada's only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The contribution, raised over the year by the executive team, is documented on UTKESA's LinkedIn.":
-    '행사팀에서 Korea Root Initiative와 함께한 UTKESA의 삼일절 기부를 도왔습니다. 전담 큐레이터가 없어 폐관 위기에 놓였던 캐나다 유일의 상설 한국관, 로열 온타리오 박물관 한국관을 지키기 위한 기부였습니다. 임원진이 한 해 동안 모은 이 기부금은 UTKESA LinkedIn에 기록되어 있습니다.',
+    '행사팀에서 Korea Root Initiative와 함께한 UTKESA의 삼일절 기부를 도왔습니다. 로열 온타리오 박물관 한국관을 지키기 위한 기부였습니다. 캐나다 유일의 상설 한국관인데 전담 큐레이터가 없어 폐관 위기에 놓여 있었습니다. 임원진이 한 해 동안 모은 이 기부금은 UTKESA LinkedIn에 기록되어 있습니다.',
   'Developed an AI-driven global resale analytics platform that automates profit prediction and Shopify listings. Applied engineering thinking and real-time data algorithms to streamline product sourcing and maximize resale margins, demonstrating technological innovation and entrepreneurial leadership.':
-    '수익 예측과 Shopify 등록을 자동화하는 AI 기반 글로벌 리셀 분석 플랫폼을 개발했습니다. 공학적 사고와 실시간 데이터 알고리즘으로 상품 소싱을 간소화하고 리셀 마진을 극대화하며, 기술 혁신과 창업가로서의 리더십을 보여 주었습니다.',
+    '수익 예측과 Shopify 등록을 자동화하는 AI 기반 글로벌 리셀 분석 플랫폼을 개발했습니다. 공학적 사고와 실시간 데이터 알고리즘으로 상품 소싱을 간소화하고 리셀 마진을 극대화했습니다. 여기서 기술 혁신과 창업가의 리더십을 보였습니다.',
   'Elected to lead the Class of 2025’s major senior events. Coordinated Spirit Week, Grad Cruise, and Graduation Ceremony with meticulous budgeting and crisis management. Unified diverse student ideas into successful, memorable events, strengthening strategic planning and teamwork under pressure.':
-    '2025년 졸업반의 주요 행사를 이끌도록 선출되었습니다. 꼼꼼한 예산 관리와 위기 대응으로 스피릿 위크, 졸업 크루즈, 졸업식을 조율했습니다. 다양한 학생들의 아이디어를 성공적이고 기억에 남는 행사로 묶어 내며, 압박 속에서의 전략 기획과 팀워크를 다졌습니다.',
+    '2025년 졸업반의 주요 행사를 이끌도록 선출되었습니다. 꼼꼼한 예산 관리와 위기 대응으로 스피릿 위크, 졸업 크루즈, 졸업식을 조율했습니다. 다양한 학생들의 아이디어를 성공적이고 기억에 남는 행사로 묶어 냈습니다. 압박 속에서 하는 전략 기획과 팀워크를 다진 시간이었습니다.',
   'Revitalized the club’s fundraising and community service impact as Treasurer and now President. Introduced data-driven financial tracking, grew membership through eco-awareness projects like campus recycling, and expanded local volunteer initiatives, proving commitment to sustainability and social leadership.':
-    '회계로 시작해 회장을 맡으며 클럽의 모금과 지역 봉사 활동에 다시 활기를 불어넣었습니다. 데이터 기반 재정 관리를 도입하고, 교내 재활용 같은 환경 인식 프로젝트로 회원을 늘렸으며, 지역 봉사 활동을 넓혀 지속 가능성과 사회적 리더십에 대한 의지를 보여 주었습니다.',
+    '회계로 시작해 회장을 맡으며 클럽의 모금과 지역 봉사 활동에 다시 활기를 불어넣었습니다. 데이터 기반 재정 관리를 도입했고 교내 재활용 같은 환경 인식 프로젝트로 회원을 늘렸습니다. 지역 봉사 활동을 넓히며 지속 가능성과 사회적 리더십에 대한 의지를 보였습니다.',
   'Transformed an unfocused group into a certified BC non-profit with structured departments and automated volunteer systems. Led successful refugee aid campaigns, increased donations by 40%, and fostered partnerships with local organizations — embodying visionary leadership and social entrepreneurship.':
-    '방향이 없던 모임을 체계적인 부서와 자동화된 봉사자 관리 시스템을 갖춘 브리티시컬럼비아주 공인 비영리 단체로 탈바꿈시켰습니다. 난민 지원 캠페인을 성공적으로 이끌어 기부금을 40% 늘렸고, 지역 단체들과의 협력을 키우며 비전 있는 리더십과 사회적 기업가 정신을 실천했습니다.',
+    '방향이 없던 모임을 브리티시컬럼비아주 공인 비영리 단체로 탈바꿈시켰습니다. 체계적인 부서와 자동화된 봉사자 관리 시스템을 갖췄습니다. 난민 지원 캠페인을 성공적으로 이끌어 기부금을 40% 늘렸고 지역 단체와의 협력을 키우며 비전 있는 리더십과 사회적 기업가 정신을 실천했습니다.',
   'Organized cultural showcases, traditional food festivals, and language workshops to celebrate Korean heritage within the school. Boosted club participation and strengthened cross-cultural understanding, showcasing initiative in cultural leadership and event management.':
-    '학교 안에서 한국 문화를 알리는 문화 공연, 전통 음식 축제, 언어 워크숍을 기획했습니다. 클럽 참여를 늘리고 문화 간 이해를 넓히며, 문화 리더십과 행사 운영에서의 주도성을 보여 주었습니다.',
+    '학교 안에서 한국 문화를 알리는 문화 공연, 전통 음식 축제, 언어 워크숍을 기획했습니다. 클럽 참여를 늘리고 문화 간 이해를 넓혔습니다. 행사를 운영하며 문화 리더십과 주도성을 보였습니다.',
   'Assisted advanced Korean classes with customized lesson plans and real-life examples to prepare students for the TOPIK exam. Enhanced classroom engagement through Q&A and personalized tutoring, gaining deep insights into educational methodologies and mentorship.':
-    'TOPIK 시험을 준비하는 학생들을 위해 맞춤 수업 계획과 실생활 예시로 고급 한국어 수업을 도왔습니다. 질의응답과 개별 지도로 수업 참여를 높이며, 교육 방법과 멘토링에 대한 깊은 이해를 얻었습니다.',
+    'TOPIK 시험을 준비하는 학생들을 위해 맞춤 수업 계획과 실생활 예시로 고급 한국어 수업을 도왔습니다. 질의응답과 개별 지도로 수업 참여를 높였습니다. 교육 방법과 멘토링을 깊이 이해하게 되었습니다.',
 
 };
 
