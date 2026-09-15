@@ -751,7 +751,7 @@ export function PendulumLab() {
         </div>
       )}
       <figcaption>
-        {t("The rig from the photos, swinging to the report's own damped model. Pull the ball and let go: the window tracks it the way Tracker tracked the real video, and each release becomes a point on the graph beside the report's measurements.")}
+        {t("The rig from the photos, swinging to the report's damped model. Pull the ball and let go.")}
       </figcaption>
     </figure>
   );

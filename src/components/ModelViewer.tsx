@@ -183,7 +183,7 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
           <span className="model-status" role="status" aria-live="polite">
             {status === 'loading' && t('loading the model…')}
             {status === 'error' &&
-              tx("3D isn't available here — {link} instead.", {
+              tx("3D isn't available here, so {link} instead.", {
                 link: (
                   <a href={src} download>
                     {t('download the model')}

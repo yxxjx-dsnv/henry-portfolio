@@ -30,7 +30,7 @@ export function Aps105Labs() {
       <section className="essay-section">
         <div className="text">
           <div className="section-body">
-            <p>{t("APS105 is U of T Engineering's introduction to programming, taught in C. Every week had a lab. Here are mine: the code I submitted, running in your browser. Edit any of it and press Run, and it is compiled and executed right on the page. A full C compiler (clang, built to WebAssembly) runs client-side, so there is no server. The first Run downloads the compiler once (about 40 MB, then cached); after that it is instant. Press Reset to put my original code back.")}</p>
+            <p>{t("APS105 is U of T Engineering's introduction to programming, taught in C. Every week had a lab. This page has the code I submitted for each one, running in your browser. Edit any of it and press Run, and it is compiled and executed on the page. A full C compiler (clang, built to WebAssembly) runs client-side, so there is no server. The first Run downloads the compiler once (about 40 MB, then cached); after that it is instant. Press Reset to put my original code back.")}</p>
 
             <div className="labs-nav" role="tablist" aria-label="Labs">
               {aps105Labs.map((l) => (

@@ -23,7 +23,7 @@ export function Home() {
           <p>Some things about me:</p>
           <div className="section-title">
             <li>
-              {tx('19-years-old, born in {korea} — Second Year Electrical & Computer Engineering (ECE) student at the {uoft}.', {
+              {tx('19, born in {korea}. Second-year Electrical & Computer Engineering (ECE) student at the {uoft}.', {
                 korea: <KoreaTrigger>{t('South Korea')}</KoreaTrigger>,
                 uoft: ext('https://www.utoronto.ca', t('University of Toronto')),
               })}
@@ -42,14 +42,14 @@ export function Home() {
             <br />
             <li>
               {tx(
-                "Before that I spent about three months as a freelance {role} at Branphic Inc., where I designed, built, deployed, and maintained 9+ internal automation tools end to end — working across Claude, ChatGPT, and Codex — moving the company's day-to-day operations onto AI automation.",
+                "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with Claude, ChatGPT, and Codex, which moved the company's day-to-day operations onto AI automation.",
                 { role: <b>{t('AX engineer')}</b> },
               )}
             </li>
             <br />
             <li>
               {tx(
-                "({hold}) I'm building a startup called {mono}, which uses AI and automation to analyze global resale markets, helping users identify profitable opportunities more efficiently. I lead the project as the Founder & CEO.",
+                "({hold}) I'm building a startup called {mono}. It uses AI and automation to analyze global resale markets and helps users find profitable opportunities faster. I lead it as Founder & CEO.",
                 {
                   hold: (
                     <u>
@@ -70,7 +70,7 @@ export function Home() {
             </li>
             <br />
             <li>
-              {tx('Now, I served as an Executive member in Event Dept. at {utkesa}', {
+              {tx("Now I'm an Executive member of the Event Dept. at {utkesa}.", {
                 utkesa: ext('https://www.instagram.com/utkesa_official/', 'UTKESA'),
               })}
             </li>
@@ -84,28 +84,28 @@ export function Home() {
             <div className="section-title">
               <li>
                 {tx(
-                  "{b} — especially where automation, artificial intelligence, and user experience intersect. I'm fascinated by tools that can simplify life or create new possibilities.",
+                  "{b}: especially where automation, artificial intelligence, and user experience meet. I like tools that make life simpler or make something new possible.",
                   { b: <b>Technology and startups</b> },
                 )}
               </li>
               <br />
               <li>
                 {tx(
-                  "{b} — I value clean, intentional design in both digital products and communication. Good design, to me, makes things feel intuitive and respectful of the user's time.",
+                  "{b}: I like clean, intentional design, in digital products and in how people communicate. Good design, to me, feels intuitive and doesn't waste the user's time.",
                   { b: <b>Design and clarity</b> },
                 )}
               </li>
               <br />
               <li>
                 {tx(
-                  "{b} — I like teaching myself new skills and using them immediately: web development, writing, data analysis, and business strategy are all things I've explored hands-on.",
+                  "{b}: I teach myself new skills and use them right away. Web development, writing, data analysis, and business strategy all came that way.",
                   { b: <b>Independent learning</b> },
                 )}
               </li>
               <br />
               <li>
                 {tx(
-                  "{b} — I've seen firsthand how student-led initiatives can create meaningful impact. I hope to keep exploring leadership grounded in action and empathy.",
+                  "{b}: I've seen what student-led groups can do. I want to keep leading that way, with action and empathy.",
                   { b: <b>Education and leadership</b> },
                 )}
               </li>

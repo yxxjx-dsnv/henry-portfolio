@@ -19,7 +19,7 @@ export function Colophon() {
       <section className="about-section">
         <div className="text colophon-text">
           <p className="colophon-line">
-            {tx('Set in {font}, black on white — and white on black after dark.', {
+            {tx('Set in {font}, black on white, and white on black after dark.', {
               font: (
                 <a href="https://fonts.google.com/specimen/Libre+Baskerville" target="_blank" rel="noopener noreferrer">
                   Libre Baskerville
@@ -30,7 +30,7 @@ export function Colophon() {
           <p className="colophon-line">
             {t('Built by hand with React, TypeScript, and Vite. Plain CSS, no UI libraries. Hosted on GitHub Pages at henrykim.ca.')}
           </p>
-          <p className="colophon-line">{t('Pages answer to the keys 1–5. ⌘K (Ctrl+K elsewhere) opens the switchboard.')}</p>
+          <p className="colophon-line">{t('Pages answer to the keys 1 to 5. ⌘K (Ctrl+K elsewhere) opens the switchboard.')}</p>
           {rescued() && (
             <p className="colophon-line colophon-rescued">
               {t('A dot once got lost on the 404 page. Someone caught it. It lives here now.')}

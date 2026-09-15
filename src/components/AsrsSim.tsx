@@ -487,7 +487,7 @@ export function AsrsSim() {
           )}
         </div>
       )}
-      <figcaption>{t("The whole system, running, on the Blender-built rack: three robots working two storage levels over the station deck, waiting on the landing for the elevator and riding it between decks, carrying each bin lifted clear of the cradles — so a loaded machine keeps to the aisles while an empty one drives under the stored bins. Routing is A* around whatever squares the other robots hold, so paths never cross. Track follows one robot; X-ray ghosts the warehouse so you can watch the machines work through it.")}</figcaption>
+      <figcaption>{t("The whole system on the Blender-built rack: three robots working two storage levels over the station deck, waiting on the landing for the elevator and riding it between decks, each bin carried lifted clear of the cradles, so a loaded machine keeps to the aisles while an empty one drives under the stored bins. Routing is A* around whatever squares the other robots hold, so paths never cross. Track follows one robot; X-ray ghosts the warehouse so you can watch the machines work through it.")}</figcaption>
     </figure>
   );
 }

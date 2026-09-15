@@ -123,7 +123,7 @@ export function VoicePipeline() {
           </text>
         </svg>
       </div>
-      <figcaption>{t("The chain I was hired to build: a spoken request in Korean, a fleet of robots moving at the end of it, and a spoken answer on the way back — so the worker never looks down at a screen.")}</figcaption>
+      <figcaption>{t("The chain I was hired to build: a spoken request in Korean, robots moving at the end of it, and a spoken answer on the way back, so the worker never looks down at a screen.")}</figcaption>
     </figure>
   );
 }

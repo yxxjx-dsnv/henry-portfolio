@@ -10,22 +10,22 @@ const ko: Record<string, string> = {
   // the story
   "Skule™ Kup is a year-long competition between U of T's engineering disciplines. One of its games is Discipline Feud, where teams race to guess the most common answers to survey questions, and whoever signals first gets to answer. The signalling is the problem. When several people react at once, the organizers have to judge who was first, the judgment gets disputed, and the game slows down. Our team of six spent the winter semester designing a fix.":
     'Skule™ Kup은 토론토 대학교(U of T) 공학부의 여러 학과가 일 년 내내 겨루는 대회입니다. 그중 한 종목인 Discipline Feud에서는 팀들이 설문 질문에 가장 많이 나온 답을 먼저 맞히려 경쟁합니다. 먼저 신호를 보낸 쪽이 답할 기회를 얻습니다. 그런데 바로 그 신호 방식이 문제였습니다. 여러 사람이 동시에 반응하면 운영진이 누가 먼저였는지 판정해야 하고 그 판정을 두고 이의가 나오며 게임이 느려집니다. 저희 팀 여섯 명은 겨울 학기 내내 이 문제를 해결할 장치를 설계했습니다.',
-  'Here is the whole project the way we presented it: the final deck from April 9th, 2026. Turn through it below, or open it in its own tab. The rest of this page is the story behind it.':
-    '프로젝트 전체를 저희가 발표했던 그대로 담았습니다. 2026년 4월 9일의 최종 발표 자료입니다. 아래에서 한 장씩 넘겨 보시거나 새 탭에서 여실 수 있습니다. 이 페이지의 나머지는 그 뒤에 담긴 이야기입니다.',
+  'The final deck from April 9th, 2026, as we presented it. Turn through it below, or open it in its own tab. The rest of this page is how we got there.':
+    '2026년 4월 9일의 최종 발표 자료를 저희가 발표했던 그대로 담았습니다. 아래에서 한 장씩 넘겨 보시거나 새 탭에서 여실 수 있습니다. 이 페이지의 나머지는 여기까지 온 과정입니다.',
   'Buzzer Beaters, the final presentation': 'Buzzer Beaters, 최종 발표',
   'A real client': '실제 클라이언트',
   'APS112 gives first-year teams a real client, and ours was Alexandre Klaus, a second-year Engineering Science student and the current Skule™ Kup director. His brief was specific: detect the first responder reliably, handle a changing number of contestants in real time, and keep the system safe and portable. The requirements came from visiting the rooms themselves. We measured the EngSoc Arena at 46 decibels of ambient sound and noted its lighting controls and table heights, so the design would fit the room it will be used in.':
     'APS112는 1학년 팀에게 실제 클라이언트를 붙여 줍니다. 저희 클라이언트는 Engineering Science 2학년이자 현 Skule™ Kup 디렉터인 Alexandre Klaus였습니다. 요구 사항은 구체적이었습니다. 첫 응답자를 확실하게 감지할 것, 바뀌는 참가자 수에 실시간으로 대응할 것, 시스템을 안전하고 휴대하기 쉽게 만들 것. 요구 사항은 경기가 열리는 공간을 직접 찾아가 정리했습니다. EngSoc Arena의 주변 소음을 46데시벨로 측정하고 조명 제어 방식과 테이블 높이를 기록해 설계가 실제로 쓰일 공간에 맞도록 했습니다.',
   'Three ideas on a whiteboard': '화이트보드 위의 세 가지 아이디어',
-  'My formal role was quality assurance, but the contribution I care most about happened at a whiteboard. Earlier in the term, my first peer evaluation told me plainly that I should be more present in team discussions. I took that seriously. During idea selection, I came to one of our in-person meetings prepared and presented three design directions on the whiteboard: a hard-hat concept with built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each one I walked through the detection method, the physical layout, and how it would be used on game day. After several rounds of deliberation the team chose the wand, and the client responded well to the less conventional ideas.':
-    '저의 공식 역할은 품질 보증(QA)이었지만 제가 가장 아끼는 기여는 화이트보드 앞에서 나왔습니다. 학기 초 첫 동료 평가에서 팀 토론에 더 적극적으로 참여해야 한다는 솔직한 피드백을 받았습니다. 저는 그 말을 진지하게 받아들였습니다. 아이디어 선정 단계에서 대면 회의에 준비를 해 가서 화이트보드에 세 가지 설계 방향을 발표했습니다. 버저를 내장한 안전모 콘셉트, 자이로스코프(gyroscope) 기반 완드, 기존 방식의 버저 시스템입니다. 각 안마다 감지 방식, 물리적 구성, 경기 당일 사용 방법을 차례로 설명했습니다. 여러 차례 논의를 거쳐 팀은 완드를 골랐습니다. 클라이언트도 관습에서 벗어난 아이디어들에 좋은 반응을 보였습니다.',
-  'The whiteboard from that meeting: three numbered options — a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system — with notes on collecting all data in one place and lighting up the first responder.':
-    '그 회의의 화이트보드: 번호를 매긴 세 가지 안 — 센서 후보를 적어 둔 안전모, 허브 박스와 컴퓨터에 연결된 SKULE 완드 두 개를 그린 자이로스코프 라이트 스틱, 일반 버저 시스템. 여기에 모든 데이터를 한곳에 모으고 첫 응답자에게 불을 켠다는 메모까지.',
+  'My formal role was quality assurance. The part I care most about happened at a whiteboard. Earlier in the term, my first peer evaluation said plainly that I should be more present in team discussions. So during idea selection I came to one of our in-person meetings prepared and put three design directions on the whiteboard: a hard-hat concept with built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each one I walked through the detection method, the physical layout, and how it would be used on game day. After several rounds of deliberation the team chose the wand. The client also responded well to the less conventional ideas.':
+    '저의 공식 역할은 품질 보증(QA)이었습니다. 제가 가장 아끼는 부분은 화이트보드 앞에서 나왔습니다. 학기 초 첫 동료 평가에서 팀 토론에 더 적극적으로 참여해야 한다는 솔직한 피드백을 받았습니다. 그래서 아이디어 선정 단계에서 대면 회의에 준비를 해 가서 화이트보드에 세 가지 설계 방향을 올렸습니다. 버저를 내장한 안전모 콘셉트, 자이로스코프(gyroscope) 기반 완드, 기존 방식의 버저 시스템입니다. 각 안마다 감지 방식, 물리적 구성, 경기 당일 사용 방법을 차례로 설명했습니다. 여러 차례 논의를 거쳐 팀은 완드를 골랐습니다. 클라이언트도 관습에서 벗어난 아이디어들에 좋은 반응을 보였습니다.',
+  'The whiteboard from that meeting, with three numbered options: a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system. Notes beside them on collecting all data in one place and lighting up the first responder.':
+    '그 회의의 화이트보드. 번호를 매긴 세 가지 안이 있습니다. 센서 후보를 적어 둔 안전모, 허브 박스와 컴퓨터에 연결된 SKULE 완드 두 개를 그린 자이로스코프 라이트 스틱, 일반 버저 시스템입니다. 옆에는 모든 데이터를 한곳에 모으고 첫 응답자에게 불을 켠다는 메모가 있습니다.',
   'The whiteboard itself: hard-hat, gyroscope light stick, general buzzer.': '그날의 화이트보드: 안전모, 자이로스코프 라이트 스틱, 일반 버저.',
-  "The idea is simple to say: instead of pressing a button, you raise the wand. Motion detection identifies the first wand to move, and each discipline gets its own topper sealed in a clear globe, so every wand shows its discipline's symbol.":
-    '아이디어는 말로 하면 간단합니다. 버튼을 누르는 대신 완드를 들어 올립니다. 모션 감지가 가장 먼저 움직인 완드를 찾아냅니다. 학과마다 투명 구체 안에 밀봉된 고유의 토퍼가 있어 모든 완드가 자기 학과의 상징을 보여 줍니다.',
-  'In the report, the three directions became formal designs. The team had generated 72 ideas, consolidated them to 38, voted them down to 10, and kept three. The CDS drew each one out properly, and the figures below are from those pages.':
-    '보고서에서 세 방향은 정식 설계안이 되었습니다. 팀은 72개의 아이디어를 내고 38개로 통합하고 투표로 10개까지 추린 뒤 세 개를 남겼습니다. CDS는 각 안을 제대로 그려 냈고 아래 그림들은 그 페이지에서 가져왔습니다.',
+  "The idea: instead of pressing a button, you raise the wand. Motion detection picks out the first wand to move. Each discipline gets its own topper sealed in a clear globe, so every wand shows its discipline's symbol.":
+    '아이디어는 이렇습니다. 버튼을 누르는 대신 완드를 들어 올립니다. 모션 감지가 가장 먼저 움직인 완드를 찾아냅니다. 학과마다 투명 구체 안에 밀봉된 고유의 토퍼가 있어 모든 완드가 자기 학과의 상징을 보여 줍니다.',
+  'In the report the three directions became formal designs. Before that, the team had generated 72 ideas, consolidated them to 38, voted them down to 10, and kept three. The CDS draws each one out, and the figures below are from those pages.':
+    '보고서에서 세 방향은 정식 설계안이 되었습니다. 그전에 팀은 72개의 아이디어를 내고 38개로 통합하고 투표로 10개까지 추린 뒤 세 개를 남겼습니다. CDS는 각 안을 그림으로 풀어냈고 아래 그림들은 그 페이지에서 가져왔습니다.',
   'Alternative Design 1 was the Skule™ Wand: a handheld device that reads a response as angular velocity, with an inertial measurement unit in every wand and an I²C multiplexer collecting all eight signals into one Arduino.':
     '대안 설계 1은 Skule™ Wand였습니다. 손에 쥐는 장치로, 응답을 각속도로 읽습니다. 완드마다 관성 측정 장치(IMU)를 넣고 I²C 멀티플렉서가 여덟 개의 신호를 모두 하나의 Arduino로 모읍니다.',
   'Alternative Design 1: the Skule Wand': '대안 설계 1: Skule Wand',
@@ -44,7 +44,7 @@ const ko: Record<string, string> = {
   'The model below is the Blender file itself, converted for the web. Drag to orbit, scroll to zoom.':
     '아래 모델은 Blender 파일 그대로를 웹용으로 변환한 것입니다. 드래그하면 회전하고 스크롤하면 확대·축소됩니다.',
   'Poster for the interactive 3D model: the lineup of eight wands.': '인터랙티브 3D 모델의 포스터: 나란히 선 여덟 개의 완드.',
-  'All eight wands, in 3D — modeled in Blender™.': '여덟 개의 완드 전부를 3D로 — Blender™로 모델링했습니다.',
+  'All eight wands in 3D, modeled in Blender™.': '여덟 개의 완드 전부를 3D로. Blender™로 모델링했습니다.',
   'Making it move': '움직이게 만들기',
   "I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both sensors, derives speed and acceleration magnitudes from the readings, and compares them against a threshold. The first wand past the threshold locks the round, lights its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which wand was first. The code self-checks too: it scans the I2C bus, verifies each sensor's identity register, and runs the sensor's self-test before trusting it. A note on the name: we pitched the concept with a gyroscope, and the bench prototype detects motion with accelerometers.":
     '두 완드 벤치 프로토타입의 펌웨어도 제가 작성했습니다. TCA9548A I2C 멀티플렉서를 단 Arduino에서 돌아가며 완드마다 모션 센서가 하나씩 들어 있습니다. 루프는 두 센서를 샘플링해 측정값에서 속도와 가속도의 크기를 구하고 이를 임계값과 비교합니다. 임계값을 먼저 넘은 완드가 그 라운드를 잠그고 자기 LED를 켭니다. 허브의 버저로 자기만의 음도 울립니다. 그래서 어느 완드가 먼저였는지 모두가 들을 수 있습니다. 코드는 스스로 점검도 합니다. I2C 버스를 스캔하고 각 센서의 식별 레지스터를 확인합니다. 센서를 신뢰하기 전에 자체 테스트도 돌립니다. 이름에 대해 한마디 덧붙이자면, 콘셉트는 자이로스코프로 제안했지만 벤치 프로토타입은 가속도계로 움직임을 감지합니다.',
@@ -66,13 +66,13 @@ const ko: Record<string, string> = {
   'Morph chart and schedule from the CDS': 'CDS의 모프 차트와 일정표',
   'Student numbers and personal contact details are redacted from the published copies.': '공개본에서는 학번과 개인 연락처를 가렸습니다.',
   'The feedback loop': '피드백 루프',
-  'This course taught me to treat peer feedback the way I treat a bug report. The first evaluation said I needed to engage more; I answered it with the whiteboard session and the prototype, and I later wrote the whole loop up in the Team Feedback Analysis above. By the second evaluation, teammates were writing about the late nights on the CDS and the resources I kept bringing to meetings. The feedback also gave me new things to work on, like sharing more during discussions and responding faster online. I would rather know these things in first year than discover them at a job.':
-    '이 과목은 동료 피드백을 버그 리포트 대하듯 다루는 법을 가르쳐 주었습니다. 첫 평가는 제가 더 적극적으로 참여해야 한다고 했고 저는 화이트보드 세션과 프로토타입으로 답했습니다. 나중에 그 과정 전체를 위의 팀 피드백 분석에 정리했습니다. 두 번째 평가에서는 팀원들이 CDS를 붙들고 지새운 밤들과 제가 회의마다 가져온 자료를 언급했습니다. 피드백은 토론 중에 더 많이 공유하기, 온라인에서 더 빨리 답하기처럼 새로 다듬을 점도 알려 주었습니다. 이런 점은 직장에서 뒤늦게 발견하기보다 1학년 때 알아 두는 편이 낫습니다.',
+  'I treated the peer feedback like a bug report. The first evaluation said I needed to engage more. I answered it with the whiteboard session and the prototype, and later wrote the whole loop up in the Team Feedback Analysis above. By the second evaluation, teammates were writing about the late nights on the CDS and the resources I kept bringing to meetings. It also gave me new things to work on: sharing more during discussions, and responding faster online. I would rather find these out in first year than at a job.':
+    '동료 피드백은 버그 리포트 대하듯 다뤘습니다. 첫 평가는 제가 더 적극적으로 참여해야 한다고 했습니다. 저는 화이트보드 세션과 프로토타입으로 답했고 나중에 그 과정 전체를 위의 팀 피드백 분석에 정리했습니다. 두 번째 평가에서는 팀원들이 CDS를 붙들고 지새운 밤들과 제가 회의마다 가져온 자료를 언급했습니다. 새로 다듬을 점도 알려 주었습니다. 토론 중에 더 많이 공유하기, 온라인에서 더 빨리 답하기입니다. 이런 점은 직장에서 알게 되기보다 1학년 때 알아 두는 편이 낫습니다.',
   'Kamilia wrote afterward that working on this team was one of the highlights of her first year. It was one of mine too.':
     'Kamilia는 나중에 이 팀에서 일한 것이 1학년의 가장 좋았던 순간 중 하나였다고 적었습니다. 저에게도 그랬습니다.',
   'Presentation day': '발표 당일',
-  'We hope to build the production version with Alexandre and see the wand make its debut at a future Skule™ Kup event.':
-    '저희는 Alexandre와 함께 정식 버전을 만들어 앞으로 열릴 Skule™ Kup 행사에서 이 완드가 데뷔하는 모습을 보고 싶습니다.',
+  'We hope to build the production version with Alexandre and see the wand in use at a future Skule™ Kup event.':
+    '저희는 Alexandre와 함께 정식 버전을 만들어 앞으로 열릴 Skule™ Kup 행사에서 이 완드가 쓰이는 모습을 보고 싶습니다.',
 
   // the deck, one note per slide
   'Title slide: Buzzer Beaters, Team 13, presented to client Alexandre Klaus on April 9th.': '표지: Buzzer Beaters, 13팀. 4월 9일 클라이언트 Alexandre Klaus에게 발표했습니다.',
@@ -244,7 +244,7 @@ const ko: Record<string, string> = {
   'Interactive 3D model of the wand': '완드의 인터랙티브 3D 모델',
   'Drag to orbit, scroll to zoom.': '드래그하면 회전하고, 스크롤하면 확대·축소됩니다.',
   'loading the model…': '모델을 불러오는 중…',
-  "3D isn't available here — {link} instead.": '이 환경에서는 3D를 표시할 수 없습니다 — 대신 {link}해 주세요.',
+  "3D isn't available here, so {link} instead.": '이 환경에서는 3D를 표시할 수 없습니다. 대신 {link}해 주세요.',
   'download the model': '모델을 다운로드',
 };
 

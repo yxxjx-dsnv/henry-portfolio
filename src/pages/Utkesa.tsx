@@ -39,7 +39,7 @@ const EVENT: CarouselSlide[] = [
   {
     src: `${MEDIA}/gallery.jpg`,
     alt: "The Royal Ontario Museum's Gallery of Korea: glass cases of Korean drums, instruments, and artifacts, visitors walking through.",
-    caption: "The ROM's Gallery of Korea — the cause the donation supports.",
+    caption: "The ROM's Gallery of Korea, which the donation supports.",
     width: 800,
     height: 463,
   },
@@ -90,19 +90,19 @@ export function Utkesa() {
             onPointerEnter={() => document.body.classList.add('reading-focus')}
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
-            <p>{t("UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025 and became an executive in January 2026, helping plan and run the association's events. The one I care about most was a donation the association made to a museum campaign.")}</p>
+            <p>{t("UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025 and became an executive in January 2026, helping plan and run the association's events. What I care about most from that time is a donation the association made to a museum campaign.")}</p>
             <br />
             <p className="story-head">The gallery at risk</p>
-            <p>{t("The Royal Ontario Museum holds Canada's only permanent Gallery of Korea, and it was at risk. Without a dedicated curator, the gallery faced the possibility of closure or being folded into a broader East Asian gallery, which would blur the specific history it exists to tell. The Korea Root Initiative started a campaign to fund a permanent curator, and UTKESA chose to stand behind it.")}</p>
+            <p>{t("The Royal Ontario Museum has Canada's only permanent Gallery of Korea. Without a dedicated curator it could have closed or been folded into a broader East Asian gallery, and the specific history it is there to tell would have blurred into that. The Korea Root Initiative started a campaign to fund a permanent curator, and UTKESA decided to support it.")}</p>
             <br />
-            <p>{t("The timing was deliberate. The association made its donation around Samil-jeol, the March 1st holiday that commemorates the 1919 Korean independence movement. For a group of Korean students studying abroad, donating around that day was our way of marking it. The funds had been raised across the year by the executive team, and the contribution went to the Korea Root Initiative in support of the curator campaign for the Gallery of Korea.")}</p>
+            <p>{t("We made the donation around Samil-jeol, the March 1st holiday that commemorates the 1919 Korean independence movement, on purpose. For Korean students studying abroad it was our way of marking the day. The money had been raised over the year by the executive team.")}</p>
             <br />
             <p className="story-head">The event</p>
-            <p>{t("The Korea Root Initiative later hosted a gathering where community leaders, organizations, and student groups came together for the cause, and that is where the contribution was handed over in person and recognized. UTKESA attended to show its support, with our 43rd president Jihan Kang and 44th president Leo Choung representing the association. As part of the event team, I helped with the work behind it. The photos below are from that day, at the fundraiser and at the gallery itself.")}</p>
+            <p>{t("The Korea Root Initiative later held a fundraiser where community leaders, organizations, and student groups gathered for the cause, and the contribution was handed over there in person. Our 43rd president Jihan Kang and 44th president Leo Choung represented UTKESA. I helped with the work behind our part of it as a member of the event team. The photos below are from that day, at the fundraiser and at the gallery itself.")}</p>
             <br />
             <FigureCarousel slides={slides} label={t('The Korea Root Initiative event and the Gallery of Korea')} />
             <p className="story-head">The certificate</p>
-            <p>{t("The Korea Root Initiative recognized the contribution with a certificate: CAD $400 from the Korean Engineering Students' Association at the University of Toronto, toward establishing a permanent curator for the Gallery of Korea at the ROM. It is a small amount against what a curator costs, but it is real and on the record, and it went to a specific gallery.")}</p>
+            <p>{t("The Korea Root Initiative recognized the contribution with a certificate: CAD $400 from the Korean Engineering Students' Association at the University of Toronto, toward a permanent curator for the Gallery of Korea at the ROM. It is a small amount next to what a curator costs, but it is on the record and it went to one specific gallery.")}</p>
             <br />
             <figure className="story-figure">
               <img
@@ -112,10 +112,10 @@ export function Utkesa() {
                 height={1600}
                 loading="lazy"
               />
-              <figcaption>{t("The certificate of contribution — CAD $400, dated May 10, 2026.")}</figcaption>
+              <figcaption>{t("The certificate: CAD $400, dated May 10, 2026.")}</figcaption>
             </figure>
             <p className="story-head">What I took from it</p>
-            <p>{t("Most of what a student association does is logistics: rooms, sign-ups, schedules. This was the part that reminded me why the logistics are worth doing. A club lets a group put a bit of money and effort toward something it decides matters, and for us that was the Gallery of Korea. The money came from events the executive team ran all year, which is a large part of why the logistics matter to me.")}</p>
+            <p>{t("Most of what a student association does is logistics: rooms, sign-ups, schedules. A club also lets a group put a bit of money and effort toward something it decides matters, and for us that was the Gallery of Korea. That money came from the events the executive team ran all year, which is reason enough for the logistics.")}</p>
             <br />
             <div className="end-mark" aria-hidden="true" />
           </div>

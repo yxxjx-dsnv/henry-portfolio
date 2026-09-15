@@ -255,7 +255,7 @@ export function AsrsRobotInspector() {
           )}
         </div>
       )}
-      <figcaption>{t("The machine itself, on a turntable — the Blender model, built to the company's robot description and photographs: the plate with its slot cross, the blue hub and its cam links, the mecanum rollers, the pinned scissor. Run the deck and the tabs yourself, and X-ray the shell to see the drivetrain.")}</figcaption>
+      <figcaption>{t("The Blender model on a turntable, built to the company's robot description and photographs: the plate with its slot cross, the blue hub and its cam links, the mecanum rollers, the pinned scissor. Run the deck and the tabs, and X-ray the shell to see the drivetrain.")}</figcaption>
     </figure>
   );
 }

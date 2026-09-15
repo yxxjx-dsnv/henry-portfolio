@@ -27,7 +27,7 @@ export const projects: Project[] = [
     stack: ['AI', 'Automation', 'Shopify'],
     slug: 'mono',
     detail: [
-      'The startup I am building: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront on its own. The vision, the Profit Score, and the research behind it live on its own page.',
+      'My startup, on hold for now: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront automatically. The vision, the Profit Score, and the research behind it live on its own page.',
     ],
   },
   {
@@ -54,7 +54,7 @@ export const projects: Project[] = [
     stack: ['Experiment', 'Python', 'Data Analysis'],
     slug: 'pendulum',
     detail: [
-      'A handmade pendulum measured against theory across four experiments — angle, damping, length, and Q-factor — with Python curve-fitting and full uncertainty propagation. The report, graphs, code, and rig live on its own page.',
+      'A handmade pendulum measured against theory in four experiments (angle, damping, length, and Q-factor), with Python curve fitting and full uncertainty propagation. The report, graphs, code, and rig live on its own page.',
     ],
   },
   {

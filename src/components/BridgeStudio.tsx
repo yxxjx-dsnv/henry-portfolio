@@ -395,7 +395,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
 
   const hudLine = (h: Hud) =>
     h.stage === 'broke'
-      ? t('267 N on the span — the splice lets go · failure load 133 N')
+      ? t('267 N on the span · the splice lets go · failure load 133 N')
       : h.stage === 'pass2'
         ? tx('pass 2 · two cars, 267 N · {n} N on the span', { n: h.n })
         : h.stage === 'held'
@@ -434,7 +434,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
             <span className="model-status" role="status" aria-live="polite">
               {status === 'loading' && t('loading the model…')}
               {status === 'error' &&
-                tx("3D isn't available here — {link} instead.", {
+                tx("3D isn't available here, so {link} instead.", {
                   link: (
                     <a href={GLB} download>
                       {t('download the model')}
@@ -503,8 +503,8 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
       )}
       <figcaption>
         {testday
-          ? t("Test day, replayed from the photos: load case 1 goes in stages — one car across and back, then two together. Ours carried the single car; with two cars on the span, 267 N, the lead car reached the top-flange splice at 1,016 mm and it let go: the near web's glued splice parts cleanly, the far web tears, the cars drop onto their tethers. Failure load 133 N, the pass before.")
-          : t('The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet; X-ray shows the diaphragms and the splice patches — none on the top sheet.')}
+          ? t("Test day, replayed from the photos. Load case 1 goes in stages: one car across and back, then two together. Ours carried the single car. With two cars on the span, 267 N, the lead car reached the top-flange splice at 1,016 mm and it let go: the near web's glued splice parts cleanly, the far web tears, the cars drop onto their tethers. Failure load 133 N, the pass before.")
+          : t('The box girder from the engineering assembly, every piece coloured as cut. Slide it flat and it lands back on the one sheet. X-ray shows the diaphragms and the splice patches, none of them on the top sheet.')}
       </figcaption>
     </figure>
   );

@@ -25,35 +25,35 @@ type Stage = {
 const STAGES: Stage[] = [
   {
     name: 'Park',
-    note: 'Between orders the machine runs flat — deck down, tabs in, low enough to pass under stored bins. Here it heads for its next pick.',
+    note: 'Between orders the machine runs flat: deck down, tabs in, low enough to pass under stored bins. Here it heads for its next pick.',
     slide: 0,
     grip: 0,
     lift: 0,
   },
   {
     name: 'Drive',
-    note: 'It travels the guide lines: down one lane, a 90° corner, into the next — without ever turning. The mecanum rollers, set at 45°, let the same four wheels drive any direction, so watch the near pair counter-rotate on the first leg.',
+    note: 'It follows the guide lines: down one lane, a 90° corner, into the next, without ever turning. The mecanum rollers, set at 45°, let the same four wheels drive in any direction; watch the near pair counter-rotate on the first leg.',
     slide: 1,
     grip: 0,
     lift: 0,
   },
   {
     name: 'Spread',
-    note: 'Stopped on the tile centre, the blue hub turns and its slots run all four tabs outward past the bin\u2019s footprint — one motor, one motion.',
+    note: 'Stopped on the tile centre, the blue hub turns and its slots run all four tabs outward past the bin\u2019s footprint. One motor moves all four.',
     slide: 1,
     grip: 1,
     lift: 0,
   },
   {
     name: 'Lift',
-    note: 'The scissor extends. The deck meets the bin\u2019s underside and takes it clear off its cradle — up to 30 kg on an 8 kg machine.',
+    note: 'The scissor extends. The deck meets the bin\u2019s underside and lifts it clear of its cradle: up to 30 kg on an 8 kg machine.',
     slide: 1,
     grip: 1,
     lift: 1,
   },
   {
     name: 'Lock',
-    note: 'The hub turns back until the tabs meet the bin\u2019s sides and clamp it to the deck. It is now held, not just carried.',
+    note: 'The hub turns back until the tabs meet the bin\u2019s sides and clamp it to the deck.',
     slide: 1,
     grip: CLAMP,
     lift: 1,
@@ -430,7 +430,7 @@ export function AsrsRobotViewer() {
           )}
         </div>
       )}
-      <figcaption>{t("The full handling cycle. The robot is the Blender model, built to the company's robot description and photographs; the cradle and floor around it are generated geometry. Drive in along the lanes, spread, lift, clamp, carry the bin high to the next cradle and set it down — then back for it. Step through it or let it run; X-ray strips the shell off.")}</figcaption>
+      <figcaption>{t("The full handling cycle. The robot is the Blender model, built to the company's robot description and photographs; the cradle and floor around it are generated geometry. Drive in along the lanes, spread, lift, clamp, carry the bin high to the next cradle and set it down, then back for it. Step through it or let it run; X-ray strips the shell off.")}</figcaption>
     </figure>
   );
 }
