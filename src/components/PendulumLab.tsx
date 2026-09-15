@@ -1,106 +1,157 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Object3D } from 'three';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { BufferAttribute, Object3D, Points } from 'three';
+import { FPS, REPORT, type Point, type Run, type Track } from './pendulumPhysics';
 import {
-  REPORT,
-  calibrate,
-  runAngle,
-  runDecay,
-  runLength,
-  runQ,
-  simulate,
-  type Point,
-  type Run,
-} from './pendulumPhysics';
+  EXPERIMENTS,
+  completeExperiment,
+  experiment,
+  fitOf,
+  measure,
+  reportLine,
+  runOf,
+  type ExpId,
+  type Trial,
+} from './pendulumExperiments';
 
 const MEDIA = '/media/pendulum';
 const GLB = `${MEDIA}/pendulum.glb`;
 const BOB_R = 0.021;
+const SWING_Z = 0.004; // the swing plane sits 4 mm in front of the protractor (glTF +Z)
+const MAX = 200 * FPS + 2; // the longest trial's frames
+const ROWS = 8; // the table rows that fit beside the video
 
-// The pendulum lab: the rig from the photos, swinging to the report's own damped
-// model, and the four experiments re-run on it with the measured points laid over.
-// Same lazy-import/cleanup pattern as the other viewers; `?3d` activates at once.
+// The pendulum lab: the rig from the photos, swinging to the report's damped model, inside a
+// window laid out like the Tracker session that read the real video — the red marks on the
+// bob, the x(t) and y(t) plots and the frame table fill at 30 fps as it moves — and the four
+// experiments run on it one release at a time, each trial measured off those frames.
 
-type Exp = 'angle' | 'decay' | 'length' | 'q';
-const EXPS: Array<{ id: Exp; name: string; x: string; y: string }> = [
-  { id: 'angle', name: 'Period vs angle', x: 'Release angle (rad)', y: 'Period (s)' },
-  { id: 'decay', name: 'Amplitude vs time', x: 'Time (s)', y: 'Amplitude (rad)' },
-  { id: 'length', name: 'Period vs length', x: 'Length (m)', y: 'Period (s)' },
-  { id: 'q', name: 'Q vs length', x: 'Length (m)', y: 'Q-factor' },
-];
-const DATA: Record<Exp, string> = {
-  angle: 'period-vs-angle.txt',
-  decay: 'amplitude-decay.txt',
-  length: 'period-vs-length.txt',
-  q: 'q-factor-vs-length.txt',
-};
+type Live = { run: Run; trial: Trial; exp: ExpId; idx: number }; // idx −1: a manual release
 
-/** The report's data files: whitespace columns x y dx dy, comments and headers skipped. */
-async function loadData(file: string): Promise<Point[]> {
-  const text = await fetch(`${MEDIA}/data/${file}`).then((r) => r.text()).catch(() => ''); // no data (tests, offline): the twin still runs
-  const out: Point[] = [];
-  for (const line of text.split('\n')) {
-    const t = line.trim().split(/\s+/).map(Number);
-    if (t.length >= 2 && Number.isFinite(t[0]) && Number.isFinite(t[1]))
-      out.push({ x: t[0], y: t[1], dy: Number.isFinite(t[3]) ? t[3] : undefined });
-  }
-  return out;
-}
-
-/** Positive peaks of the tracked decay, so the measured envelope reads like the twin's. */
-function envelopeOf(track: Point[]): Point[] {
-  const out: Point[] = [];
-  for (let i = 1; i < track.length - 1; i++) {
-    const y = track[i].y;
-    if (y > 0 && y >= track[i - 1].y && y > track[i + 1].y) out.push(track[i]);
-  }
-  return out;
-}
+const fmtX = (v: number) => (Math.abs(v) < 0.1 ? v.toExponential(3).replace('e', 'E') : v.toFixed(3));
 
 export function PendulumLab() {
   const [active, setActive] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
   );
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [exp, setExp] = useState<Exp>('angle');
-  const [angle, setAngle] = useState(0.52); // the release shown in 3D
+  const [exp, setExp] = useState<ExpId>('angle');
+  const [angle, setAngle] = useState(0.52);
   const [length, setLength] = useState(REPORT.L);
   const [speed, setSpeed] = useState(1);
-  const [hud, setHud] = useState('');
-  const [measured, setMeasured] = useState<Partial<Record<Exp, Point[]>>>({});
+  const [paused, setPaused] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [trialIdx, setTrialIdx] = useState(-1);
+  const [points, setPoints] = useState<Record<ExpId, Point[]>>({ angle: [], decay: [], length: [], q: [] });
+  const [measured, setMeasured] = useState<Partial<Record<ExpId, Point[]>>>({});
+  const [frame, setFrame] = useState({ t: 0, x: 0, y: -REPORT.L, n: 0 });
+  const [rows, setRows] = useState<string[][]>([]);
   const mountRef = useRef<HTMLDivElement>(null);
-  const runRef = useRef<{ run: Run; T: number } | null>(null);
-  const clockRef = useRef({ t: 0, speed: 1 });
+  const plotX = useRef<HTMLCanvasElement>(null);
+  const plotY = useRef<HTMLCanvasElement>(null);
+  const liveRef = useRef<Live | null>(null);
+  const clockRef = useRef({ t: 0, speed: 1, paused: false });
+  const bufRef = useRef<Track>({ t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 });
+  const trailRef = useRef<{ points: Points; attr: BufferAttribute } | null>(null);
+  const doneRef = useRef<() => void>(() => {});
 
-  // the four experiments, run once on the twin
-  const results = useMemo(
-    () => ({ angle: runAngle(), decay: runDecay(), length: runLength(), q: runQ() }),
-    [],
+  const def = experiment(exp);
+
+  const start = useCallback((trial: Trial, id: ExpId, idx: number) => {
+    liveRef.current = { run: runOf(trial), trial, exp: id, idx };
+    clockRef.current.t = 0;
+    bufRef.current.n = 0;
+    trailRef.current?.points.geometry.setDrawRange(0, 0);
+  }, []);
+
+  // the manual release the window shows when no experiment is running
+  const manualTrial = useCallback(
+    (id: ExpId): Trial => {
+      const L = id === 'length' || id === 'q' ? length : REPORT.L;
+      const th = id === 'angle' ? angle : REPORT.theta0;
+      return { L, theta0: th, seconds: id === 'decay' || id === 'q' ? 200 : 8, label: 'a release' };
+    },
+    [angle, length],
   );
 
   useEffect(() => {
     let dead = false;
-    loadData(DATA[exp]).then((pts) => {
-      if (!dead) setMeasured((m) => ({ ...m, [exp]: exp === 'decay' ? envelopeOf(pts) : pts }));
-    });
+    fetch(`${MEDIA}/data/${def.data}`)
+      .then((r) => r.text())
+      .catch(() => '') // no data (tests, offline): the twin still runs
+      .then((text) => {
+        if (dead) return;
+        const pts: Point[] = [];
+        for (const line of text.split('\n')) {
+          const t = line.trim().split(/\s+/).map(Number);
+          if (t.length >= 2 && Number.isFinite(t[0]) && Number.isFinite(t[1]))
+            pts.push({ x: t[0], y: t[1], dy: Number.isFinite(t[3]) ? t[3] : undefined });
+        }
+        setMeasured((m) => ({ ...m, [exp]: exp === 'decay' ? envelopeOf(pts) : pts }));
+      });
     return () => {
       dead = true;
     };
-  }, [exp]);
+  }, [exp, def.data]);
 
-  // what the 3D pendulum plays: the chosen release at the chosen length, restarted on change
+  // a change of experiment, angle or length (while idle) shows that release
   useEffect(() => {
-    const L = exp === 'angle' || exp === 'decay' ? REPORT.L : length;
-    const c = exp === 'angle' || exp === 'decay' ? { T0: REPORT.T0, tau: REPORT.tau } : calibrate(L);
-    const th = exp === 'angle' ? angle : REPORT.theta0;
-    const long = exp === 'decay' || exp === 'q';
-    const run = long ? results.decay.run : simulate(c.T0, c.tau, th, 8, 1 / 300);
-    runRef.current = { run: exp === 'q' ? simulate(c.T0, c.tau, th, 200, 1 / 200) : run, T: c.T0 };
-    clockRef.current.t = 0;
-    setSpeed(long ? 16 : 1);
-  }, [exp, angle, length, results]);
+    if (running) return;
+    start(manualTrial(exp), exp, -1);
+  }, [exp, manualTrial, running, start]);
+  useEffect(() => {
+    setSpeed(def.speed);
+    setPaused(false);
+  }, [def.speed]);
   useEffect(() => {
     clockRef.current.speed = speed;
-  }, [speed]);
+    clockRef.current.paused = paused;
+  }, [speed, paused]);
+
+  const runExperiment = () => {
+    setPoints((p) => ({ ...p, [exp]: [] }));
+    setRunning(true);
+    setTrialIdx(0);
+    setPaused(false);
+    start(def.trials[0], exp, 0);
+  };
+  const finishNow = () => {
+    const live = liveRef.current;
+    if (!live || live.idx < 0) return;
+    const done = completeExperiment(exp, live.idx, points[exp]);
+    setPoints((p) => ({ ...p, [exp]: done }));
+    setRunning(false);
+    setTrialIdx(-1);
+    start(def.trials[def.trials.length - 1], exp, -1);
+  };
+  const reset = () => {
+    setPoints((p) => ({ ...p, [exp]: [] }));
+    setRunning(false);
+    setTrialIdx(-1);
+    start(manualTrial(exp), exp, -1);
+  };
+  // a trial's time is up: measure it off the frames, then the next one — or loop a manual release
+  doneRef.current = () => {
+    const live = liveRef.current;
+    if (!live) return;
+    if (live.idx < 0) {
+      clockRef.current.t = 0;
+      bufRef.current.n = 0;
+      trailRef.current?.points.geometry.setDrawRange(0, 0);
+      return;
+    }
+    const buf = bufRef.current;
+    const pts = measure(live.exp, live.trial, { t: buf.t, x: buf.x, y: buf.y, n: buf.n });
+    setPoints((p) => ({ ...p, [live.exp]: [...p[live.exp], ...pts] }));
+    const trials = experiment(live.exp).trials;
+    if (live.idx + 1 < trials.length) {
+      setTrialIdx(live.idx + 1);
+      start(trials[live.idx + 1], live.exp, live.idx + 1);
+    } else {
+      setRunning(false);
+      setTrialIdx(-1);
+      start(live.trial, live.exp, -1);
+    }
+  };
 
   useEffect(() => {
     if (!active) return;
@@ -125,24 +176,20 @@ export function PendulumLab() {
         const mount = mountRef.current;
         if (!mount || disposed) return;
 
-        const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
-        const setBg = () => {
-          scene.background = new THREE.Color(dark() ? 0x141518 : 0xd6d9dd);
-        };
-        setBg();
+        scene.background = new THREE.Color(0xd8d6d2);
         const camera = new THREE.PerspectiveCamera(
-          38,
-          (mount.clientWidth || 560) / (mount.clientHeight || 420),
+          36,
+          (mount.clientWidth || 560) / (mount.clientHeight || 400),
           0.01,
           20,
         );
-        camera.position.set(0.28, -0.05, 0.62);
+        camera.position.set(0.05, -0.08, 0.78);
 
         const webgl = new THREE.WebGLRenderer({ antialias: true });
         renderer = webgl;
         webgl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        webgl.setSize(mount.clientWidth || 560, mount.clientHeight || 420);
+        webgl.setSize(mount.clientWidth || 560, mount.clientHeight || 400);
         webgl.shadowMap.enabled = true;
         webgl.toneMapping = THREE.ACESFilmicToneMapping;
         mount.appendChild(webgl.domElement);
@@ -169,17 +216,14 @@ export function PendulumLab() {
           ro.observe(mount);
           cleanupExtra.push(() => ro.disconnect());
         }
-        const mo = new MutationObserver(setBg);
-        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-        cleanupExtra.push(() => mo.disconnect());
 
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 0.6));
-        const key = new THREE.DirectionalLight(0xffffff, 1.8);
-        key.position.set(0.6, 1.2, 1.0);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8078, 0.7));
+        const key = new THREE.DirectionalLight(0xfff4e6, 1.6);
+        key.position.set(0.5, 1.0, 1.2);
         key.castShadow = true;
         key.shadow.mapSize.set(1024, 1024);
-        key.shadow.camera.left = key.shadow.camera.bottom = -0.6;
-        key.shadow.camera.right = key.shadow.camera.top = 0.6;
+        key.shadow.camera.left = key.shadow.camera.bottom = -0.7;
+        key.shadow.camera.right = key.shadow.camera.top = 0.7;
         scene.add(key);
 
         const draco = new DRACOLoader();
@@ -208,34 +252,97 @@ export function PendulumLab() {
         const bob = model.getObjectByName('Bob');
         if (!arm || !thread || !bob) throw new Error('pendulum.glb rig nodes missing');
 
+        // Tracker's overlay: the coordinate axes through the pivot and the red step marks on the bob
+        const axes = new THREE.LineSegments(
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-0.35, 0, SWING_Z + 0.03),
+            new THREE.Vector3(0.35, 0, SWING_Z + 0.03),
+            new THREE.Vector3(0, 0.05, SWING_Z + 0.03),
+            new THREE.Vector3(0, -0.42, SWING_Z + 0.03),
+          ]),
+          new THREE.LineBasicMaterial({ color: 0x7a5cff, depthTest: false, transparent: true, opacity: 0.8 }),
+        );
+        axes.renderOrder = 2;
+        scene.add(axes);
+        const trailGeo = new THREE.BufferGeometry();
+        const trailAttr = new THREE.BufferAttribute(new Float32Array(MAX * 3), 3);
+        trailAttr.setUsage(THREE.DynamicDrawUsage);
+        trailGeo.setAttribute('position', trailAttr);
+        trailGeo.setDrawRange(0, 0);
+        const trail = new THREE.Points(
+          trailGeo,
+          new THREE.PointsMaterial({ color: 0xe0202a, size: 0.0075, depthTest: false, transparent: true, opacity: 0.9 }),
+        );
+        trail.renderOrder = 3;
+        scene.add(trail);
+        trailRef.current = { points: trail, attr: trailAttr };
+        cleanupExtra.push(() => {
+          trailRef.current = null;
+          trailGeo.dispose();
+          axes.geometry.dispose();
+        });
+
         const orbit = new OrbitControls(camera, webgl.domElement);
         controls = orbit;
         orbit.enableDamping = true;
-        orbit.target.set(0, -0.11, 0);
+        orbit.target.set(0, -0.14, 0);
         orbit.minDistance = 0.2;
         orbit.maxDistance = 2.5;
 
         let last = 0;
-        let shown = '';
+        let lastUi = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;
-          const cur = runRef.current;
-          if (cur) {
+          const live = liveRef.current;
+          if (live) {
             const clock = clockRef.current;
-            clock.t += dt * clock.speed;
-            const n = cur.run.theta.length;
-            const i = Math.min(n - 1, Math.floor(clock.t / cur.run.dt));
-            if (i >= n - 1) clock.t = 0; // loop the run
-            const th = cur.run.theta[i];
-            arm.rotation.z = th;
-            const L = exp === 'angle' || exp === 'decay' ? REPORT.L : length;
-            thread.scale.y = L - BOB_R;
-            bob.position.y = -L;
-            const text = `t = ${clock.t.toFixed(1)} s · θ = ${th.toFixed(2)} rad · T₀ = ${cur.T.toFixed(3)} s`;
-            if (text !== shown) setHud((shown = text));
+            if (!clock.paused) clock.t += dt * clock.speed;
+            if (clock.t >= live.trial.seconds) {
+              doneRef.current();
+            } else {
+              const { run, trial } = live;
+              const L = trial.L;
+              const th = run.theta[Math.min(run.theta.length - 1, Math.floor(clock.t / run.dt))];
+              arm.rotation.z = th;
+              thread.scale.y = L - BOB_R;
+              bob.position.y = -L;
+              // the frames Tracker would have stepped through since the last draw
+              const buf = bufRef.current;
+              const pos = trailAttr.array as Float32Array;
+              let added = false;
+              while (buf.n < MAX && buf.n / FPS <= clock.t) {
+                const ts = buf.n / FPS;
+                const ths = run.theta[Math.min(run.theta.length - 1, Math.round(ts / run.dt))];
+                const x = L * Math.sin(ths);
+                const y = -L * Math.cos(ths);
+                buf.t[buf.n] = ts;
+                buf.x[buf.n] = x;
+                buf.y[buf.n] = y;
+                pos[buf.n * 3] = x;
+                pos[buf.n * 3 + 1] = y;
+                pos[buf.n * 3 + 2] = SWING_Z + 0.03;
+                buf.n++;
+                added = true;
+              }
+              if (added) {
+                trailAttr.needsUpdate = true;
+                trailGeo.setDrawRange(0, buf.n);
+                drawPlot(plotX.current, buf, 'x', trial.seconds);
+                drawPlot(plotY.current, buf, 'y', trial.seconds);
+              }
+              if (now - lastUi > 100 && buf.n > 0) {
+                lastUi = now;
+                const i = buf.n - 1;
+                setFrame({ t: buf.t[i], x: buf.x[i], y: buf.y[i], n: i });
+                const out: string[][] = [];
+                for (let k = Math.max(0, buf.n - ROWS); k < buf.n; k++)
+                  out.push([buf.t[k].toFixed(3), fmtX(buf.x[k]), buf.y[k].toFixed(3)]);
+                setRows(out);
+              }
+            }
           }
           orbit.update();
           webgl.render(scene, camera);
@@ -259,13 +366,17 @@ export function PendulumLab() {
         renderer.dispose();
       }
     };
-    // the loop reads exp/length live through refs and closures set above; a change
-    // of experiment restarts the run, not the renderer
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
-  const meta = EXPS.find((e) => e.id === exp)!;
-  const chart = chartFor(exp, results, measured[exp]);
+  const pts = points[exp];
+  const fit = useMemo(() => fitOf(exp, pts), [exp, pts]);
+  const A0 = exp === 'decay' ? (measured.decay?.[0]?.y ?? pts[0]?.y ?? REPORT.theta0) : REPORT.theta0;
+  const progress = running
+    ? `trial ${trialIdx + 1} of ${def.trials.length} · ${def.trials[trialIdx]?.label ?? ''}`
+    : pts.length
+      ? `${def.trials.length} trials done`
+      : 'a single release — press Run for the experiment';
+  const chartNote = fit?.note ?? (pts.length ? `${pts.length} of ${def.trials.length} trials measured — the fit needs a few more` : `Run ${def.lab.toLowerCase()} on the twin: ${def.trials.length === 1 ? 'one release, ' : `${def.trials.length} releases, `}each measured off its tracked frames.`);
 
   return (
     <figure className="story-figure model-viewer" id="pendulum-lab">
@@ -273,47 +384,121 @@ export function PendulumLab() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/fig-lab-render.jpg`}
-            alt="Rendered model of the pendulum rig: the acrylic rest and laptop on the shelf edge, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the paper backdrop."
+            alt="Rendered model of the pendulum rig: the acrylic rest and laptop on the oak shelf, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the lined-paper backdrop."
             width={1600}
             height={1000}
             loading="lazy"
           />
-          <span className="model-cta">Run the pendulum</span>
+          <span className="model-cta">Open the lab in Tracker</span>
         </button>
       ) : (
-        <div className="asrs-frame">
-          <div
-            className="model-mount asrs-mount"
-            ref={mountRef}
-            tabIndex={-1}
-            role="application"
-            aria-label="The pendulum rig in 3D, swinging to the report's damped model. Drag to orbit, scroll to zoom."
-          >
-            <span className="model-status" role="status" aria-live="polite">
-              {status === 'loading' && 'building the rig…'}
-              {status === 'error' && "3D isn't available in this browser."}
+        <div className="asrs-frame trk">
+          <div className="trk-bar">
+            <span className="trk-title">Tracker</span>
+            <span className="trk-track">◇ mass A</span>
+            <span className="trk-clock">
+              frame {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
             {status === 'ready' && (
-              <pre className="asrs-hud" aria-hidden="true">
-                {hud}
-              </pre>
+              <span className="trk-buttons">
+                <button type="button" className="asrs-btn" onClick={() => setPaused((p) => !p)} aria-label={paused ? 'Play' : 'Pause'}>
+                  {paused ? '▶' : '❚❚'}
+                </button>
+                {[1, 8, 32].map((s) => (
+                  <button key={s} type="button" className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`} onClick={() => setSpeed(s)}>
+                    {s}×
+                  </button>
+                ))}
+              </span>
             )}
+          </div>
+          <div className="trk-body">
+            <div
+              className="trk-video"
+              ref={mountRef}
+              tabIndex={-1}
+              role="application"
+              aria-label="The pendulum rig in 3D, tracked as it swings. Drag to orbit, ctrl+drag to pan, scroll to zoom."
+            >
+              <span className="model-status" role="status" aria-live="polite">
+                {status === 'loading' && 'building the rig…'}
+                {status === 'error' && "3D isn't available in this browser."}
+              </span>
+              {status === 'ready' && (
+                <span className="trk-read" aria-hidden="true">
+                  x={fmtX(frame.x)} m y={fmtX(frame.y)} m
+                </span>
+              )}
+            </div>
+            <div className="trk-side">
+              <div className="trk-plot">
+                <canvas ref={plotX} aria-label="mass A: x against t" />
+                <span className="trk-read">
+                  t={frame.t.toFixed(3)} s x={fmtX(frame.x)} m
+                </span>
+              </div>
+              <div className="trk-plot">
+                <canvas ref={plotY} aria-label="mass A: y against t" />
+                <span className="trk-read">
+                  t={frame.t.toFixed(3)} s y={fmtX(frame.y)} m
+                </span>
+              </div>
+              <div className="trk-table" aria-label="mass A frame table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>t (s)</th>
+                      <th>x (m)</th>
+                      <th>y (m)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r[0]}>
+                        <td>{r[0]}</td>
+                        <td>{r[1]}</td>
+                        <td>{r[2]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           {status === 'ready' && (
             <>
               <div className="asrs-steps" role="group" aria-label="Experiments">
-                {EXPS.map((e) => (
+                {EXPERIMENTS.map((e) => (
                   <button
                     key={e.id}
                     type="button"
                     className={`asrs-step${e.id === exp ? ' asrs-step-on' : ''}`}
-                    onClick={() => setExp(e.id)}
+                    onClick={() => {
+                      if (running) return;
+                      setExp(e.id);
+                    }}
+                    disabled={running && e.id !== exp}
                   >
-                    {e.name}
+                    {e.lab} · {e.name}
                   </button>
                 ))}
               </div>
               <div className="asrs-controls">
+                {!running ? (
+                  <button type="button" className="asrs-btn asrs-btn-on" onClick={runExperiment}>
+                    ▶ Run {def.lab.toLowerCase()}
+                  </button>
+                ) : (
+                  <button type="button" className="asrs-btn" onClick={finishNow}>
+                    ⏭ finish now
+                  </button>
+                )}
+                {pts.length > 0 && !running && (
+                  <button type="button" className="asrs-btn" onClick={reset}>
+                    ↺ clear
+                  </button>
+                )}
+                <span className="trk-progress">{progress}</span>
                 {exp === 'angle' && (
                   <label className="lab-field">
                     release {angle.toFixed(2)} rad
@@ -323,6 +508,7 @@ export function PendulumLab() {
                       max={1.4}
                       step={0.01}
                       value={angle}
+                      disabled={running}
                       aria-label="Release angle"
                       onChange={(ev) => setAngle(Number(ev.target.value))}
                     />
@@ -334,106 +520,125 @@ export function PendulumLab() {
                       key={L}
                       type="button"
                       className={`asrs-btn${L === length ? ' asrs-btn-on' : ''}`}
+                      disabled={running}
                       onClick={() => setLength(L)}
                     >
                       {L.toFixed(2)} m
                     </button>
                   ))}
-                {[1, 8, 32].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`}
-                    onClick={() => setSpeed(s)}
-                  >
-                    {s}×
-                  </button>
-                ))}
                 <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
               </div>
-              <Chart title={meta.name} xLabel={meta.x} yLabel={meta.y} {...chart} />
-              <p className="asrs-note">{chart.note}</p>
+              <Chart
+                title={def.name}
+                xLabel={def.x}
+                yLabel={def.y}
+                twin={exp === 'decay' ? pts.filter((_, i) => i % 3 === 0) : pts}
+                twinLine={fit?.line}
+                reportLine={reportLine(exp, A0)}
+                measured={exp === 'decay' ? measured.decay?.filter((_, i) => i % 2 === 0) : measured[exp]}
+                xRange={def.xRange}
+                yRange={def.yRange}
+              />
+              <p className="asrs-note">{chartNote}</p>
             </>
           )}
         </div>
       )}
       <figcaption>
         The rig, rebuilt from the photos, driven by the report's own damped-pendulum model with an
-        exact restoring force. Each experiment is re-run on it — the twin is calibrated to that
-        experiment's measured constants, then the measured points are laid over what it produces.
+        exact restoring force, inside a window laid out like the Tracker session that read the real
+        video. Each experiment runs on it release by release, every trial measured off the tracked
+        frames, then the measured points are laid over what it produced.
       </figcaption>
     </figure>
   );
 }
 
-// ── the chart: measured points, the report's fit, and the twin ─────────────
+/** Positive peaks of the tracked decay, so the measured envelope reads like the twin's. */
+function envelopeOf(track: Point[]): Point[] {
+  const out: Point[] = [];
+  for (let i = 1; i < track.length - 1; i++) {
+    const y = track[i].y;
+    if (y > 0 && y >= track[i - 1].y && y > track[i + 1].y) out.push(track[i]);
+  }
+  return out;
+}
+
+// ── the live plots, drawn the way Tracker draws them: red steps on white ────
+
+function drawPlot(canvas: HTMLCanvasElement | null, buf: Track, which: 'x' | 'y', seconds: number) {
+  if (!canvas) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = canvas.clientWidth || 300;
+  const H = canvas.clientHeight || 118;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+  }
+  const g = canvas.getContext('2d');
+  if (!g) return;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, W, H);
+  const m = { l: 46, r: 8, t: 16, b: 26 };
+  const unit = which === 'x' ? 100 : 1; // x reads in ×10⁻² m, as Tracker labelled it
+  const v = which === 'x' ? buf.x : buf.y;
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i < buf.n; i++) {
+    if (v[i] < lo) lo = v[i];
+    if (v[i] > hi) hi = v[i];
+  }
+  if (!(hi > lo)) {
+    lo = which === 'x' ? -0.05 : -0.25;
+    hi = which === 'x' ? 0.05 : -0.2;
+  }
+  const pad = (hi - lo) * 0.08 || 0.01;
+  lo -= pad;
+  hi += pad;
+  const sx = (t: number) => m.l + (t / seconds) * (W - m.l - m.r);
+  const sy = (y: number) => H - m.b - ((y - lo) / (hi - lo)) * (H - m.t - m.b);
+  g.strokeStyle = '#1c1c1c';
+  g.lineWidth = 1;
+  g.strokeRect(m.l, m.t, W - m.l - m.r, H - m.t - m.b);
+  g.fillStyle = '#1c1c1c';
+  g.font = '10px ui-monospace, Menlo, monospace';
+  g.textAlign = 'center';
+  g.fillText(`mass A (t, ${which})`, m.l + (W - m.l - m.r) / 2, 11);
+  g.fillText('t (s)', m.l + (W - m.l - m.r) / 2, H - 4);
+  for (let k = 0; k <= 2; k++) {
+    const t = (seconds * k) / 2;
+    g.fillText(String(+t.toFixed(1)), sx(t), H - m.b + 11);
+  }
+  g.textAlign = 'right';
+  for (const y of [lo + pad, (lo + hi) / 2, hi - pad]) g.fillText((y * unit).toFixed(which === 'x' ? 0 : 2), m.l - 3, sy(y) + 3);
+  if (which === 'x') {
+    g.textAlign = 'left';
+    g.fillText('×10⁻²', 2, 11);
+  }
+  g.save();
+  g.translate(10, m.t + (H - m.t - m.b) / 2);
+  g.rotate(-Math.PI / 2);
+  g.textAlign = 'center';
+  g.fillText(`${which} (m)`, 0, 0);
+  g.restore();
+  g.fillStyle = '#e0202a';
+  const step = Math.max(1, Math.ceil(buf.n / 2400));
+  for (let i = 0; i < buf.n; i += step) {
+    g.fillRect(sx(buf.t[i]) - 1, sy(v[i]) - 1, 2, 2);
+  }
+}
+
+// ── the result chart: measured points, the report's fit, and the twin ──────
 
 type Series = {
   twin: Point[];
-  twinLine: (x: number) => number;
+  twinLine?: (x: number) => number;
   reportLine: (x: number) => number;
   measured?: Point[];
-  note: string;
   xRange: [number, number];
   yRange: [number, number];
 };
-
-function chartFor(
-  exp: Exp,
-  r: ReturnType<typeof runAngle> extends infer A
-    ? { angle: A; decay: ReturnType<typeof runDecay>; length: ReturnType<typeof runLength>; q: ReturnType<typeof runQ> }
-    : never,
-  measured?: Point[],
-): Series {
-  const f3 = (v: number) => v.toFixed(3);
-  if (exp === 'angle') {
-    const [a, b, c] = r.angle.fit;
-    return {
-      twin: r.angle.points,
-      twinLine: (x) => a + b * x + c * x * x,
-      reportLine: (x) => REPORT.T0 * (1 + REPORT.B * x + REPORT.C * x * x),
-      measured,
-      xRange: [-1.5, 1.5],
-      yRange: [0.9, 1.12],
-      note: `twin fit T = T₀(1 + Bθ + Cθ²): T₀ = ${f3(a)} s, B = ${f3(b / a)}, C = ${f3(c / a)} · report: 0.936 s, −0.001, 0.080. The ideal pendulum's curvature is the textbook θ²/16 (0.0625); the real one bent a little more — the report's apparatus notes say why.`,
-    };
-  }
-  if (exp === 'decay') {
-    const env = r.decay.envelope;
-    const A0 = env[0]?.y ?? REPORT.theta0;
-    return {
-      twin: env.filter((_, i) => i % 3 === 0),
-      twinLine: (x) => A0 * Math.exp(-x / r.decay.tau),
-      reportLine: (x) => (measured?.[0]?.y ?? A0) * Math.exp(-x / REPORT.tau),
-      measured: measured?.filter((_, i) => i % 2 === 0),
-      xRange: [0, 200],
-      yRange: [0.15, 0.5],
-      note: `twin: τ = ${r.decay.tau.toFixed(0)} s, Q = πτ/T = ${r.decay.Q.toFixed(0)} · report: τ = 178 ± 1 s, Q = 597 ± 5 (hand count 592 ± 8).`,
-    };
-  }
-  if (exp === 'length') {
-    const { k, n } = r.length.fit;
-    return {
-      twin: r.length.points,
-      twinLine: (x) => k * x ** n,
-      reportLine: (x) => REPORT.k * x ** REPORT.n,
-      measured,
-      xRange: [0.03, 0.32],
-      yRange: [0.45, 1.25],
-      note: `twin fit T = kLⁿ: k = ${k.toFixed(2)}, n = ${n.toFixed(3)} · report: k = 1.94 ± 0.02, n = 0.433 ± 0.004 (theory: 2.0, 0.5). Released at 0.52 rad, like the report.`,
-    };
-  }
-  const { a, b } = r.q.fit;
-  return {
-    twin: r.q.points,
-    twinLine: (x) => a * x + b,
-    reportLine: (x) => REPORT.qa * x + REPORT.qb,
-    measured,
-    xRange: [0.03, 0.32],
-    yRange: [250, 850],
-    note: `twin fit Q = aL + b: a = ${a.toFixed(0)}, b = ${b.toFixed(0)} · report: a = 1960 ± 30, b = 202 ± 5; the report's Q at 0.221 m, 594 ± 16, is the point they all agree on.`,
-  };
-}
 
 function ticks(lo: number, hi: number, n = 5): number[] {
   const raw = (hi - lo) / n;
@@ -491,7 +696,7 @@ function Chart({
           {yLabel}
         </text>
         <path d={line(reportLine)} className="lab-report" />
-        <path d={line(twinLine)} className="lab-twin" />
+        {twinLine && <path d={line(twinLine)} className="lab-twin" />}
         {measured?.map((p, i) => (
           <g key={`m${i}`} onPointerEnter={() => setHover(p)} onPointerLeave={() => setHover(null)}>
             {p.dy ? <line x1={sx(p.x)} x2={sx(p.x)} y1={sy(p.y - p.dy)} y2={sy(p.y + p.dy)} className="lab-err" /> : null}

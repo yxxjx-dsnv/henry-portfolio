@@ -62,11 +62,14 @@ def material(name, rgb, rough, metallic=0.0, image=None, alpha=False, emission=N
     bsdf.inputs["Base Color"].default_value = (*rgb, 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metallic
+    if isinstance(alpha, float):  # a constant translucency (acrylic, tape, plastic)
+        bsdf.inputs["Alpha"].default_value = alpha
+        m.surface_render_method = "BLENDED"
     if image is not None:
         tex = nt.nodes.new("ShaderNodeTexImage")
         tex.image = image
         nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-        if alpha:
+        if alpha is True:
             nt.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
             m.surface_render_method = "BLENDED"
         if emission is not None:
@@ -149,6 +152,10 @@ class Part:
             j = (i + 1) % len(poly)
             self.bm.faces.new((vb[i], vb[j], vt[j], vt[i]))
         self._tag(mat)
+
+    def sphere(self, r, at, mat, segs=32):
+        bmesh.ops.create_uvsphere(self.bm, u_segments=segs, v_segments=segs // 2, radius=r, matrix=Matrix.Translation(Vector(at)))
+        self._tag(mat, smooth=True)
 
     def cyl(self, r, h, at, mat, axis="Z", segs=32, r2=None, smooth=True):
         rot = {"Z": Matrix.Identity(4), "X": Matrix.Rotation(math.pi / 2, 4, "Y"), "Y": Matrix.Rotation(math.pi / 2, 4, "X")}[axis]

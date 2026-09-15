@@ -19,6 +19,55 @@ export const REPORT = {
 };
 
 export type Run = { dt: number; theta: Float32Array; omega: Float32Array };
+export type Point = { x: number; y: number; dy?: number };
+
+export const FPS = 30; // the frame rate the report's decay video was tracked at
+
+/** A Tracker table: the bob at every frame, the pivot as the origin, y up (metres). */
+export type Track = { t: Float32Array; x: Float32Array; y: Float32Array; n: number };
+
+/** θ at time t, nearest step. */
+export function thetaAt(run: Run, t: number): number {
+  return run.theta[Math.max(0, Math.min(run.theta.length - 1, Math.round(t / run.dt)))];
+}
+
+/** Sample a run the way Tracker sampled the video: the bob's (x, y) at `fps`, up to `seconds`. */
+export function trackOf(run: Run, L: number, seconds: number, fps = FPS): Track {
+  const n = Math.min(Math.floor(seconds * fps) + 1, Math.floor((run.theta.length - 1) * run.dt * fps) + 1);
+  const t = new Float32Array(n);
+  const x = new Float32Array(n);
+  const y = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const th = thetaAt(run, i / fps);
+    t[i] = i / fps;
+    x[i] = L * Math.sin(th);
+    y[i] = -L * Math.cos(th);
+  }
+  return { t, x, y, n };
+}
+
+/** Mean period from the track's upward zero crossings of x, interpolated between frames —
+ *  the report read periods to the millisecond the same way, off the video. */
+export function periodFromTrack(tr: Track): number {
+  const times: number[] = [];
+  for (let i = 1; i < tr.n; i++) {
+    const a = tr.x[i - 1];
+    const b = tr.x[i];
+    if (a < 0 && b >= 0) times.push(tr.t[i - 1] + (tr.t[i] - tr.t[i - 1]) * (a / (a - b)));
+  }
+  if (times.length < 2) return NaN;
+  return (times[times.length - 1] - times[0]) / (times.length - 1);
+}
+
+/** The amplitude envelope off the track: every positive peak of x as (t, θ), θ = atan2(x, −y). */
+export function envelopeFromTrack(tr: Track): Point[] {
+  const out: Point[] = [];
+  for (let i = 1; i < tr.n - 1; i++) {
+    const v = tr.x[i];
+    if (v > 0 && v >= tr.x[i - 1] && v > tr.x[i + 1]) out.push({ x: tr.t[i], y: Math.atan2(v, -tr.y[i]) });
+  }
+  return out;
+}
 
 /** θ'' = −(2π/T0)² sin θ − (2/τ) θ' — the report's model [1] with an exact restoring force.
  *  T0 is the small-angle period the twin is calibrated to (it fixes g/L). */
@@ -77,6 +126,13 @@ export function bigAngle(theta: number): number {
   return 1 + s / 16 + (11 * s * s) / 3072 + (173 * s * s * s) / 737280;
 }
 
+/** The report's length law gives each length its calibration: T0 from k L^n (measured at
+ *  0.52 rad, so the large-angle factor is taken back out) and τ from Q(L) = qa L + qb. */
+export function calibrate(L: number): { T0: number; tau: number } {
+  const T0 = (REPORT.k * L ** REPORT.n) / bigAngle(REPORT.theta0);
+  return { T0, tau: ((REPORT.qa * L + REPORT.qb) * T0) / Math.PI };
+}
+
 // ── the fits the report ran (least squares, closed form) ────────────────────
 
 export function fitLinear(x: number[], y: number[]): { a: number; b: number } {
@@ -132,79 +188,4 @@ export function fitPower(L: number[], T: number[]): { k: number; n: number } {
 export function fitExp(t: number[], y: number[]): { A: number; tau: number } {
   const f = fitLinear(t, y.map(Math.log));
   return { A: Math.exp(f.b), tau: -1 / f.a };
-}
-
-// ── the four experiments, as the twin runs them ─────────────────────────────
-
-export type Point = { x: number; y: number; dy?: number };
-
-/** Period vs release angle at the reference length (report exp. 1). */
-export function runAngle(): { points: Point[]; fit: [number, number, number] } {
-  const points: Point[] = [];
-  for (let i = -8; i <= 8; i++) {
-    if (i === 0) continue;
-    const th = i * 0.174532925;
-    points.push({ x: th, y: periodOf(simulate(REPORT.T0, REPORT.tau, th, 5)) });
-  }
-  return {
-    points,
-    fit: fitQuadratic(
-      points.map((p) => p.x),
-      points.map((p) => p.y),
-    ),
-  };
-}
-
-/** The 200 s decay from 0.52 rad (report exp. 2); returns the envelope and its fit. */
-export function runDecay(): { run: Run; envelope: Point[]; tau: number; Q: number } {
-  const run = simulate(REPORT.T0, REPORT.tau, REPORT.theta0, 200, 1 / 300);
-  const env = peaks(run).map(([x, y]) => ({ x, y }));
-  const f = fitExp(
-    env.map((p) => p.x),
-    env.map((p) => p.y),
-  );
-  return { run, envelope: env, tau: f.tau, Q: (Math.PI * f.tau) / periodOf(run) };
-}
-
-/** The report's length law gives each length its calibration: T0 from k L^n (measured at
- *  0.52 rad, so the large-angle factor is taken back out) and τ from Q(L) = qa L + qb. */
-export function calibrate(L: number): { T0: number; tau: number } {
-  const T0 = (REPORT.k * L ** REPORT.n) / bigAngle(REPORT.theta0);
-  return { T0, tau: ((REPORT.qa * L + REPORT.qb) * T0) / Math.PI };
-}
-
-/** Period vs length at 0.52 rad (report exp. 3). */
-export function runLength(): { points: Point[]; fit: { k: number; n: number } } {
-  const points = REPORT.lengths.map((L) => {
-    const c = calibrate(L);
-    return { x: L, y: periodOf(simulate(c.T0, c.tau, REPORT.theta0, 6)) };
-  });
-  return {
-    points,
-    fit: fitPower(
-      points.map((p) => p.x),
-      points.map((p) => p.y),
-    ),
-  };
-}
-
-/** Q vs length from a 200 s decay at each length (report exp. 4). */
-export function runQ(): { points: Point[]; fit: { a: number; b: number } } {
-  const points = REPORT.lengths.map((L) => {
-    const c = calibrate(L);
-    const run = simulate(c.T0, c.tau, REPORT.theta0, 200, 1 / 200);
-    const env = peaks(run);
-    const f = fitExp(
-      env.map((p) => p[0]),
-      env.map((p) => p[1]),
-    );
-    return { x: L, y: (Math.PI * f.tau) / periodOf(run) };
-  });
-  return {
-    points,
-    fit: fitLinear(
-      points.map((p) => p.x),
-      points.map((p) => p.y),
-    ),
-  };
 }

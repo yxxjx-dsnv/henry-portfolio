@@ -2201,3 +2201,37 @@ body.dark-mode .lab-twin-dot { stroke: #161616; }
 .lab-key-measured { border-top: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .lab-key-report { border-top-style: dashed; opacity: 0.6; }
 .lab-key-twin { border-top-color: #2f7bff; }
+
+/* the pendulum lab's Tracker window: light chrome whatever the page theme, red steps on white */
+.trk { background: #ececec; color: #1c1c1c; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 11px; }
+.trk-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 5px 10px; background: linear-gradient(#ebebeb, #d8d8d8); border-bottom: 1px solid #b6b6b6; }
+.trk-title { font-weight: 700; }
+.trk-track { color: #444; }
+.trk-clock { color: #444; }
+.trk-buttons { display: flex; gap: 4px; margin-left: auto; }
+.trk-bar .asrs-btn { padding: 1px 7px; font-size: 11px; border-radius: 4px; }
+.trk-body { display: grid; grid-template-columns: 3fr 2fr; gap: 3px; background: #c4c4c4; }
+@media (max-width: 720px) { .trk-body { grid-template-columns: 1fr; } }
+.trk-video { position: relative; height: 400px; background: #d8d6d2; }
+.trk-video canvas { display: block; }
+.trk-read { position: absolute; left: 8px; bottom: 8px; padding: 1px 5px; background: #f7ef3c; color: #111; pointer-events: none; white-space: nowrap; }
+.trk-side { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.trk-plot { position: relative; background: #ffffff; }
+.trk-plot canvas { display: block; width: 100%; height: 100px; }
+.trk-plot .trk-read { position: static; display: inline-block; margin: 0 6px 4px; }
+.trk-table { flex: 1; min-height: 120px; overflow: hidden; background: #ffffff; }
+.trk-table table { width: 100%; border-collapse: collapse; }
+.trk-table th { text-align: right; font-weight: 400; color: #2a3aa8; font-size: 11px; text-decoration: underline; padding: 2px 8px; border-bottom: 1px solid #cfcfcf; }
+.trk-table td { text-align: right; padding: 0 8px; line-height: 1.35; border-bottom: 1px solid #f0f0f0; }
+.trk-table tr:last-child td { background: #d9d3ff; }
+.trk-progress { font-size: 11.5px; color: #6a6a6a; }
+.asrs-frame.trk .asrs-steps, .asrs-frame.trk .asrs-controls { background: #f6f6f6; border-color: #d6d6d6; }
+.asrs-frame.trk .asrs-step { color: #555; border-color: #cfcfcf; }
+.asrs-frame.trk .asrs-step-on { color: #1f5fd0; border-color: #2f7bff; }
+.asrs-frame.trk .asrs-btn { color: #1c1c1c; background: #ffffff; border-color: #d0d0d0; }
+.asrs-frame.trk .asrs-btn-on { color: #1f5fd0; border-color: #2f7bff; }
+.asrs-frame.trk .lab-field { color: #555; }
+.asrs-frame.trk .lab-chart { color: #1c1c1c; background: #fafafa; border-color: #e0e0e0; }
+.asrs-frame.trk .asrs-note { color: #444; background: #f6f6f6; }
+.asrs-frame.trk .lab-legend { color: #555; }
+body.dark-mode .asrs-frame.trk { border-color: #3a3a3a; }
