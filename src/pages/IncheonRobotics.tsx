@@ -9,8 +9,14 @@ import { VoicePipeline } from '../components/VoicePipeline';
 import { AsrsRobotViewer } from '../components/AsrsRobotViewer';
 import { AsrsRobotInspector } from '../components/AsrsRobotInspector';
 import { AsrsSim } from '../components/AsrsSim';
+import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 
 const MEDIA = '/media/incheon-robotics';
+
+// The 모두의 창업 application as submitted — one long page, captured from the form.
+const DOCS: ShelfDoc[] = [
+  { title: '모두의 창업 application', meta: 'as submitted · Korean · 1 long page', file: 'modu-changup-application.pdf', kind: 'pdf' },
+];
 
 // The company's own build-up of the machine, in the order it goes together,
 // merged with the CAD studies of the finished robot. One sequence, no repeats.
@@ -531,8 +537,44 @@ export function IncheonRobotics() {
             <br />
             <p>{t("What I want from this: to have shipped something a person on a warehouse floor uses without thinking about it, and to be able to point at a robot and say I know why it does that. I'll update this page as that happens, including the parts that turn out harder than they look on a diagram.")}</p>
             <br />
+            <p className="story-head">Five weeks in: an application, and a demo to go with it</p>
+            <p>{t("The company was applying to 모두의 창업, a government startup programme, and the second-round submission came to me: ten answers in Korean, a character limit on each, and a video. A colleague had drafted the boxes. I rewrote them end to end — same facts, less padding — filled each one to its limit, and submitted it on 17 September 2026.")}</p>
+            <br />
+            <p>{t("For the video the ask was a staged demo: read a script out loud while the robots run a fixed route, the way a product film does. I built it to listen for real instead. Korean speech recognition in the browser, fourteen products printed on the bins, and nothing moves until the operator confirms. It took about the same week to write, and it means the thing in the video is the thing that happened.")}</p>
+            <br />
+            <p>{tx('The screen copies our kiosk — the status bar, the product cards, the floating voice window with its Korean strings — laid over the simulation further up this page. Say {quote} and the kiosk reads the order back. Press confirm and a robot drives under bin B02, lifts it off its cradle, rides the elevator down and sets it on the picking station. Then it leaves for the next job, and a robot comes back for that bin a few seconds later, because on a real floor somebody has to take the item out first.', {
+              quote: <i>{t('"bring me the car shampoo"')}</i>,
+            })}</p>
+            <br />
+            <p>{t("What it is not: the kiosk in the product runs speech through Whisper and a language model, which handles sentences this demo cannot, and the warehouse on screen is a simulation, not the machine in Gwangju. Both are said on screen and in the video description. A demo that overstates itself inside a government application is not a demo, it is a problem.")}</p>
+            <br />
+            <p>
+              {tx('It runs in Chrome, with a microphone: {demo}. Below is the video that went in with the application, recorded on that demo.', {
+                demo: (
+                  <a href="https://incheon-asrs-voice-demo.vercel.app" target="_blank" rel="noopener noreferrer">
+                    {t("the voice demo")}
+                  </a>
+                ),
+              })}
+            </p>
+            <br />
+            <figure className="story-figure">
+              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/Z_R9Kt0soYg"
+                  title={t("Incheon ASRS voice-command prototype, the video submitted with the application")}
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                />
+              </div>
+              <figcaption>{t("The submitted video: the kiosk mock-up and the simulation, driven by voice.")}</figcaption>
+            </figure>
+            <p>{t("And the application itself, as it was submitted, in Korean.")}</p>
+            <DocShelf docs={DOCS.map((d) => ({ ...d, title: t(d.title), meta: t(d.meta) }))} base={MEDIA} />
+            <br />
             <p className="doc-note">
-              {t("Written on my own time, from the company's public materials and my own work. Nothing here is confidential: no source, no costs, no customers beyond the deployment Incheon Robotics publishes itself. Any opinions are mine.")}
+              {t("Written on my own time, from the company's public materials and my own work. The 모두의 창업 application and its video are linked as they were submitted; apart from those, nothing here is confidential: no source, no costs, no customers beyond the deployment Incheon Robotics publishes itself. Any opinions are mine.")}
             </p>
             <div className="end-mark" aria-hidden="true" />
           </div>

@@ -66,7 +66,8 @@ test('the 3D embeds stay dormant posters until asked (no WebGL in jsdom)', () =>
   expect(screen.getByRole('button', { name: /Run the simulation/ })).toBeInTheDocument();
 });
 
-test('states plainly that nothing confidential is published', () => {
+test('states plainly what is published: the application as submitted, nothing else confidential', () => {
   renderPage();
-  expect(screen.getByText(/Nothing\s+here is confidential/)).toBeInTheDocument();
+  const note = screen.getByText(/application and its video are linked as they were submitted/);
+  expect(note).toHaveTextContent(/nothing here is confidential/);
 });
