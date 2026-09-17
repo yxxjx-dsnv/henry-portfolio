@@ -548,15 +548,22 @@ export function IncheonRobotics() {
             <br />
             <p>{t("What it is not: the kiosk in the product runs speech through Whisper and a language model, which handles sentences this demo cannot, and the warehouse on screen is a simulation, not the machine in Gwangju. Both are said on screen and in the video description. A demo that overstates itself inside a government application is not a demo, it is a problem.")}</p>
             <br />
-            <p>
-              {tx('It runs in Chrome, with a microphone: {demo}. Below is the video that went in with the application, recorded on that demo.', {
-                demo: (
-                  <a href="https://incheon-asrs-voice-demo.vercel.app" target="_blank" rel="noopener noreferrer">
-                    {t("the voice demo")}
-                  </a>
-                ),
-              })}
-            </p>
+            <p>{t("It runs in Chrome, with a microphone. Open it, press the mic and ask for something on a bin.")}</p>
+            <br />
+            <figure className="story-figure model-viewer">
+              <a className="model-poster" href="https://incheon-asrs-voice-demo.vercel.app" target="_blank" rel="noopener noreferrer">
+                <img
+                  src={`${MEDIA}/voice-demo.jpg`}
+                  alt={t("The voice demo: the kiosk's status bar across the top, product cards down the right, the voice assistant window at the bottom right, and the three-robot rack with labelled bins behind them.")}
+                  width={1600}
+                  height={900}
+                  loading="lazy"
+                />
+                <span className="model-cta">Open the voice demo ↗</span>
+              </a>
+              <figcaption>{t("The voice demo, live. It opens in a new tab.")}</figcaption>
+            </figure>
+            <p>{t("Below is the video that went in with the application, recorded on that demo.")}</p>
             <br />
             <figure className="story-figure">
               <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>

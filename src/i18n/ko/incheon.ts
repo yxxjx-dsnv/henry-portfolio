@@ -161,13 +161,15 @@ const ko: Record<string, string> = {
   '"bring me the car shampoo"': '"세차 샴푸 가져와"',
   "The screen copies our kiosk — the status bar, the product cards, the floating voice window with its Korean strings — laid over the simulation further up this page. Say {quote} and the kiosk reads the order back. Press confirm and a robot drives under bin B02, lifts it off its cradle, rides the elevator down and sets it on the picking station. Then it leaves for the next job, and a robot comes back for that bin a few seconds later, because on a real floor somebody has to take the item out first.": "화면은 저희 키오스크를 그대로 본떴습니다. 상태 표시줄, 제품 카드, 한국어 문구가 들어간 떠 있는 음성 창까지 가져와 이 페이지 위쪽의 시뮬레이션 위에 얹었습니다. {quote}라고 말하면 키오스크가 주문을 되읽어 줍니다. 확인을 누르면 로봇이 B02 빈 아래로 들어가 거치대에서 들어 올리고, 엘리베이터로 내려와 피킹 스테이션에 내려놓습니다. 그리고 다음 일을 하러 떠났다가 몇 초 뒤에 로봇이 그 빈을 가지러 돌아옵니다. 실제 현장에서는 누군가 물건을 꺼내는 시간이 필요하기 때문입니다.",
   "What it is not: the kiosk in the product runs speech through Whisper and a language model, which handles sentences this demo cannot, and the warehouse on screen is a simulation, not the machine in Gwangju. Both are said on screen and in the video description. A demo that overstates itself inside a government application is not a demo, it is a problem.": "아닌 것도 분명히 해 둡니다. 제품에 들어가는 키오스크는 음성을 Whisper와 언어 모델로 처리해 이 데모가 감당하지 못하는 문장까지 알아듣고, 화면 속 창고는 광주에 있는 실제 기계가 아니라 시뮬레이션입니다. 두 가지 모두 화면과 영상 설명에 적어 두었습니다. 정부 지원서에 들어가는 시연이 스스로를 부풀리면 그건 시연이 아니라 문제입니다.",
-  "It runs in Chrome, with a microphone: {demo}. Below is the video that went in with the application, recorded on that demo.": "크롬에서 마이크를 켜면 직접 해 볼 수 있습니다: {demo}. 아래는 이 데모로 녹화해 지원서와 함께 낸 영상입니다.",
+  "It runs in Chrome, with a microphone. Open it, press the mic and ask for something on a bin.": "크롬에서 마이크를 켜면 직접 해 볼 수 있습니다. 열어서 마이크를 누르고 빈에 적힌 품목을 말해 보세요.",
+  "The voice demo: the kiosk's status bar across the top, product cards down the right, the voice assistant window at the bottom right, and the three-robot rack with labelled bins behind them.": "음성 데모 화면. 위쪽에 키오스크 상태 표시줄, 오른쪽에 제품 카드, 오른쪽 아래에 음성 어시스턴트 창이 있고, 뒤로 이름표가 붙은 빈과 로봇 세 대가 있는 랙이 보입니다.",
+  "The voice demo, live. It opens in a new tab.": "실제로 돌아가는 음성 데모입니다. 새 탭에서 열립니다.",
+  "Below is the video that went in with the application, recorded on that demo.": "아래는 이 데모로 녹화해 지원서와 함께 낸 영상입니다.",
   "Incheon ASRS voice-command prototype, the video submitted with the application": "인천 ASRS 음성 명령 프로토타입, 지원서와 함께 제출한 영상",
   "The submitted video: the kiosk mock-up and the simulation, driven by voice.": "제출한 영상. 키오스크를 본뜬 화면과 시뮬레이션을 음성으로 움직입니다.",
   "And the application itself, as it was submitted, in Korean.": "그리고 제출한 지원서 원문입니다.",
   "모두의 창업 application": "모두의 창업 지원서",
   "as submitted · Korean · 1 long page": "제출본 · 한국어 · 긴 한 페이지",
-  "the voice demo": "음성 데모",
 
 
 };
