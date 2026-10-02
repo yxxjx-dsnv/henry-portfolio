@@ -4,8 +4,8 @@ import type { BadgeState } from './badgeScene';
 import { attachCoverResistance } from './coverResistance';
 
 // The home page's cover: one full screen with the ID badge hanging over the
-// name. Scroll down and the site begins; scroll back up and the badge is still
-// swinging where you left it. The 3D loads after the page is idle, so it never
+// name. Two ways down to the site: scroll, or pull the badge down like a
+// slingshot and let go. Scroll back up and the badge is still swinging. The 3D loads after the page is idle, so it never
 // holds up the first paint; until then (or without WebGL) the cover is just type.
 export function BadgeCover() {
   const { t } = useLang();
@@ -13,6 +13,8 @@ export function BadgeCover() {
   const coverRef = useRef<HTMLElement>(null);
   const nameRef = useRef<HTMLParagraphElement>(null);
   const bandRef = useRef<ReturnType<typeof attachCoverResistance>>();
+  const sceneRef = useRef<{ demoPull(): boolean; dispose(): void }>();
+  const touchRef = useRef<HTMLSpanElement>(null);
   const [state, setState] = useState<BadgeState>('loading');
 
   useEffect(() => {
@@ -21,23 +23,21 @@ export function BadgeCover() {
     const band = attachCoverResistance(cover);
     bandRef.current = band;
 
-    // First-timers don't know the site is below. While the cover sits untouched,
-    // tug it toward the site a few times; the first scroll, touch or grab ends that.
-    let tugs = 0;
+    // First-timers don't know the badge can be pulled. If the cover sits
+    // untouched for a moment, an invisible hand tugs the badge down once and
+    // lets go; any scroll, touch, click or key before then cancels it.
+    let shown = false;
     let timer: number | undefined;
     const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const next = (ms: number) => {
-      if (calm || tugs >= 3) return;
+      if (calm || shown) return;
       timer = window.setTimeout(() => {
-        if (window.scrollY < 2 && !document.hidden) {
-          band.tease();
-          tugs++;
-        }
-        next(6500);
+        if (window.scrollY < 2 && !document.hidden && sceneRef.current?.demoPull()) shown = true;
+        else next(1000); // the 3D isn't up yet, or the tab is hidden: try again shortly
       }, ms);
     };
     const stop = () => {
-      tugs = 3;
+      shown = true;
       window.clearTimeout(timer);
     };
     const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
@@ -106,10 +106,32 @@ export function BadgeCover() {
     let scene: { dispose(): void } | undefined;
     const start = () =>
       import('./badgeScene')
-        .then(({ createBadgeScene }) => (cancelled || !canvasRef.current ? undefined : createBadgeScene(canvasRef.current, setState)))
+        .then(({ createBadgeScene }) =>
+          cancelled || !canvasRef.current
+            ? undefined
+            : createBadgeScene(
+                canvasRef.current,
+                (s) => {
+                  setState(s);
+                  // a drag on the badge (a finger, on a phone) moves the badge, not the page
+                  bandRef.current?.hold(s === 'dragging');
+                },
+                // pulled down and let go: a beat for the badge to fly up, then down we go
+                () => window.setTimeout(() => bandRef.current?.toSite(), 120),
+                // the demonstration's fingertip: follow it; its CSS animation does the
+                // landing, the press and the lift-off on the demo's own clock
+                (at) => {
+                  const touch = touchRef.current;
+                  const canvas = canvasRef.current;
+                  if (!touch || !canvas || !at) return;
+                  touch.style.transform = `translate(${canvas.offsetLeft + at.x}px, ${canvas.offsetTop + at.y}px)`;
+                  if (!touch.classList.contains('is-on')) touch.classList.add('is-on');
+                },
+              ),
+        )
         .then((s) => {
           if (cancelled) s?.dispose();
-          else scene = s;
+          else scene = sceneRef.current = s;
         })
         .catch((e) => {
           if (!cancelled) setState('error');
@@ -198,11 +220,14 @@ export function BadgeCover() {
       <p ref={nameRef} className="badge-cover-name" aria-hidden="true">
         <span>Henry</span> <span>Kim</span>
       </p>
+      <span ref={touchRef} className="badge-cover-touch" aria-hidden="true">
+        <span />
+      </span>
       <canvas
         ref={canvasRef}
         className="badge-cover-canvas"
         data-state={state}
-        aria-label={t("Henry Kim's ID badge. Drag it to swing it.")}
+        aria-label={t("Henry Kim's ID badge. Drag it to swing it; pull it down and let go to enter the site.")}
       />
     </section>
   );

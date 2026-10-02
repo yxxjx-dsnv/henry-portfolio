@@ -7,7 +7,8 @@ const ko: Record<string, string> = {
   more: '더 보기',
   'Currently studying Electrical &': '토론토 대학교에서',
   'Computer Engineering @ U of T': '전기·컴퓨터공학을 공부하고 있습니다',
-  "Henry Kim's ID badge. Drag it to swing it.": 'Henry Kim의 사원증. 끌어서 흔들어 보세요.',
+  "Henry Kim's ID badge. Drag it to swing it; pull it down and let go to enter the site.":
+    'Henry Kim의 사원증. 끌어서 흔들어 보세요. 아래로 당겼다 놓으면 사이트로 들어갑니다.',
   'Henry Kim': 'Henry Kim | 김연준',
   'South Korea': '대한민국',
   'University of Toronto': '토론토 대학교',

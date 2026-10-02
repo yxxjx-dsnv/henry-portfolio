@@ -43,7 +43,13 @@ export type Strap = {
   links: RAPIER_NS.RigidBody[];
 };
 
-export function buildLanyard(R: Rapier, p: PhysicsParams) {
+// The straps stretch like a slingshot band: each link may pull out to 1.6x its
+// length, the stretch springs are softer (gain) and pre-tensioned (preload) so
+// the badge still hangs where it always did and barely bobs at rest. Measured:
+// rest y 0.167 (was 0.147), a hard pull reaches y -1.54, a release flies to 1.87.
+export const ELASTIC = { slack: 1.6, preload: 0.963, gain: 0.5 };
+
+export function buildLanyard(R: Rapier, p: PhysicsParams, elastic = ELASTIC) {
   const world = new R.World(v(0, -p.gravity, 0));
   world.timestep = 1 / 120;
   world.numSolverIterations = 32;
@@ -100,7 +106,7 @@ export function buildLanyard(R: Rapier, p: PhysicsParams) {
       // whole strap is solid against the card, not just its beads
       collider.setShape(new R.Capsule(seg / 2, 0.11));
       segments.push({ collider, link: i - 1, strap: straps.length });
-      world.createImpulseJoint(R.JointData.rope(seg, v(), v()), links[links.length - 1] ?? fixed, body, true);
+      world.createImpulseJoint(R.JointData.rope(seg * elastic.slack, v(), v()), links[links.length - 1] ?? fixed, body, true);
       links.push(body);
     }
     world.createImpulseJoint(R.JointData.spherical(v(), hook), links[links.length - 1], yoke, true);
@@ -148,10 +154,10 @@ export function buildLanyard(R: Rapier, p: PhysicsParams) {
     straps.forEach((s, si) => {
       const chain = [anchors[si], ...s.links];
       for (const skip of [1, 2, 3]) {
-        const stiff = k * (skip === 1 ? 0.6 : skip === 2 ? 1 : 0.45);
+        const stiff = k * elastic.gain * (skip === 1 ? 0.6 : skip === 2 ? 1 : 0.45);
         const damp = 1.4 * Math.sqrt(stiff * 0.0125);
         for (let i = skip; i < chain.length; i++) {
-          springs.push(world.createImpulseJoint(R.JointData.spring(segLen[si] * skip, stiff, damp, v(), v()), chain[i - skip], chain[i], true));
+          springs.push(world.createImpulseJoint(R.JointData.spring(segLen[si] * skip * elastic.preload, stiff, damp, v(), v()), chain[i - skip], chain[i], true));
         }
       }
     });

@@ -2343,6 +2343,41 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     white-space: nowrap;
     pointer-events: none;
 }
+/* The demonstration's fingertip: a soft translucent disc that lands on the
+   card, presses, strokes down with the pull and lifts off — on badgeScene's
+   DEMO clock (press 0.35s, pull to 1.1s, let go at 1.1s) over a 1.45s run. The
+   outer span is placed by JS each frame; the inner one does the touch. */
+.badge-cover-touch {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 4;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.badge-cover-touch > span {
+    position: absolute;
+    left: -23px;
+    top: -23px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22) 70%);
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(1.5px);
+    -webkit-backdrop-filter: blur(1.5px);
+    opacity: 0;
+}
+.badge-cover-touch.is-on > span { animation: cover-touch 1.45s cubic-bezier(0.33, 1, 0.68, 1) both; }
+@keyframes cover-touch {
+    0% { opacity: 0; transform: scale(1.5); }
+    19% { opacity: 1; transform: scale(1); }
+    25% { transform: scale(0.84); }
+    76% { opacity: 1; transform: scale(0.84); }
+    100% { opacity: 0; transform: scale(1.35); }
+}
 .badge-cover-canvas {
     position: absolute;
     inset: 0;
@@ -2350,7 +2385,9 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     width: 100%;
     height: 100%;
     display: block;
-    touch-action: pan-y;
+    /* the canvas keeps every touch: a finger can grab and pull the badge, and
+       scrolling off the cover is done by the band (coverResistance), not natively */
+    touch-action: none;
     opacity: 0;
     transition: opacity 600ms ease;
 }

@@ -85,41 +85,23 @@ test('down from the badge works the same way: a nudge springs back, a push goes'
   expect(y).toBe(EDGE);
 });
 
-test('the tease tugs the cover toward the site and comes back to rest', () => {
-  start(0);
-  band.tease();
-  vi.advanceTimersByTime(380);
-  expect(y).toBeGreaterThan(40);
-  settle();
-  expect(y).toBe(0);
-});
 
-test('scrolling during a tease takes over smoothly instead of snapping', () => {
-  start(0);
-  band.tease();
-  vi.advanceTimersByTime(380);
-  const mid = y;
-  stroke(2, 1);
-  expect(Math.abs(y - mid)).toBeLessThan(15);
-});
 
-test('a scroll from elsewhere (a link, the keyboard) cancels a tease', () => {
-  start(0);
-  band.tease();
-  vi.advanceTimersByTime(200);
-  y = EDGE; // e.g. the [more] link jumping to the site
-  window.dispatchEvent(new Event('scroll'));
-  settle();
-  expect(y).toBe(EDGE);
-});
 
-test('[more] glides to the site even in the middle of a tease', () => {
+test('[more] (and a slingshot release) glide to the site', () => {
   start(0);
-  band.tease();
-  vi.advanceTimersByTime(300);
   band.toSite();
   settle();
   expect(y).toBe(EDGE);
+});
+
+test('while the badge is held, a drag on it moves the badge, not the page', () => {
+  start(0);
+  band.hold(true);
+  stroke(25, 30);
+  settle();
+  expect(y).toBe(30 * 25); // the browser scrolled; the band stayed out of it
+  band.hold(false);
 });
 
 test('scrolling back down while the cover peeks follows the hand, no dead zone', () => {

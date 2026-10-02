@@ -384,13 +384,29 @@ function makeHardware(metal: THREE.Material, strap: THREE.Material) {
 
 export type BadgeState = 'loading' | 'live' | 'dragging' | 'error';
 
-export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: BadgeState) => void) {
+// Pull the badge this far below where it hangs and let go, and it slings you
+// down to the site (a hard pull reaches about 1.7).
+const SLING = 1.0;
+// the demonstration pull: how deep, how long to pull, when to let go (s)
+// (s from the start): a fingertip lands and presses for `press`, pulls down over
+// `pull`, and lets go the moment the pull peaks (`release`), while the badge is
+// still travelling down: any hold there and the strap hauls it back first, which
+// reads as a catch before the release. The fingertip's CSS (index.css,
+// cover-touch) runs on the same clock. The pull is a force straight down (N),
+// not a point dragged to a spot, so the badge keeps swinging; 30 takes it ~0.85.
+export const DEMO = { press: 0.35, force: 30, pull: 0.75, release: 1.1 };
+
+export async function createBadgeScene(
+  canvas: HTMLCanvasElement,
+  onState: (s: BadgeState) => void,
+  onSling: () => void = () => {},
+  onHand: (at: { x: number; y: number } | null) => void = () => {}, // the demonstration's fingertip, on the canvas
+) {
   await RAPIER.init();
   let disposed = false;
   let raf = 0;
   let visible = true;
   let last = 0;
-  let acc = 0;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const scene = new THREE.Scene();
@@ -566,6 +582,10 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   let prevT = 0;
   let dragging = false;
   let pointerId: number | null = null;
+  // the "pull me" demonstration: an invisible hand drags the badge down a little
+  let demoFrom: number | null = null;
+  const handAt = V();
+  let handOn = false;
 
   const aim = (e: PointerEvent) => {
     const r = canvas.getBoundingClientRect();
@@ -579,6 +599,7 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
     aim(e);
     const h = hit();
     if (!h) return;
+    demoFrom = null; // a real hand takes over from the demonstration
     // touch only grabs on purpose; a swipe elsewhere still scrolls the page
     dragging = true;
     pointerId = e.pointerId;
@@ -596,6 +617,7 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   }
   function move(e: PointerEvent) {
     if (pointerId !== null && e.pointerId !== pointerId) return;
+    if (demoFrom !== null) return; // the demonstration's hand, not the mouse, is holding it
     aim(e);
     ray.ray.intersectPlane(dragPlane, onPlane);
     if (dragging) {
@@ -619,6 +641,8 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   }
   function up(e?: PointerEvent) {
     if (pointerId !== null && e && e.pointerId !== pointerId) return;
+    // let go with the badge pulled well down: it snaps back up, and you go down
+    if (dragging && pointerId !== null && rig.card.translation().y < CARD_REST_Y - SLING) onSling();
     dragging = false;
     if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
     pointerId = null;
@@ -671,6 +695,21 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   const pull = V();
   function physicsStep() {
     const p = PHYSICS;
+    if (demoFrom !== null) {
+      // a thumb pressing on the card pulls straight down, building over
+      // DEMO.pull s, held, then let go; nothing holds it sideways, so the swing
+      // carries on (and a demonstration never slings: that takes a real pointer)
+      const t = (performance.now() - demoFrom) / 1000;
+      if (t > DEMO.release) demoFrom = null;
+      else {
+        const down = Math.min(1, Math.max(0, (t - DEMO.press) / DEMO.pull));
+        q.copy(rig.card.rotation() as THREE.Quaternion);
+        const c = rig.card.translation();
+        handAt.copy(grabLocal).applyQuaternion(q).add(V(c.x, c.y, c.z));
+        const f = -DEMO.force * down * down * (3 - 2 * down) * rig.world.timestep;
+        rig.card.applyImpulseAtPoint({ x: 0, y: f, z: 0 }, handAt, true);
+      }
+    }
     if (dragging) {
       // a critically damped spring from the grabbed point to the cursor, solved
       // implicitly so a hard yank cannot blow the card up
@@ -728,7 +767,14 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
     raf = requestAnimationFrame(frame);
     const dt = Math.min((now - (last || now)) / 1000, 0.05);
     last = now;
-    for (acc += dt; acc >= rig.world.timestep; acc -= rig.world.timestep) physicsStep();
+    // Step exactly the time that passed, in equal slices of at most 1/120 s.
+    // (A fixed 1/120 s step against a ~120 Hz display sometimes ran zero steps
+    // in one frame and two in the next: a visible hitch in fast motion.)
+    if (dt > 0) {
+      const steps = Math.ceil(dt * 120 - 1e-3);
+      rig.world.timestep = dt / steps;
+      for (let i = 0; i < steps; i++) physicsStep();
+    }
 
     card.position.copy(rig.card.translation() as THREE.Vector3);
     card.quaternion.copy(rig.card.rotation() as THREE.Quaternion);
@@ -749,11 +795,20 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
       pts[n + 1].copy(hw.yoke.localToWorld(V(at.x, at.y, at.z)));
       straps[i].update(new THREE.CatmullRomCurve3(pts), xAxis.set(1, 0, 0).applyQuaternion(hw.yoke.quaternion), dt, pushOut);
     });
+    // the demonstration's fingertip rides the spot on the card it is holding
+    if (demoFrom !== null) {
+      const p = card.localToWorld(grabLocal.clone()).project(camera);
+      const r = canvas.getBoundingClientRect();
+      onHand({ x: ((p.x + 1) / 2) * r.width, y: ((1 - p.y) / 2) * r.height });
+      handOn = true;
+    } else if (handOn) {
+      onHand(null);
+      handOn = false;
+    }
     renderer.render(scene, camera);
   }
   function wake() {
     last = 0;
-    acc = 0;
     if (document.hidden || !visible) {
       cancelAnimationFrame(raf);
       raf = 0;
@@ -774,6 +829,14 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   onState('live');
 
   return {
+    /** Show that the badge can be pulled: a thumb presses, pulls it down, lets go. */
+    demoPull() {
+      if (dragging || reduced.matches || disposed) return false;
+      // low on the card, a little right of centre, where a thumb would go
+      grabLocal.set(0.35, -1.1, 0.05);
+      demoFrom = performance.now();
+      return true;
+    },
     dispose() {
       disposed = true;
       cancelAnimationFrame(raf);

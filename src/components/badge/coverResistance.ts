@@ -23,21 +23,14 @@ const IDLE = 90; // ms without input that counts as letting go
 // Wheel events don't line up with frames (one frame gets two, the next none),
 // so the page follows the band through a short low-pass instead of jumping to it.
 const FOLLOW = 0.06; // s
-const TEASE_P = 170; // pressure of the "there's more below" nudge (about 65 px of stretch)
-const TEASE_MS = 1400;
 
 type Edge = { offsetTop: number; offsetHeight: number };
 type Mode = 'cover' | 'site' | 'free' | 'glide';
-
-/** Two soft tugs, the second smaller, eased in and out (0..1 over the tease). */
-const tug = (t: number) => (t < 0.55 ? Math.sin((Math.PI * t) / 0.55) ** 2 : 0.45 * Math.sin((Math.PI * (t - 0.55)) / 0.45) ** 2);
 
 /** iOS's rubber band: stretch grows with pressure but flattens out toward `band`. */
 export const stretch = (p: number, band = BAND) => (1 - 1 / ((p * 0.55) / band + 1)) * band;
 /** 0→1 with no jolt at either end (zero speed and zero acceleration). */
 const smoother = (s: number) => s * s * s * (s * (6 * s - 15) + 10);
-/** The inverse: the pressure that holds a stretch of `d` px. */
-const pressureFor = (d: number) => (BAND / 0.55) * (1 / (1 - Math.min(0.99, Math.max(0, d) / BAND)) - 1);
 
 export function attachCoverResistance(cover: Edge) {
   const edge = () => cover.offsetTop + cover.offsetHeight;
@@ -54,7 +47,7 @@ export function attachCoverResistance(cover: Edge) {
   let ownY = NaN; // the last scroll position we set, to tell our scrolls from others
   let raf = 0;
   let lastT = 0;
-  let teaseFrom: number | null = null; // when the current tease began
+  let held = false; // the badge is in someone's hand: their drag is not a scroll
   // a glide: from `from` to `to` over `T` s, leaving at speed `v0` (px/s)
   const glide = { from: 0, to: 0, v0: 0, t0: 0, T: 0.7 };
   let vel = 0; // how fast the stretch is moving, so a glide can carry it on
@@ -93,13 +86,6 @@ export function attachCoverResistance(cover: Edge) {
       return;
     }
     if (mode !== 'cover' && mode !== 'site') return;
-    if (teaseFrom !== null && mode === 'cover') {
-      const k = (t - teaseFrom) / TEASE_MS;
-      if (k >= 1) teaseFrom = null;
-      put(stretch(k >= 1 ? 0 : TEASE_P * tug(k)));
-      if (teaseFrom !== null) run();
-      return;
-    }
     const letGo = !touching && t - lastInput > IDLE;
     p *= Math.exp(-dt / (letGo ? RELAX : LEAK));
     if (p < 0.5) p = 0;
@@ -144,14 +130,7 @@ export function attachCoverResistance(cover: Edge) {
 
   /** A scroll of `dy` (positive = down) from wheel or touch; true when taken over. */
   function input(dy: number, fresh: boolean) {
-    if (teaseFrom !== null) {
-      // they took over mid-tease: carry on from where the page is now
-      teaseFrom = null;
-      if (mode === 'cover') {
-        p = pressureFor(window.scrollY);
-        shown = window.scrollY;
-      }
-    }
+    if (held) return false;
     if (fresh) {
       afterGlide = false;
       weight = 1;
@@ -212,7 +191,6 @@ export function attachCoverResistance(cover: Edge) {
   function onScroll() {
     const y = window.scrollY;
     if (Math.abs(y - ownY) < 1 || mode === 'glide') return;
-    teaseFrom = null; // someone else is scrolling (a link, the keyboard): the tease yields
     const e = edge();
     // a touch fling's momentum sailing up past the top of the site: catch it in the band
     if (mode === 'site' && y < e && now() - lastInput < 1200) {
@@ -232,16 +210,13 @@ export function attachCoverResistance(cover: Edge) {
   return {
     /** Glide from wherever the page is down to the site (the [more] link). */
     toSite() {
-      teaseFrom = null;
       p = 0;
       startGlide(window.scrollY, edge(), 0);
       run();
     },
-    /** Tug the page a little toward the site and let it spring back. Only from the cover, at rest. */
-    tease() {
-      if (mode !== 'cover' || p > 0 || teaseFrom !== null) return;
-      teaseFrom = now();
-      run();
+    /** While the badge is being dragged, touches move it, not the page. */
+    hold(on: boolean) {
+      held = on;
     },
     dispose() {
     cancelAnimationFrame(raf);
