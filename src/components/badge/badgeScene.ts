@@ -38,39 +38,112 @@ function lcg(seed: number) {
   return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
 }
 
-/** Greyscale bump: woven webbing for the strap, a little tooth for metal. */
-function bumpTexture(kind: 'fabric' | 'grain') {
+/**
+ * Knitted lanyard webbing, one tile = 4 wales (columns) x 6 courses (rows) of
+ * stockinette: every stitch is a V of two leaning yarn legs, each leg a little
+ * twisted bundle of fibres. Drawn as height (the bump) and as shading (the map),
+ * so the strap reads as yarn up close and as a fine rib from across the room.
+ */
+function knitTextures() {
+  const S = 256;
+  const W = S / 4; // one wale
+  const H = S / 6; // one course
+  const height = document.createElement('canvas');
+  height.width = height.height = S;
+  const g = height.getContext('2d')!;
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, S, S);
+  const r = lcg(41);
+  const leg = (cx: number, cy: number, lean: number) => {
+    g.save();
+    g.translate(cx, cy);
+    g.rotate(lean);
+    const rx = W * 0.27;
+    const ry = H * 0.66;
+    const grad = g.createRadialGradient(0, 0, 0, 0, 0, ry);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(0.55, '#b4b4b4');
+    grad.addColorStop(1, '#000');
+    g.scale(rx / ry, 1);
+    g.fillStyle = grad;
+    g.beginPath();
+    g.arc(0, 0, ry, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+    // fibres running along the leg, so it reads as plied yarn, not a bead
+    g.save();
+    g.globalCompositeOperation = 'multiply'; // ('lighten' would drop dark strokes)
+    g.translate(cx, cy);
+    g.rotate(lean);
+    g.strokeStyle = 'rgba(110,110,110,.55)';
+    g.lineWidth = 0.8;
+    for (let k = -2; k <= 2; k++) {
+      g.beginPath();
+      g.moveTo(k * rx * 0.33, -ry * 0.75);
+      g.quadraticCurveTo(k * rx * 0.33 + rx * 0.25, 0, k * rx * 0.33, ry * 0.75);
+      g.stroke();
+    }
+    g.restore();
+  };
+  g.globalCompositeOperation = 'lighten';
+  // draw a ring of neighbours too, so the tile wraps without a seam
+  for (let row = -1; row <= 6; row++)
+    for (let col = -1; col <= 4; col++) {
+      const cx = col * W + W / 2;
+      const cy = row * H + H / 2;
+      const j = (r() - 0.5) * 1.5;
+      leg(cx - W * 0.21 + j, cy, 0.5);
+      leg(cx + W * 0.21 + j, cy, -0.5);
+    }
+  g.globalCompositeOperation = 'source-over';
+
+  // shading: the same relief, lifted so the dark yarn keeps its colour and
+  // only the valleys between stitches go darker
+  const shade = document.createElement('canvas');
+  shade.width = shade.height = S;
+  const sg = shade.getContext('2d')!;
+  const img = g.getImageData(0, 0, S, S);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 190 + (img.data[i] / 255) * 65 + (r() - 0.5) * 12;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+  }
+  sg.putImageData(img, 0, 0);
+
+  const make = (c: HTMLCanvasElement, srgb: boolean) => {
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  };
+  return { bump: make(height, false), map: make(shade, true) };
+}
+
+/** Greyscale bump: a little tooth for the metal. */
+function bumpTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
   const g = c.getContext('2d')!;
   const img = g.createImageData(256, 256);
   const r = lcg(23);
   for (let i = 0; i < 256 * 256; i++) {
-    const x = i % 256;
-    const y = (i / 256) | 0;
-    const val =
-      kind === 'fabric'
-        ? 110 + 50 * Math.sin((x * Math.PI) / 2) * Math.sin((y * Math.PI) / 2) + r() * 25
-        : 180 + r() * 50;
+    const val = 180 + r() * 50;
     img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = val;
     img.data[i * 4 + 3] = 255;
   }
   g.putImageData(img, 0, 0);
-  if (kind === 'grain') {
-    g.strokeStyle = 'rgba(80,80,80,.14)';
-    g.lineWidth = 0.4;
-    for (let i = 0; i < 45; i++) {
-      const x = r() * 256;
-      const y = r() * 256;
-      g.beginPath();
-      g.moveTo(x, y);
-      g.lineTo(x + r() * 40, y + r() * 5);
-      g.stroke();
-    }
+  g.strokeStyle = 'rgba(80,80,80,.14)';
+  g.lineWidth = 0.4;
+  for (let i = 0; i < 45; i++) {
+    const x = r() * 256;
+    const y = r() * 256;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + r() * 40, y + r() * 5);
+    g.stroke();
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  if (kind === 'fabric') t.repeat.set(4, 30);
   return t;
 }
 
@@ -160,7 +233,10 @@ function makeRibbon(material: THREE.Material, rings = 80, halfWidth = 0.085, hal
   for (let i = 0; i <= rings; i++)
     for (let j = 0; j <= RAD; j++) {
       const k = i * (RAD + 1) + j;
-      uv[k * 2] = j / RAD;
+      // u runs straight across the face (front 0..0.5, back 0.5..1), even in
+      // width, so the knit's wales stay evenly spaced right out to the edges
+      const th = (j / RAD) * Math.PI * 2;
+      uv[k * 2] = j <= RAD / 2 ? (1 - Math.cos(th)) / 4 : 0.5 + (1 + Math.cos(th)) / 4;
       uv[k * 2 + 1] = i / rings;
       // wound so the outside faces out (counter-clockwise seen from outside)
       if (i < rings && j < RAD) index.push(k, k + RAD + 1, k + 1, k + 1, k + RAD + 1, k + RAD + 2);
@@ -227,6 +303,7 @@ function makeRibbon(material: THREE.Material, rings = 80, halfWidth = 0.085, hal
 
 /** Swivel lobster clasp, the swivel eye, and the strap's sewn fold through the eye. */
 function makeHardware(metal: THREE.Material, strap: THREE.Material) {
+  // (`strap` here is the fold's own copy: its knit is tiled for a short piece)
   const clasp = new THREE.Group();
   const eye = new THREE.Group();
   const yoke = new THREE.Group();
@@ -369,8 +446,13 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   wall.receiveShadow = true;
   scene.add(wall);
 
-  const grain = bumpTexture('grain');
-  const fabric = bumpTexture('fabric');
+  const grain = bumpTexture();
+  const knit = knitTextures();
+  // tiling: ~7 wales across the face (u 0..0.5 holds 3.5 tiles of 4), and
+  // stitches about as tall as wide along a strap ~7 units long
+  for (const t of [knit.bump, knit.map]) t.repeat.set(3.5, 58);
+  const knitFold = { bump: knit.bump.clone(), map: knit.map.clone() };
+  for (const t of [knitFold.bump, knitFold.map]) t.repeat.set(3.5, 4.5);
   const wear = wearTexture();
 
   // ---- the card in its sleeve ----
@@ -449,8 +531,20 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
   put(new THREE.PlaneGeometry(2.39, 3.505), new THREE.MeshStandardMaterial({ color: '#eeeadf', roughness: 0.9 }), 0, -0.3, 0.009).rotation.y = Math.PI;
 
   const metal = new THREE.MeshStandardMaterial({ color: '#d5d9d6', metalness: 1, roughness: 0.2, bumpMap: grain, bumpScale: 1.2e-4 });
-  const webbing = new THREE.MeshStandardMaterial({ color: STRAP_COLOR, roughness: 0.9, bumpMap: fabric, bumpScale: 0.003 });
-  const hw = makeHardware(metal, webbing);
+  // polyester yarn: matte, with the soft rim glow of cloth (sheen) at grazing angles
+  const yarn = (t: typeof knit) =>
+    new THREE.MeshPhysicalMaterial({
+      color: STRAP_COLOR,
+      map: t.map,
+      roughness: 0.82,
+      bumpMap: t.bump,
+      bumpScale: 0.0022,
+      sheen: 0.7,
+      sheenRoughness: 0.5,
+      sheenColor: new THREE.Color('#9a9a9a'),
+    });
+  const webbing = yarn(knit);
+  const hw = makeHardware(metal, yarn(knitFold));
   scene.add(hw.clasp, hw.eye, hw.yoke);
 
   const rig = buildLanyard(RAPIER, PHYSICS);
@@ -697,7 +791,7 @@ export async function createBadgeScene(canvas: HTMLCanvasElement, onState: (s: B
       });
       geos.forEach((g) => g.dispose());
       mats.forEach((m) => m.dispose());
-      [art, grain, fabric, wear].forEach((t) => t.dispose());
+      [art, grain, wear, knit.bump, knit.map, knitFold.bump, knitFold.map].forEach((t) => t.dispose());
       key.shadow.dispose();
       env.dispose();
       rig.world.free();

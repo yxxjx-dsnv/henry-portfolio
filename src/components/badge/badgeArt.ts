@@ -104,7 +104,7 @@ function inkText(ctx: CanvasRenderingContext2D, text: string, x: number, y: numb
   for (let i = 0; i < a.length; i++) {
     // ink bleeds a touch past the type (threshold under 0.5) and frays where the noise says
     const v = a[i] + (coarse[i] - 0.5) * 0.42 + (fine[i] - 0.5) * 0.46;
-    const alpha = Math.min(1, Math.max(0, (v - 0.42) * 12));
+    const alpha = Math.min(1, Math.max(0, (v - 0.37) * 12));
     img.data[i * 4] = cr;
     img.data[i * 4 + 1] = cg;
     img.data[i * 4 + 2] = cb;
@@ -118,7 +118,7 @@ function chip(ctx: CanvasRenderingContext2D, label: string, x: number, y: number
   ctx.font = `400 ${size}px ${SERIF}`;
   const padX = size * 0.5;
   const w = ctx.measureText(label).width + padX * 2;
-  const h = size * 1.55;
+  const h = size * 1.65;
   ctx.fillStyle = bg;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, h / 2);
@@ -154,27 +154,29 @@ export async function drawCardArt(): Promise<HTMLCanvasElement> {
     ctx.fillRect(r() * ART_W, r() * ART_H, 1.2, 1.2);
   }
 
-  const left = 84;
-  const big = 282;
-  // the two lines overlap, the surname printed over the first name
-  inkText(ctx, CARD.first, left - 10, 350, big, INK, 7);
-  inkText(ctx, CARD.last, left - 10, 350 + big * 0.76, big, BLUE, 13);
+  // proportions measured off the reference card: the name about 83% of the
+  // card wide, lines overlapping hard, the footer sitting low near the edge
+  const left = 66;
+  const big = 262;
+  inkText(ctx, CARD.first, left - 6, 318, big, INK, 7);
+  inkText(ctx, CARD.last, left - 6, 318 + big * 0.64, big, BLUE, 13);
 
-  const small = 34;
-  let y = ART_H - 470;
+  const small = 35;
+  let y = ART_H - 420;
   ctx.fillStyle = INK;
   ctx.font = `italic 700 ${small}px ${SERIF}`;
   ctx.fillText('Currently', left, y);
-  ctx.font = `400 ${small * 0.94}px ${SERIF}`;
+  ctx.font = `400 ${small * 0.95}px ${SERIF}`;
+  y += 80;
   for (const line of CARD.currently) {
-    y += small * 1.75;
     ctx.fillText(line, left, y);
+    y += 52;
   }
-  y += small * 2.6;
+  y += 48;
   ctx.font = `italic 700 ${small}px ${SERIF}`;
   ctx.fillText('Previously', left, y);
-  y += small * 1.05;
+  y += 30;
   let x = left;
-  for (const p of CARD.previously) x += chip(ctx, p.label, x, y, small * 0.94, p.bg) + 14;
+  for (const p of CARD.previously) x += chip(ctx, p.label, x, y, small, p.bg) + 14;
   return c;
 }

@@ -166,7 +166,7 @@ export function BadgeCover() {
       };
       const stacked = getComputedStyle(lines[0]).display === 'block';
       const now = stacked ? Math.max(...lines.map((l) => width([l]))) : width(lines);
-      const target = cover.clientWidth * (stacked ? 0.88 : 1.006); // desktop: from its -1.2vw bleed to the right edge
+      const target = cover.clientWidth * (stacked ? 0.88 : 1.018); // desktop: bleeds 2.3vw off the left, ends just inside the right
       if (!now || !target) return;
       name.style.fontSize = `${(parseFloat(getComputedStyle(name).fontSize) * target) / now}px`;
     };

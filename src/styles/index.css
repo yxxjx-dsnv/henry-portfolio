@@ -2292,7 +2292,7 @@ body.dark-mode .trk-progress { color: #a8a8a8; }
    One screen tall, full width, above the sidebar layout. The name sits at the
    foot of the screen and the badge hangs in front of it. */
 .badge-cover {
-    --gutter: clamp(24px, 7vw, 140px);
+    --gutter: clamp(24px, 8vw, 160px);
     position: relative;
     width: 100%;
     height: 100vh;
@@ -2308,9 +2308,12 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     position: absolute;
     top: 100px;
     z-index: 3;
-    font-size: 16px;
-    line-height: 1.3;
-    letter-spacing: -0.02em;
+    /* Matched to the reference's 16px Kyoto by the fonts' own metrics: at 15px
+       Libre Baskerville has the same x-height (7.95 vs 8.0px), near the same
+       advance, and its baseline lands within 0.5px in a 20px line */
+    font-size: 15px;
+    line-height: 20px;
+    letter-spacing: -0.01em;
     pointer-events: none;
 }
 .badge-cover-intro { left: var(--gutter); }
@@ -2329,8 +2332,8 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
 .badge-cover-more:hover { color: inherit; }
 .badge-cover-name {
     position: absolute;
-    left: -1.2vw;
-    bottom: 2.4vw;
+    left: -2.3vw;
+    bottom: 3vw;
     margin: 0;
     /* "Henry Kim" in Libre Baskerville is ~5.41em wide: this spans the screen */
     font-size: 18.7vw;
