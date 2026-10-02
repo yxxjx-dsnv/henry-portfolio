@@ -49,9 +49,22 @@ test('a short push up from the site only stretches, then springs back', () => {
 
 test('a long push up from the site gives way and glides to the badge', () => {
   start(EDGE);
-  stroke(-25, 30);
+  stroke(-25, 60);
   settle();
   expect(y).toBe(0);
+});
+
+test('going back up takes a harder push than coming down', () => {
+  // a push that carries the badge down to the site…
+  start(0);
+  stroke(25, 30);
+  settle();
+  expect(y).toBe(EDGE);
+  // …only lets the cover peek when made back up from the site
+  vi.advanceTimersByTime(300);
+  stroke(-25, 30);
+  settle();
+  expect(y).toBe(EDGE);
 });
 
 test('a fling that just reaches the edge lands softly at the top of the site', () => {
@@ -105,6 +118,17 @@ test('[more] glides to the site even in the middle of a tease', () => {
   band.tease();
   vi.advanceTimersByTime(300);
   band.toSite();
+  settle();
+  expect(y).toBe(EDGE);
+});
+
+test('scrolling back down while the cover peeks follows the hand, no dead zone', () => {
+  start(EDGE);
+  stroke(-20, 10); // peek
+  vi.advanceTimersByTime(40);
+  const peek = y;
+  stroke(15, 3);
+  expect(y).toBeGreaterThan(peek); // already heading back down, right away
   settle();
   expect(y).toBe(EDGE);
 });

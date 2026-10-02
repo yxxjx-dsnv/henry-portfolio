@@ -121,10 +121,12 @@ export default function App() {
   // with the cover still there above it. A layout effect, so the new page is
   // never painted at the old page's scroll position (on Home that showed a
   // flash of the cover and a faded sidebar, like a reload).
-  const arrived = useRef(false);
+  // (Compared with the previous page, not a "seen one already" flag: React's
+  // dev StrictMode runs this twice on arrival.)
+  const previous = useRef<string | null>(null);
   useLayoutEffect(() => {
-    const backHome = arrived.current && location.pathname === '/';
-    arrived.current = true;
+    const backHome = location.pathname === '/' && previous.current !== null && previous.current !== '/';
+    previous.current = location.pathname;
     try {
       const top = backHome ? (document.querySelector<HTMLElement>('.badge-cover')?.offsetHeight ?? 0) : 0;
       window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });

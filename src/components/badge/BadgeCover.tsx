@@ -11,6 +11,7 @@ export function BadgeCover() {
   const { t } = useLang();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const coverRef = useRef<HTMLElement>(null);
+  const nameRef = useRef<HTMLParagraphElement>(null);
   const bandRef = useRef<ReturnType<typeof attachCoverResistance>>();
   const [state, setState] = useState<BadgeState>('loading');
 
@@ -145,6 +146,37 @@ export function BadgeCover() {
     };
   }, []);
 
+  // The big name is sized by measuring it, not by a vw guess: browsers draw the
+  // same font at different widths (Safari ran "Kim" off the screen), and the web
+  // font can arrive late. Desktop: one line spanning the screen. Phones: two
+  // stacked lines, the longer one 88% of the width.
+  useEffect(() => {
+    const cover = coverRef.current;
+    const name = nameRef.current;
+    if (!cover || !name) return;
+    const fit = () => {
+      if (typeof Range.prototype.getBoundingClientRect !== 'function') return; // jsdom
+      name.style.fontSize = '';
+      const lines = [...name.querySelectorAll('span')];
+      const width = (nodes: Element[]) => {
+        const r = document.createRange();
+        r.setStartBefore(nodes[0]);
+        r.setEndAfter(nodes[nodes.length - 1]);
+        return r.getBoundingClientRect().width;
+      };
+      const stacked = getComputedStyle(lines[0]).display === 'block';
+      const now = stacked ? Math.max(...lines.map((l) => width([l]))) : width(lines);
+      const target = cover.clientWidth * (stacked ? 0.88 : 1.006); // desktop: from its -1.2vw bleed to the right edge
+      if (!now || !target) return;
+      name.style.fontSize = `${(parseFloat(getComputedStyle(name).fontSize) * target) / now}px`;
+    };
+    fit();
+    document.fonts?.ready.then(fit);
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : undefined;
+    ro?.observe(cover);
+    return () => ro?.disconnect();
+  }, []);
+
   const toSite = () => bandRef.current?.toSite();
 
   return (
@@ -163,7 +195,7 @@ export function BadgeCover() {
         {t('Computer Engineering @ U of T')}
       </p>
       {/* decorative: the page's real heading is the "Henry Kim" just below the cover */}
-      <p className="badge-cover-name" aria-hidden="true">
+      <p ref={nameRef} className="badge-cover-name" aria-hidden="true">
         <span>Henry</span> <span>Kim</span>
       </p>
       <canvas

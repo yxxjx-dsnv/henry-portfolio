@@ -1,21 +1,28 @@
 // The cover and the site are two resting places with a rubber band between
 // them. Push past the edge (down from the badge, or up from the top of the site)
 // and the page stretches a little, harder the further it goes; ease off and it
-// springs back. Keep pushing and the band gives way: the page glides the rest of
-// the way on a spring, picking up the speed you gave it. A fling that only
+// springs back. Keep pushing and the band gives way: the page carries on at the
+// speed it was already moving, gathers pace, and eases to rest. A fling that only
 // happens to reach the edge counts for much less than a deliberate push, so a
 // quick flick back up the site lands softly at its top instead of shooting past.
 // Everything is drawn once per frame, so a trackpad's stream of tiny wheel
 // events reads as one smooth stretch. Keyboard and scrollbar are left alone.
 
 const BAND = 220; // px the stretch approaches but never reaches
-const GIVE = 380; // pressure (px of push) at which the band gives way
+const GIVE = 380; // pressure (px of push) at which the band gives way, cover -> site
+// Back up from the site takes twice the push: reading the top of the site you
+// nudge up all the time, and that should only let the cover peek, not take you there.
+// Its band is longer, so all that pushing still visibly moves the page.
+const GIVE_UP = 760;
+const BAND_UP = 340;
 const CARRY = 0.25; // weight of a push that arrived already moving (a fling)
 const LEAK = 0.9; // s: pressure bleeds away even while you push, so it takes intent
 const RELAX = 0.11; // s: how fast it springs back once you let go
 const GAP = 120; // ms between wheel events that starts a new gesture
 const IDLE = 90; // ms without input that counts as letting go
-const OMEGA = 10; // glide spring stiffness (critically damped)
+// Wheel events don't line up with frames (one frame gets two, the next none),
+// so the page follows the band through a short low-pass instead of jumping to it.
+const FOLLOW = 0.06; // s
 const TEASE_P = 170; // pressure of the "there's more below" nudge (about 65 px of stretch)
 const TEASE_MS = 1400;
 
@@ -25,8 +32,10 @@ type Mode = 'cover' | 'site' | 'free' | 'glide';
 /** Two soft tugs, the second smaller, eased in and out (0..1 over the tease). */
 const tug = (t: number) => (t < 0.55 ? Math.sin((Math.PI * t) / 0.55) ** 2 : 0.45 * Math.sin((Math.PI * (t - 0.55)) / 0.45) ** 2);
 
-/** iOS's rubber band: stretch grows with pressure but flattens out toward BAND. */
-export const stretch = (p: number) => (1 - 1 / ((p * 0.55) / BAND + 1)) * BAND;
+/** iOS's rubber band: stretch grows with pressure but flattens out toward `band`. */
+export const stretch = (p: number, band = BAND) => (1 - 1 / ((p * 0.55) / band + 1)) * band;
+/** 0→1 with no jolt at either end (zero speed and zero acceleration). */
+const smoother = (s: number) => s * s * s * (s * (6 * s - 15) + 10);
 /** The inverse: the pressure that holds a stretch of `d` px. */
 const pressureFor = (d: number) => (BAND / 0.55) * (1 / (1 - Math.min(0.99, Math.max(0, d) / BAND)) - 1);
 
@@ -46,7 +55,11 @@ export function attachCoverResistance(cover: Edge) {
   let raf = 0;
   let lastT = 0;
   let teaseFrom: number | null = null; // when the current tease began
-  const glide = { y: 0, v: 0, to: 0 };
+  // a glide: from `from` to `to` over `T` s, leaving at speed `v0` (px/s)
+  const glide = { from: 0, to: 0, v0: 0, t0: 0, T: 0.7 };
+  let vel = 0; // how fast the stretch is moving, so a glide can carry it on
+  let prevY = NaN;
+  let shown = 0; // the stretch actually on screen, trailing the band's own
 
   const put = (y: number) => {
     ownY = y;
@@ -66,16 +79,16 @@ export function attachCoverResistance(cover: Edge) {
     lastT = t;
     const e = edge();
     if (mode === 'glide') {
-      // critically damped spring toward the other resting place
-      const a = -OMEGA * OMEGA * (glide.y - glide.to) - 2 * OMEGA * glide.v;
-      glide.v += a * dt;
-      glide.y += glide.v * dt;
-      if (Math.abs(glide.y - glide.to) < 0.5 && Math.abs(glide.v) < 8) {
+      const k = (t - glide.t0) / 1000 / glide.T;
+      if (k >= 1) {
         put(glide.to);
         mode = glide.to === 0 ? 'cover' : 'site';
+        vel = 0;
         return;
       }
-      put(glide.y);
+      // the eased trip, plus the speed it left with fading out: s(1-s)^3 starts
+      // at slope 1 and ends flat, so nothing jumps at either end
+      put(glide.from + (glide.to - glide.from) * smoother(k) + glide.v0 * glide.T * k * (1 - k) ** 3);
       run();
       return;
     }
@@ -90,24 +103,43 @@ export function attachCoverResistance(cover: Edge) {
     const letGo = !touching && t - lastInput > IDLE;
     p *= Math.exp(-dt / (letGo ? RELAX : LEAK));
     if (p < 0.5) p = 0;
-    put(mode === 'cover' ? stretch(p) : e - stretch(p));
-    if (p > 0) run();
+    const target = mode === 'cover' ? stretch(p) : stretch(p, BAND_UP);
+    shown += (target - shown) * (1 - Math.exp(-dt / FOLLOW));
+    if (p === 0 && shown < 0.3) shown = 0;
+    const y = mode === 'cover' ? shown : e - shown;
+    if (dt > 0 && Number.isFinite(prevY)) vel = 0.6 * vel + 0.4 * ((y - prevY) / dt);
+    prevY = y;
+    put(y);
+    if (p > 0 || shown > 0) run();
+    else prevY = NaN;
   }
 
   /** Push of `d` px toward the other side (negative eases off). */
   function push(d: number) {
     p = Math.max(0, p + (d > 0 ? d * weight : d));
-    if (p >= GIVE) {
-      const e = edge();
-      const from = mode === 'cover' ? stretch(p) : e - stretch(p);
-      glide.to = mode === 'cover' ? e : 0;
-      glide.y = from;
-      glide.v = Math.sign(glide.to - from) * 900; // leave with the momentum of the push
+    if (p >= (mode === 'cover' ? GIVE : GIVE_UP)) {
+      // leave from where the page is on screen, at the speed it is moving
+      const from = Number.isFinite(prevY) ? prevY : window.scrollY;
+      startGlide(from, mode === 'cover' ? edge() : 0, vel);
       p = 0;
-      mode = 'glide';
       afterGlide = true;
     }
     run();
+  }
+
+  function startGlide(from: number, to: number, v: number) {
+    const dist = Math.abs(to - from);
+    glide.from = from;
+    glide.to = to;
+    glide.T = Math.min(0.85, Math.max(0.5, 0.35 + dist / 2400));
+    // keep the push's speed only if it is heading the right way, and never more
+    // than the trip can absorb without overshooting
+    glide.v0 = Math.sign(v) === Math.sign(to - from) ? Math.sign(v) * Math.min(Math.abs(v), (1.2 * dist) / glide.T) : 0;
+    glide.t0 = now();
+    mode = 'glide';
+    prevY = NaN;
+    vel = 0;
+    shown = 0;
   }
 
   /** A scroll of `dy` (positive = down) from wheel or touch; true when taken over. */
@@ -115,7 +147,10 @@ export function attachCoverResistance(cover: Edge) {
     if (teaseFrom !== null) {
       // they took over mid-tease: carry on from where the page is now
       teaseFrom = null;
-      if (mode === 'cover') p = pressureFor(window.scrollY);
+      if (mode === 'cover') {
+        p = pressureFor(window.scrollY);
+        shown = window.scrollY;
+      }
     }
     if (fresh) {
       afterGlide = false;
@@ -132,6 +167,12 @@ export function attachCoverResistance(cover: Edge) {
     if (mode === 'site') {
       if (p > 0) {
         push(-dy);
+        return true;
+      }
+      if (shown > 0 && dy > 0) {
+        // scrolling back down while the cover still peeks: close the gap 1:1
+        shown = Math.max(0, shown - dy);
+        run();
         return true;
       }
       if (dy >= 0 || y + dy >= e) return false; // ordinary scrolling inside the site
@@ -193,10 +234,7 @@ export function attachCoverResistance(cover: Edge) {
     toSite() {
       teaseFrom = null;
       p = 0;
-      glide.y = window.scrollY;
-      glide.to = edge();
-      glide.v = 900;
-      mode = 'glide';
+      startGlide(window.scrollY, edge(), 0);
       run();
     },
     /** Tug the page a little toward the site and let it spring back. Only from the cover, at rest. */
