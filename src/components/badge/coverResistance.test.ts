@@ -114,3 +114,42 @@ test('scrolling back down while the cover peeks follows the hand, no dead zone',
   settle();
   expect(y).toBe(EDGE);
 });
+
+/** A finger dragging from `from` to `to` (clientY) in 10px moves, then lifting. */
+function swipe(from: number, to: number) {
+  const touch = (type: string, clientY: number) => {
+    const e = new Event(type, { cancelable: true }) as Event & { touches: { clientY: number }[] };
+    Object.defineProperty(e, 'touches', { value: type === 'touchend' ? [] : [{ clientY }] });
+    window.dispatchEvent(e);
+    return e;
+  };
+  touch('touchstart', from);
+  const step = from < to ? 10 : -10;
+  for (let c = from + step; step > 0 ? c <= to : c >= to; c += step) {
+    const e = touch('touchmove', c);
+    if (!e.defaultPrevented) y = Math.min(Math.max(0, y - step), 5000); // the browser scrolls
+    vi.advanceTimersByTime(16);
+  }
+  touch('touchend', to);
+}
+
+test('on a phone, a decent swipe down at the top of the site goes back to the badge', () => {
+  start(EDGE);
+  swipe(200, 420); // finger moves 220px down the screen = the page asked to go up
+  settle();
+  expect(y).toBe(0);
+});
+
+test('on a phone, a short swipe at the top of the site only lets the cover peek', () => {
+  start(EDGE);
+  swipe(200, 260);
+  settle();
+  expect(y).toBe(EDGE);
+});
+
+test('on a phone, a swipe up on the badge cover goes down to the site', () => {
+  start(0);
+  swipe(500, 380);
+  settle();
+  expect(y).toBe(EDGE);
+});

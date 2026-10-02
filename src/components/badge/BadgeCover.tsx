@@ -13,14 +13,23 @@ export function BadgeCover() {
   const coverRef = useRef<HTMLElement>(null);
   const nameRef = useRef<HTMLParagraphElement>(null);
   const bandRef = useRef<ReturnType<typeof attachCoverResistance>>();
-  const sceneRef = useRef<{ demoPull(): boolean; dispose(): void }>();
+  const sceneRef = useRef<{ demoPull(): boolean; setTilt(rad: number): void; dispose(): void }>();
   const touchRef = useRef<HTMLSpanElement>(null);
   const [state, setState] = useState<BadgeState>('loading');
 
   useEffect(() => {
     const cover = coverRef.current;
     if (!cover) return;
-    const band = attachCoverResistance(cover);
+    // the cover's edge includes its tail (phones only; see .badge-cover-tail)
+    const tail = cover.nextElementSibling as HTMLElement | null;
+    const band = attachCoverResistance({
+      get offsetTop() {
+        return cover.offsetTop;
+      },
+      get offsetHeight() {
+        return cover.offsetHeight + (tail?.offsetHeight ?? 0);
+      },
+    });
     bandRef.current = band;
 
     // First-timers don't know the badge can be pulled. If the cover sits
@@ -67,7 +76,7 @@ export function BadgeCover() {
         return;
       }
       const vh = window.innerHeight;
-      const t = Math.min(1, Math.max(0, (window.scrollY - (cover.offsetHeight - vh)) / vh));
+      const t = Math.min(1, Math.max(0, (window.scrollY - (cover.offsetHeight + (tail?.offsetHeight ?? 0) - vh)) / vh));
       const eased = t * t * (3 - 2 * t); // lingers at the edge, then slides, then settles
       // offsetLeft ignores the transform, so it is always the sidebar's home
       sidebar.style.transform = eased < 1 ? `translateX(${-sidebar.offsetLeft * (1 - eased)}px)` : '';
@@ -94,7 +103,8 @@ export function BadgeCover() {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       cancelAnimationFrame(frame);
-      if (sidebar) sidebar.style.transform = sidebar.style.opacity = sidebar.style.filter = sidebar.style.transition = '';
+      if (sidebar)
+        sidebar.style.transform = sidebar.style.opacity = sidebar.style.filter = sidebar.style.transition = '';
       io?.disconnect();
       document.body.classList.remove('on-cover');
       band.dispose();
@@ -127,6 +137,19 @@ export function BadgeCover() {
                   touch.style.transform = `translate(${canvas.offsetLeft + at.x}px, ${canvas.offsetTop + at.y}px)`;
                   if (!touch.classList.contains('is-on')) touch.classList.add('is-on');
                 },
+                // phones: the badge sits between the copy and the big name
+                () => {
+                  const canvas = canvasRef.current;
+                  const edu = coverRef.current?.querySelector('.badge-cover-edu');
+                  const name = nameRef.current;
+                  if (!canvas || !edu || !name) return null;
+                  const c = canvas.getBoundingClientRect();
+                  const copy = edu.getBoundingClientRect().bottom - c.top;
+                  return {
+                    top: copy + 24,
+                    bottom: name.getBoundingClientRect().top - c.top - 10,
+                  };
+                },
               ),
         )
         .then((s) => {
@@ -141,7 +164,8 @@ export function BadgeCover() {
     const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout;
     let handle: number | undefined;
     const kick = () => (handle = idle(start, { timeout: 1500 }));
-    const ready = () => (document.readyState === 'complete' ? kick() : window.addEventListener('load', kick, { once: true }));
+    const ready = () =>
+      document.readyState === 'complete' ? kick() : window.addEventListener('load', kick, { once: true });
     // Built only once the cover is actually on screen: coming back to Home lands
     // below it, and building the scene there would just stall the page you're reading.
     const cover = coverRef.current;
@@ -165,6 +189,40 @@ export function BadgeCover() {
       window.removeEventListener('load', kick);
       if (handle !== undefined) cancelIdle(handle);
       scene?.dispose();
+    };
+  }, []);
+
+  // Phones: tilt the phone and the badge swings to the real down. iOS only lets
+  // a page read the gyroscope after a tap and the reader's yes, so the first
+  // touch on the cover asks; Android just listens. Portrait only.
+  useEffect(() => {
+    const cover = coverRef.current;
+    if (!cover || !window.matchMedia?.('(pointer: coarse)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || (screen.orientation?.angle ?? 0) !== 0) return;
+      // half the real roll: the full angle would throw the badge off the screen
+      sceneRef.current?.setTilt(((e.gamma * Math.PI) / 180) * 0.5);
+    };
+    const listen = () => window.addEventListener('deviceorientation', onTilt);
+    type Asks = { requestPermission?: () => Promise<'granted' | 'denied'> };
+    const DOE = window.DeviceOrientationEvent as unknown as Asks | undefined;
+    // the first tap (a touch ending, or the click a tap becomes) asks once
+    const onFirstTouch = () => {
+      cover.removeEventListener('touchend', onFirstTouch);
+      cover.removeEventListener('click', onFirstTouch);
+      DOE?.requestPermission?.()
+        .then((r) => r === 'granted' && listen())
+        .catch(() => {});
+    };
+    if (typeof DOE?.requestPermission === 'function') {
+      cover.addEventListener('touchend', onFirstTouch);
+      cover.addEventListener('click', onFirstTouch);
+    } else listen();
+    return () => {
+      cover.removeEventListener('touchend', onFirstTouch);
+      cover.removeEventListener('click', onFirstTouch);
+      window.removeEventListener('deviceorientation', onTilt);
     };
   }, []);
 
@@ -202,33 +260,37 @@ export function BadgeCover() {
   const toSite = () => bandRef.current?.toSite();
 
   return (
-    <section ref={coverRef} className="badge-cover" aria-label={t('Introduction')}>
-      <p className="badge-cover-intro">
-        {t('I combine technology, design,')}{' '}
-        <br />
-        {t('and systems thinking.')}{' '}
-        <button type="button" className="badge-cover-more" onClick={toSite}>
-          [{t('more')}]
-        </button>
-      </p>
-      <p className="badge-cover-edu">
-        {t('Currently studying Electrical &')}{' '}
-        <br />
-        {t('Computer Engineering @ U of T')}
-      </p>
-      {/* decorative: the page's real heading is the "Henry Kim" just below the cover */}
-      <p ref={nameRef} className="badge-cover-name" aria-hidden="true">
-        <span>Henry</span> <span>Kim</span>
-      </p>
-      <span ref={touchRef} className="badge-cover-touch" aria-hidden="true">
-        <span />
-      </span>
-      <canvas
-        ref={canvasRef}
-        className="badge-cover-canvas"
-        data-state={state}
-        aria-label={t("Henry Kim's ID badge. Drag it to swing it; pull it down and let go to enter the site.")}
-      />
-    </section>
+    <>
+      <section ref={coverRef} className="badge-cover" aria-label={t('Introduction')}>
+        <p className="badge-cover-intro">
+          {t('I combine technology, design,')} <br />
+          {t('and systems thinking.')}{' '}
+          <button type="button" className="badge-cover-more" onClick={toSite}>
+            [{t('more')}]
+          </button>
+        </p>
+        <p className="badge-cover-edu">
+          {t('Currently studying Electrical &')} <br />
+          {t('Computer Engineering @ U of T')}
+        </p>
+        {/* decorative: the page's real heading is the "Henry Kim" just below the cover */}
+        <p ref={nameRef} className="badge-cover-name" aria-hidden="true">
+          <span>Henry</span> <span>Kim</span>
+        </p>
+        <span ref={touchRef} className="badge-cover-touch" aria-hidden="true">
+          <span />
+        </span>
+        <canvas
+          ref={canvasRef}
+          className="badge-cover-canvas"
+          data-state={state}
+          aria-label={t("Henry Kim's ID badge. Drag it to swing it; pull it down and let go to enter the site.")}
+        />
+      </section>
+      {/* phones: Safari draws the page on down behind its floating toolbar, below
+        even 100lvh; this strip of cover colour fills that so the site doesn't
+        show through. It counts as part of the cover for scrolling. */}
+      <div className="badge-cover-tail" aria-hidden="true" />
+    </>
   );
 }

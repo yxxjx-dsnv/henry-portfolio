@@ -20,6 +20,10 @@ const LEAK = 0.9; // s: pressure bleeds away even while you push, so it takes in
 const RELAX = 0.11; // s: how fast it springs back once you let go
 const GAP = 120; // ms between wheel events that starts a new gesture
 const IDLE = 90; // ms without input that counts as letting go
+// A finger can't keep pushing the way a trackpad can: on touch, letting go with
+// the band stretched this far toward its give (fraction) carries on through.
+const TOUCH_COMMIT = 0.3;
+const TOUCH_GAIN = 1.5; // px of band pressure per px of finger travel
 // Wheel events don't line up with frames (one frame gets two, the next none),
 // so the page follows the band through a short low-pass instead of jumping to it.
 const FOLLOW = 0.06; // s
@@ -129,7 +133,7 @@ export function attachCoverResistance(cover: Edge) {
   }
 
   /** A scroll of `dy` (positive = down) from wheel or touch; true when taken over. */
-  function input(dy: number, fresh: boolean) {
+  function input(dy: number, fresh: boolean, finger = false) {
     if (held) return false;
     if (fresh) {
       afterGlide = false;
@@ -156,7 +160,7 @@ export function attachCoverResistance(cover: Edge) {
       }
       if (dy >= 0 || y + dy >= e) return false; // ordinary scrolling inside the site
       // reaching the edge: what's left of this scroll becomes pressure
-      if (!fresh) weight = CARRY;
+      if (!fresh && !finger) weight = CARRY; // a finger on the glass is never momentum
       push(e - (y + dy));
       return true;
     }
@@ -181,11 +185,16 @@ export function attachCoverResistance(cover: Edge) {
     const dy = touchY - y; // finger up = page down
     touchY = y;
     lastInput = now();
-    if (dy && input(dy, false)) ev.preventDefault();
+    if (dy && input(dy * TOUCH_GAIN, false, true)) ev.preventDefault();
   }
   function onTouchEnd() {
     touching = false;
     lastInput = now();
+    if ((mode === 'cover' || mode === 'site') && p >= (mode === 'cover' ? GIVE : GIVE_UP) * TOUCH_COMMIT) {
+      startGlide(Number.isFinite(prevY) ? prevY : window.scrollY, mode === 'cover' ? edge() : 0, vel);
+      p = 0;
+      afterGlide = true;
+    }
     run();
   }
   function onScroll() {

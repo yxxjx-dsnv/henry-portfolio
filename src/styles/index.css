@@ -2296,13 +2296,21 @@ body.dark-mode .trk-progress { color: #a8a8a8; }
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100svh;
+    /* the tallest the viewport gets: iPhone Safari's toolbar floats over the
+       page, and a shorter cover let the site show through underneath it */
+    height: 100lvh;
     min-height: 560px;
     overflow: hidden;
     background: var(--background-color);
     color: #111111;
 }
 body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
+.badge-cover-tail { height: 0; }
+@media (hover: none) and (pointer: coarse) {
+    /* iPhone Safari shows ~58px of page under its floating toolbar, below 100lvh */
+    .badge-cover-tail { height: 72px; background: var(--background-color); }
+    body.dark-mode .badge-cover-tail { background: #121212; }
+}
 .badge-cover-intro,
 .badge-cover-edu {
     position: absolute;
@@ -2408,7 +2416,6 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     .badge-cover-intro br,
     .badge-cover-edu br { display: none; }
     .badge-cover-name {
-        z-index: 3;
         left: 50%;
         bottom: 28px;
         transform: translateX(-50%);
@@ -2418,13 +2425,17 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
         width: max-content;
     }
     .badge-cover-name span { display: block; }
-    /* the badge gets the room between the copy and the name; the strap fades in
-       from above instead of crossing the text */
-    .badge-cover-canvas {
-        top: 118px;
-        /* a canvas won't stretch between top and bottom, so spell out its height */
-        height: calc(100% - 118px - 54vw - 40px);
-        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 70px);
-        mask-image: linear-gradient(to bottom, transparent 0, #000 70px);
+    /* the canvas is the whole cover, as on desktop, so a pulled badge can come
+       down over the name and the strap runs all the way up past the copy; the
+       badge is framed in the room between the copy and the name (badgeScene).
+       Where the strap crosses the copy, a halo of the page colour keeps the
+       letters legible on top of it. */
+    .badge-cover-intro,
+    .badge-cover-edu {
+        text-shadow: 0 0 2px var(--background-color), 0 0 4px var(--background-color), 0 0 6px var(--background-color);
+    }
+    body.dark-mode .badge-cover-intro,
+    body.dark-mode .badge-cover-edu {
+        text-shadow: 0 0 2px #121212, 0 0 4px #121212, 0 0 6px #121212;
     }
 }

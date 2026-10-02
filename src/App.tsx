@@ -128,7 +128,9 @@ export default function App() {
     const backHome = location.pathname === '/' && previous.current !== null && previous.current !== '/';
     previous.current = location.pathname;
     try {
-      const top = backHome ? (document.querySelector<HTMLElement>('.badge-cover')?.offsetHeight ?? 0) : 0;
+      const cover = document.querySelector<HTMLElement>('.badge-cover');
+      const tail = document.querySelector<HTMLElement>('.badge-cover-tail');
+      const top = backHome ? (cover?.offsetHeight ?? 0) + (tail?.offsetHeight ?? 0) : 0;
       window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
     } catch {
       /* jsdom */

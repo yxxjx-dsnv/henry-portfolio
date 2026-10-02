@@ -185,9 +185,10 @@ export function buildLanyard(R: Rapier, p: PhysicsParams, elastic = ELASTIC) {
     b.applyTorqueImpulse(v(-ax * k, -ay * k, -az * k), true);
   }
 
-  function step(params: PhysicsParams, calm: boolean) {
+  /** `tilt`: how far (rad) the phone is rolled; gravity swings round with it. */
+  function step(params: PhysicsParams, calm: boolean, tilt = 0) {
     alignSegments();
-    world.gravity = v(0, -params.gravity, 0);
+    world.gravity = v(params.gravity * Math.sin(tilt), -params.gravity * Math.cos(tilt), 0);
     card.body.setLinearDamping(params.damping + (calm ? 2 : 0));
     card.body.setAngularDamping(params.damping + 0.2 + (calm ? 2 : 0));
     stiffen(params.strapStiffness);

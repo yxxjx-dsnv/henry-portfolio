@@ -401,6 +401,7 @@ export async function createBadgeScene(
   onState: (s: BadgeState) => void,
   onSling: () => void = () => {},
   onHand: (at: { x: number; y: number } | null) => void = () => {}, // the demonstration's fingertip, on the canvas
+  room: () => { top: number; bottom: number } | null = () => null, // phones: the band of the canvas (px) the badge should fill
 ) {
   await RAPIER.init();
   let disposed = false;
@@ -414,7 +415,9 @@ export async function createBadgeScene(
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  // VSM, not PCF: iOS Safari's WebGL got PCF with a blur radius wrong and laid
+  // the whole shadow wall in shade (the cover went grey); VSM is soft and right
+  renderer.shadowMap.type = THREE.VSMShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 60);
@@ -586,6 +589,9 @@ export async function createBadgeScene(
   let demoFrom: number | null = null;
   const handAt = V();
   let handOn = false;
+  // phones: the device's roll, so the badge hangs toward the real down
+  let tilt = 0;
+  let tiltTarget = 0;
 
   const aim = (e: PointerEvent) => {
     const r = canvas.getBoundingClientRect();
@@ -671,9 +677,19 @@ export async function createBadgeScene(
     camera.aspect = width / height;
     camera.fov = 36;
     const tan = Math.tan(THREE.MathUtils.degToRad(18));
-    if (narrow()) {
-      // phones: the canvas is only the gap between copy and name, so frame the
-      // card itself (and the clasp) rather than the whole lanyard
+    const r = narrow() ? room() : null;
+    if (r && r.bottom > r.top) {
+      // phones: the canvas is the whole cover, but the badge should fill the room
+      // between the copy and the name — from the card's foot (-2.3) up to a
+      // good length of strap above the clasp (4.4) — and never be cut at the sides
+      const lo = -2.3;
+      const hi = 4.4;
+      let u = (hi - lo) / (r.bottom - r.top); // world units per pixel
+      u = Math.max(u, (2 * 1.8) / (camera.aspect * height)); // keep the card's width on screen
+      const y = (hi + lo) / 2 + ((r.top + r.bottom) / 2 - height / 2) * u;
+      camera.position.set(0, y, (height * u) / 2 / tan);
+      camera.lookAt(0, y, 0);
+    } else if (narrow()) {
       const d = Math.max(2.75 / tan, 1.75 / (tan * camera.aspect));
       camera.position.set(0, 0.45, d);
       camera.lookAt(0, 0.45, 0);
@@ -727,7 +743,7 @@ export async function createBadgeScene(
       pull.copy(target).sub(at).multiplyScalar(k).addScaledVector(vel, -c).divideScalar(denom).clampLength(0, 110 * m);
       rig.card.applyImpulseAtPoint(pull.multiplyScalar(dt), at, true);
     }
-    rig.step(p, reduced.matches);
+    rig.step(p, reduced.matches, tilt);
     // if a wild yank ever throws it off the screen, hang it back up
     const c = rig.card.translation();
     if (!Number.isFinite(c.x + c.y + c.z) || Math.abs(c.x) > 12 || c.y > 9 || c.y < -9) {
@@ -767,6 +783,8 @@ export async function createBadgeScene(
     raf = requestAnimationFrame(frame);
     const dt = Math.min((now - (last || now)) / 1000, 0.05);
     last = now;
+    // ease toward the device's tilt: sensors jitter, a hand doesn't
+    tilt += (tiltTarget - tilt) * (1 - Math.exp(-dt / 0.15));
     // Step exactly the time that passed, in equal slices of at most 1/120 s.
     // (A fixed 1/120 s step against a ~120 Hz display sometimes ran zero steps
     // in one frame and two in the next: a visible hitch in fast motion.)
@@ -830,6 +848,11 @@ export async function createBadgeScene(
 
   return {
     /** Show that the badge can be pulled: a thumb presses, pulls it down, lets go. */
+    /** Phones: the device is rolled `rad` (right side down is positive). */
+    setTilt(rad: number) {
+      // capped at 15°: the badge swings well over (~1.2) but stays on a phone screen
+      tiltTarget = Math.max(-0.26, Math.min(0.26, rad));
+    },
     demoPull() {
       if (dragging || reduced.matches || disposed) return false;
       // low on the card, a little right of centre, where a thumb would go
