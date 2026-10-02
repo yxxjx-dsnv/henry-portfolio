@@ -1,5 +1,13 @@
 // Korean for the home page — English on the left, Korean on the right.
 const ko: Record<string, string> = {
+  // the cover (components/badge/BadgeCover)
+  Introduction: '소개',
+  'I combine technology, design,': '기술과 디자인, 그리고',
+  'and systems thinking.': '시스템적 사고를 엮습니다.',
+  more: '더 보기',
+  'Currently studying Electrical &': '토론토 대학교에서',
+  'Computer Engineering @ U of T': '전기·컴퓨터공학을 공부하고 있습니다',
+  "Henry Kim's ID badge. Drag it to swing it.": 'Henry Kim의 사원증. 끌어서 흔들어 보세요.',
   'Henry Kim': 'Henry Kim | 김연준',
   'South Korea': '대한민국',
   'University of Toronto': '토론토 대학교',

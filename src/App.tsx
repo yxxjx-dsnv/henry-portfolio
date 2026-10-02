@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -7,6 +7,7 @@ import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import { ArcadeOverlay } from './components/ArcadeOverlay';
 import { profile } from './data/profile';
 import { Home } from './pages/Home';
+import { BadgeCover } from './components/badge/BadgeCover';
 import { Projects } from './pages/Projects';
 import { CampusPulse } from './pages/CampusPulse';
 import { Mono } from './pages/Mono';
@@ -115,10 +116,18 @@ export default function App() {
   }, [navigate]);
 
   // On every route change: return to the top (as the original site did) and
-  // give the tab a page-specific title.
-  useEffect(() => {
+  // give the tab a page-specific title. The badge cover greets a visitor only
+  // on arrival: coming back to Home from another page lands on the site itself,
+  // with the cover still there above it. A layout effect, so the new page is
+  // never painted at the old page's scroll position (on Home that showed a
+  // flash of the cover and a faded sidebar, like a reload).
+  const arrived = useRef(false);
+  useLayoutEffect(() => {
+    const backHome = arrived.current && location.pathname === '/';
+    arrived.current = true;
     try {
-      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      const top = backHome ? (document.querySelector<HTMLElement>('.badge-cover')?.offsetHeight ?? 0) : 0;
+      window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
     } catch {
       /* jsdom */
     }
@@ -316,6 +325,7 @@ export default function App() {
       >
         &#8250;
       </button>
+      {location.pathname === '/' && <BadgeCover />}
       <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">

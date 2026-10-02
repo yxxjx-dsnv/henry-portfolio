@@ -104,3 +104,17 @@ test('clicking the logo toggles the dark-mode body class', async () => {
   await userEvent.click(screen.getByAltText('Logo'));
   expect(document.body.classList.contains('dark-mode')).toBe(true);
 });
+
+test('the badge cover greets an arrival, but coming back Home lands on the site', () => {
+  const height = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('badge-cover') ? 900 : 0;
+  });
+  const scroll = vi.spyOn(window, 'scrollTo');
+  renderAt('/');
+  expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+  fireEvent.keyDown(document, { key: '3' }); // off to the essays…
+  fireEvent.keyDown(document, { key: '1' }); // …and back Home
+  expect(scroll).toHaveBeenLastCalledWith({ top: 900, behavior: 'instant' });
+  height.mockRestore();
+  scroll.mockRestore();
+});

@@ -962,7 +962,8 @@ html.dark-mode { color-scheme: dark; scrollbar-color: #3f3f3f #121212; }
     opacity: 1;
     transition: opacity 0.4s ease, left 0.4s ease;
 }
-#side-tab.hidden { opacity: 0; left: -40px; pointer-events: none; }
+#side-tab.hidden,
+body.on-cover #side-tab { opacity: 0; left: -40px; pointer-events: none; }
 #side-tab { display: none; }
 .close-btn { display: none; }
 
@@ -2286,3 +2287,104 @@ body.dark-mode .trk-status { color: #e6e6e6; background: rgba(16, 16, 16, 0.8); 
 body.dark-mode .trk-progress { color: #a8a8a8; }
 .trk-seg { display: inline-flex; gap: 4px; }
 
+
+/* ---- Home cover: the hanging ID badge (components/badge) ----
+   One screen tall, full width, above the sidebar layout. The name sits at the
+   foot of the screen and the badge hangs in front of it. */
+.badge-cover {
+    --gutter: clamp(24px, 7vw, 140px);
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+    background: var(--background-color);
+    color: #111111;
+}
+body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
+.badge-cover-intro,
+.badge-cover-edu {
+    position: absolute;
+    top: 100px;
+    z-index: 3;
+    font-size: 16px;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    pointer-events: none;
+}
+.badge-cover-intro { left: var(--gutter); }
+.badge-cover-edu { right: var(--gutter); text-align: right; }
+.badge-cover-more {
+    pointer-events: auto;
+    font: inherit;
+    color: #8a8a8a;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.badge-cover-more:hover { color: inherit; }
+.badge-cover-name {
+    position: absolute;
+    left: -1.2vw;
+    bottom: 2.4vw;
+    margin: 0;
+    /* "Henry Kim" in Libre Baskerville is ~5.41em wide: this spans the screen */
+    font-size: 18.7vw;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.badge-cover-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: pan-y;
+    opacity: 0;
+    transition: opacity 600ms ease;
+}
+.badge-cover-canvas[data-state='live'],
+.badge-cover-canvas[data-state='dragging'] { opacity: 1; }
+@media (max-width: 700px) {
+    /* phones: the two captions sit side by side at the top, small, like the
+       desktop's corners, and wrap on their own */
+    .badge-cover-intro,
+    .badge-cover-edu {
+        top: 36px;
+        width: calc(50% - 34px);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .badge-cover-intro { left: 24px; }
+    .badge-cover-edu { right: 24px; }
+    .badge-cover-intro br,
+    .badge-cover-edu br { display: none; }
+    .badge-cover-name {
+        z-index: 3;
+        left: 50%;
+        bottom: 28px;
+        transform: translateX(-50%);
+        font-size: 30vw;
+        line-height: 0.9;
+        white-space: normal;
+        width: max-content;
+    }
+    .badge-cover-name span { display: block; }
+    /* the badge gets the room between the copy and the name; the strap fades in
+       from above instead of crossing the text */
+    .badge-cover-canvas {
+        top: 118px;
+        /* a canvas won't stretch between top and bottom, so spell out its height */
+        height: calc(100% - 118px - 54vw - 40px);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 70px);
+        mask-image: linear-gradient(to bottom, transparent 0, #000 70px);
+    }
+}
