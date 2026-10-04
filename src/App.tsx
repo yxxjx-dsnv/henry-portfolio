@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { CursorDot } from './components/CursorDot';
 import { CommandPalette, type PaletteAction } from './components/CommandPalette';
@@ -19,6 +19,8 @@ import { IncheonRobotics } from './pages/IncheonRobotics';
 import { GreenstoneGrind } from './pages/GreenstoneGrind';
 import { Utkesa } from './pages/Utkesa';
 import { Essays } from './pages/Essays';
+import { Writing } from './pages/Writing';
+import { WayOfLife } from './pages/WayOfLife';
 import { ExtraCurricular } from './pages/ExtraCurricular';
 import { Education } from './pages/Education';
 import { NotFound } from './pages/NotFound';
@@ -29,7 +31,8 @@ import { useLang } from './i18n';
 const HASH_ROUTES: Record<string, string> = {
   '#home': '/',
   '#projects': '/projects',
-  '#essays': '/essays',
+  '#writing': '/writing',
+  '#essays': '/writing/learnings-from-past-three-years',
   '#extra-curricular': '/extra-curricular',
   '#education': '/education',
 };
@@ -44,7 +47,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/projects/gyroscope-wand': 'Gyroscope Wand — Henry Kim',
   '/projects/civ102-bridge': 'The Holy Bridge — Henry Kim',
   '/projects/pendulum': 'Simple Pendulum — Henry Kim',
-  '/essays': 'Essays — Henry Kim',
+  '/writing': 'Writing — Henry Kim',
+  '/writing/a-way-of-life': 'A way of life — Henry Kim',
+  '/writing/learnings-from-past-three-years': 'Learnings from past three years — Henry Kim',
   '/extra-curricular': 'Extra-Curricular — Henry Kim',
   '/extra-curricular/greenstone-grind': 'The Greenstone Grind — Henry Kim',
   '/extra-curricular/utkesa': 'UTKESA — Henry Kim',
@@ -53,7 +58,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 // Invisible affordance: the five nav pages answer to the keys 1–5.
-const KEY_ROUTES = ['/', '/projects', '/essays', '/extra-curricular', '/education'];
+const KEY_ROUTES = ['/', '/projects', '/writing', '/extra-curricular', '/education'];
 
 export default function App() {
   const { isDark, toggle } = useDarkMode();
@@ -236,7 +241,7 @@ export default function App() {
   const paletteActions: PaletteAction[] = [
     { label: 'Home', hint: '1', run: () => navigate('/') },
     { label: 'Projects', hint: '2', run: () => navigate('/projects') },
-    { label: 'Essays', hint: '3', run: () => navigate('/essays') },
+    { label: 'Writing', hint: '3', run: () => navigate('/writing') },
     { label: 'Extra-Curricular', hint: '4', run: () => navigate('/extra-curricular') },
     { label: 'Education', hint: '5', run: () => navigate('/education') },
     { label: 'Colophon', run: () => navigate('/colophon') },
@@ -346,7 +351,11 @@ export default function App() {
             <Route path="/projects/civ102-bridge" element={<HolyBridge />} />
             <Route path="/projects/pendulum" element={<Pendulum />} />
             <Route path="/projects/aps105-labs" element={<Aps105Labs />} />
-            <Route path="/essays" element={<Essays />} />
+            <Route path="/writing" element={<Writing />} />
+            <Route path="/writing/a-way-of-life" element={<WayOfLife />} />
+            <Route path="/writing/learnings-from-past-three-years" element={<Essays />} />
+            {/* the essay's old address */}
+            <Route path="/essays" element={<Navigate to="/writing/learnings-from-past-three-years" replace />} />
             <Route path="/extra-curricular" element={<ExtraCurricular />} />
             <Route path="/extra-curricular/greenstone-grind" element={<GreenstoneGrind />} />
             <Route path="/extra-curricular/utkesa" element={<Utkesa />} />

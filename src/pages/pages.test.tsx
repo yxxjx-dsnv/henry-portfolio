@@ -30,7 +30,11 @@ test('Home shows the name hero and the Korea trigger', () => {
 });
 
 test('Essays shows the essay hero and prompt', () => {
-  render(<Essays />);
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Essays />
+    </MemoryRouter>,
+  );
   expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
   expect(screen.getByText(/Prompt: Discuss an accomplishment/)).toBeInTheDocument();
   expect(screen.getByText(/Incheon International Airport/)).toBeInTheDocument();

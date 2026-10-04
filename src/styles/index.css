@@ -143,6 +143,19 @@ body.dark-mode .sidebar a:hover { color: #f1f1f1; }
 .essay-section .text .section-title p { margin-bottom: 15px; font-weight: bold; }
 .essay-section .text .section-body p { font-size: 15px; font-weight: 400; }
 
+/* WRITING (/writing) — a plain list: title, date, hairline. */
+.writing-list { list-style: none; max-width: 600px; padding: 20px 40px; margin: 0; }
+.writing-list li { padding: 14px 0; border-bottom: 1px solid #e3e3e3; }
+.writing-list li:first-child { padding-top: 0; }
+.writing-list a { font-size: 16px; color: inherit; text-decoration: none; transition: color var(--t); }
+.writing-list a:hover { color: #787878; }
+.writing-list p { font-size: 14px; color: #787878; margin-top: 4px; }
+body.dark-mode .writing-list li { border-color: #333333; }
+
+/* A piece set as a poem: airier lines, a pause between stanzas. */
+.essay-section .text .section-body.poem p { font-size: 16px; line-height: 1.9; margin-bottom: 1.6em; }
+.essay-section .text .section-body.poem .end-mark { margin-top: 2.4em; }
+
 /* PROJECT STORY (/projects/campus-pulse) — an essay with photographs. */
 .story-back {
     display: inline-block;

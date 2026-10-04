@@ -4,6 +4,7 @@ import home from './home';
 import data from './data';
 import education from './education';
 import essays from './essays';
+import writing from './writing';
 import colophon from './colophon';
 import incheon from './incheon';
 import holyBridge from './holy-bridge';
@@ -16,4 +17,4 @@ import mono from './mono';
 import aps105 from './aps105';
 import components from './components';
 
-export const KO: Record<string, string> = Object.assign({}, common, home, data, education, essays, colophon, incheon, holyBridge, gyroscopeWand, greenstoneGrind, utkesa, pendulum, campusPulse, mono, aps105, components);
+export const KO: Record<string, string> = Object.assign({}, common, home, data, education, essays, writing, colophon, incheon, holyBridge, gyroscopeWand, greenstoneGrind, utkesa, pendulum, campusPulse, mono, aps105, components);

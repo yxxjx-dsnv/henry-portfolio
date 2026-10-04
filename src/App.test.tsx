@@ -21,7 +21,21 @@ test('renders Projects at /projects', () => {
   expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument();
 });
 
-test('renders Essays at /essays', () => {
+test('renders the Writing list at /writing, newest first', () => {
+  renderAt('/writing');
+  expect(screen.getByRole('heading', { name: 'Writing' })).toBeInTheDocument();
+  const links = screen.getAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/writing/'));
+  expect(links.map((a) => a.textContent)).toEqual(['A way of life', 'Learnings from past three years']);
+  expect(screen.getByText('October 5, 2026')).toBeInTheDocument();
+});
+
+test('each piece opens on its own page', () => {
+  renderAt('/writing/a-way-of-life');
+  expect(screen.getByRole('heading', { name: 'A way of life' })).toBeInTheDocument();
+  expect(screen.getByText(/chase butterflies/)).toBeInTheDocument();
+});
+
+test('the old /essays address still finds the essay', () => {
   renderAt('/essays');
   expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
 });
@@ -32,8 +46,8 @@ test('renders Education at /education', () => {
 });
 
 test('route changes set a page-specific tab title', () => {
-  renderAt('/essays');
-  expect(document.title).toBe('Essays — Henry Kim');
+  renderAt('/writing');
+  expect(document.title).toBe('Writing — Henry Kim');
 });
 
 test('unknown paths render the quiet 404 page', () => {
@@ -46,7 +60,7 @@ test('unknown paths render the quiet 404 page', () => {
 test('number keys quietly navigate between pages', () => {
   renderAt('/');
   fireEvent.keyDown(document, { key: '3' });
-  expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Writing' })).toBeInTheDocument();
 });
 
 test('colophon page renders with the printer mark', () => {
@@ -60,9 +74,9 @@ test('cmd+K opens the switchboard and Enter jumps to a filtered page', async () 
   renderAt('/');
   fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
   const input = await screen.findByPlaceholderText('Type a page or action…');
-  await userEvent.type(input, 'essa');
+  await userEvent.type(input, 'writ');
   fireEvent.keyDown(input, { key: 'Enter' });
-  expect(screen.getByRole('heading', { name: 'Learnings from past three years' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Writing' })).toBeInTheDocument();
 });
 
 test('the traveling nav dot exists in the sidebar', () => {
@@ -82,7 +96,7 @@ test('404 hosts the lost dot', () => {
   expect(screen.getByText(/One dot did get lost/)).toBeInTheDocument();
 });
 
-test('in-session hash navigation redirects (#essays -> /essays) — BUG-6', () => {
+test('in-session hash navigation redirects (#essays -> the essay) — BUG-6', () => {
   renderAt('/');
   window.location.hash = '#essays';
   fireEvent(window, new Event('hashchange'));
@@ -112,7 +126,7 @@ test('the badge cover greets an arrival, but coming back Home lands on the site'
   const scroll = vi.spyOn(window, 'scrollTo');
   renderAt('/');
   expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
-  fireEvent.keyDown(document, { key: '3' }); // off to the essays…
+  fireEvent.keyDown(document, { key: '3' }); // off to Writing…
   fireEvent.keyDown(document, { key: '1' }); // …and back Home
   expect(scroll).toHaveBeenLastCalledWith({ top: 900, behavior: 'instant' });
   height.mockRestore();

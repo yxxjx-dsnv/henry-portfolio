@@ -97,8 +97,8 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/essays" className={navClass}>
-            Essays
+          <NavLink to="/writing" className={navClass}>
+            Writing
           </NavLink>
         </li>
         <li>

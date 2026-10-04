@@ -18,7 +18,7 @@ test('renders the five nav links and social links', () => {
   renderSidebar();
   expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
   expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/projects');
-  expect(screen.getByRole('link', { name: 'Essays' })).toHaveAttribute('href', '/essays');
+  expect(screen.getByRole('link', { name: 'Writing' })).toHaveAttribute('href', '/writing');
   expect(screen.getByRole('link', { name: 'Extra-Curricular' })).toHaveAttribute('href', '/extra-curricular');
   expect(screen.getByRole('link', { name: 'Education' })).toHaveAttribute('href', '/education');
   expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/yxxjx-dsnv');
