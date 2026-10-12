@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -26,6 +26,7 @@ import { Education } from './pages/Education';
 import { NotFound } from './pages/NotFound';
 import { Colophon } from './pages/Colophon';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useRouteScroll } from './hooks/useRouteScroll';
 import { useLang } from './i18n';
 
 const HASH_ROUTES: Record<string, string> = {
@@ -47,6 +48,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/projects/gyroscope-wand': 'Gyroscope Wand — Henry Kim',
   '/projects/civ102-bridge': 'The Holy Bridge — Henry Kim',
   '/projects/pendulum': 'Simple Pendulum — Henry Kim',
+  '/projects/aps105-labs': 'APS105 Coding Labs — Henry Kim',
   '/writing': 'Writing — Henry Kim',
   '/writing/a-way-of-life': 'A way of life — Henry Kim',
   '/writing/learnings-from-past-three-years': 'Learnings from past three years — Henry Kim',
@@ -120,26 +122,10 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, [navigate]);
 
-  // On every route change: return to the top (as the original site did) and
-  // give the tab a page-specific title. The badge cover greets a visitor only
-  // on arrival: coming back to Home from another page lands on the site itself,
-  // with the cover still there above it. A layout effect, so the new page is
-  // never painted at the old page's scroll position (on Home that showed a
-  // flash of the cover and a faded sidebar, like a reload).
-  // (Compared with the previous page, not a "seen one already" flag: React's
-  // dev StrictMode runs this twice on arrival.)
-  const previous = useRef<string | null>(null);
+  // Back/Forward return to where the reader was; anything else starts at the top.
+  useRouteScroll();
+  // A page-specific tab title.
   useLayoutEffect(() => {
-    const backHome = location.pathname === '/' && previous.current !== null && previous.current !== '/';
-    previous.current = location.pathname;
-    try {
-      const cover = document.querySelector<HTMLElement>('.badge-cover');
-      const tail = document.querySelector<HTMLElement>('.badge-cover-tail');
-      const top = backHome ? (cover?.offsetHeight ?? 0) + (tail?.offsetHeight ?? 0) : 0;
-      window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
-    } catch {
-      /* jsdom */
-    }
     document.title = PAGE_TITLES[location.pathname] ?? 'Not Found — Henry Kim';
   }, [location.pathname]);
 
@@ -211,6 +197,17 @@ export default function App() {
   }, [navigate]);
 
   const closeSidebar = () => setSidebarOpen(false);
+  // The phone drawer closes when a page opens, on Escape, and on a tap outside it.
+  // A tap inside it (copy the email, switch the language, the logo's dark mode)
+  // keeps it open, so the result can be seen.
+  useEffect(() => setSidebarOpen(false), [location.pathname]);
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    // (an Escape something above the drawer already used — the palette — is not for it)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !e.defaultPrevented && setSidebarOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
 
   // ⌘K switchboard
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -321,7 +318,14 @@ export default function App() {
 
 
   return (
-    <main>
+    <main
+      onClick={(e) => {
+        const t = e.target as Element;
+        // outside the drawer (the badge cover included), or one of its page links
+        // (even to the page already open)
+        if (sidebarOpen && (!t.closest('.sidebar') || t.closest('.sidebar a[href^="/"]'))) closeSidebar();
+      }}
+    >
       <CursorDot />
       <ArcadeOverlay />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} actions={paletteActions} />
@@ -330,12 +334,14 @@ export default function App() {
         id="side-tab"
         aria-label="Open navigation"
         className={sidebarOpen ? 'hidden' : ''}
+        aria-expanded={sidebarOpen}
+        aria-controls="site-nav"
         onClick={() => setSidebarOpen(true)}
       >
         &#8250;
       </button>
       {location.pathname === '/' && <BadgeCover />}
-      <div className="main-container" onClick={() => sidebarOpen && closeSidebar()}>
+      <div className="main-container">
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">
           <div className="route-fade" key={location.pathname}>

@@ -13,9 +13,9 @@ import { useLang } from '../i18n';
 function EduEntry({ entry }: { entry: EducationEntry }) {
   const { t } = useLang();
   const hasDetail = !!entry.lead || !!entry.detail?.length || !!entry.projects;
-  const { rowProps, detailId, pinned } = useDisclosureRow(hasDetail);
+  const { rowProps, detailId, pinned, shut } = useDisclosureRow(hasDetail);
   return (
-    <div className={`edu-entry${hasDetail ? ' edu-has-detail' : ''}${pinned ? ' is-open' : ''}`} {...rowProps}>
+    <div className={`edu-entry${hasDetail ? ' edu-has-detail' : ''}${pinned ? ' is-open' : ''}${shut ? ' is-shut' : ''}`} {...rowProps}>
       <div className="edu-entry-head">
         <p>{entry.program}</p>
         <span className="edu-term">{entry.date}</span>

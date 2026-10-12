@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { act } from 'react';
+import { MemoryRouter, useNavigate, type NavigateFunction } from 'react-router-dom';
 import App from './App';
 
 function renderAt(path: string) {
@@ -131,4 +132,61 @@ test('the badge cover greets an arrival, but coming back Home lands on the site'
   expect(scroll).toHaveBeenLastCalledWith({ top: 900, behavior: 'instant' });
   height.mockRestore();
   scroll.mockRestore();
+});
+
+test('Back returns to where the reader was; a new page starts at the top', () => {
+  let y = 0;
+  const scrollY = vi.spyOn(window, 'scrollY', 'get').mockImplementation(() => y);
+  const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(((o: ScrollToOptions) => {
+    y = o.top ?? y;
+  }) as typeof window.scrollTo);
+  let nav!: NavigateFunction;
+  function Grab() {
+    nav = useNavigate();
+    return null;
+  }
+  sessionStorage.clear();
+  render(
+    <MemoryRouter
+      initialEntries={[{ pathname: '/projects', key: 'start' }]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+      <Grab />
+    </MemoryRouter>,
+  );
+  // read down the Projects page…
+  y = 1630;
+  fireEvent.scroll(window);
+  // …open another page: it starts at the top
+  act(() => nav('/education'));
+  expect(y).toBe(0);
+  y = 400;
+  fireEvent.scroll(window);
+  // Back: Projects where it was left; Forward: Education where it was left
+  act(() => nav(-1));
+  expect(y).toBe(1630);
+  act(() => nav(1));
+  expect(y).toBe(400);
+  scrollY.mockRestore();
+  scrollTo.mockRestore();
+});
+
+test('the phone drawer stays open for taps inside it, and closes outside, on Escape, and on a page link', async () => {
+  const { container } = renderAt('/projects');
+  const drawer = container.querySelector('.sidebar')!;
+  const open = () => fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+  open();
+  expect(drawer).toHaveClass('open');
+  fireEvent.click(screen.getByRole('button', { name: 'Toggle dark mode' })); // inside: stays open
+  expect(drawer).toHaveClass('open');
+  fireEvent.click(container.querySelector('.content-wrapper')!); // outside
+  expect(drawer).not.toHaveClass('open');
+  open();
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(drawer).not.toHaveClass('open');
+  open();
+  await userEvent.click(screen.getByRole('link', { name: 'Writing' }));
+  expect(drawer).not.toHaveClass('open');
+  expect(screen.getByRole('heading', { name: 'Writing' })).toBeInTheDocument();
 });

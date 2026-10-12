@@ -37,6 +37,26 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
     };
   }, [location.pathname]);
 
+  // Phone drawer: while closed it is only moved off-screen, so it is made inert
+  // (out of the Tab order and the screen reader) until it opens, and opening it
+  // puts the keyboard on its close button.
+  const sideRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const nav = sideRef.current;
+    const phone = window.matchMedia?.('(max-width: 768px)');
+    if (!nav || !phone) return;
+    const apply = () => {
+      // closing with the keyboard inside it: hand focus back to the tab that opens it
+      if (phone.matches && !open && nav.contains(document.activeElement)) document.getElementById('side-tab')?.focus();
+      nav.inert = phone.matches && !open;
+    };
+    apply();
+    if (open && phone.matches) closeRef.current?.focus({ preventScroll: true });
+    phone.addEventListener?.('change', apply);
+    return () => phone.removeEventListener?.('change', apply);
+  }, [open]);
+
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(copyTimer.current), []);
@@ -57,8 +77,15 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
   };
 
   return (
-    <nav className={`sidebar${open ? ' open' : ''}`}>
-      <button type="button" className="close-btn" id="close-sidebar" aria-label="Close navigation" onClick={onClose}>
+    <nav className={`sidebar${open ? ' open' : ''}`} id="site-nav" ref={sideRef}>
+      <button
+        type="button"
+        className="close-btn"
+        id="close-sidebar"
+        aria-label="Close navigation"
+        onClick={onClose}
+        ref={closeRef}
+      >
         ×
       </button>
       <button type="button" className="logo-button" aria-label="Toggle dark mode" onClick={onToggleDark}>

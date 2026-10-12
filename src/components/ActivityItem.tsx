@@ -8,9 +8,9 @@ import { useLang } from '../i18n';
 export function ActivityItem({ item }: { item: Activity }) {
   const { t } = useLang();
   const { prefix, link, suffix, date, detail, slug, logo } = item;
-  const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
+  const { rowProps, detailId, pinned, shut } = useDisclosureRow(!!detail && detail.length > 0);
   return (
-    <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
+    <div className={`activity-item${pinned ? ' is-open' : ''}${shut ? ' is-shut' : ''}`} {...rowProps}>
       <p>
         {slug ? <Link to={`/extra-curricular/${slug}`}>{prefix}</Link> : prefix}
         {link &&

@@ -884,7 +884,8 @@ body.dark-mode .model-poster img, body.dark-mode .model-mount { border-color: #3
 /* Smarter reveal: a grid-rows animation (true height, smooth both ways),
    a 0.12s open delay so a passing cursor doesn't trigger it (intent), and a
    0.25s close delay so slipping off doesn't snap it shut (grace).
-   :focus-within opens it for keyboard and touch. */
+   A click, a tap or Enter/Space pins it open (.is-open); keyboard focus only
+   marks the row, so a focused row can still be closed. */
 .detail-wrap {
     display: grid;
     grid-template-rows: 0fr;
@@ -892,7 +893,6 @@ body.dark-mode .model-poster img, body.dark-mode .model-mount { border-color: #3
     transition: grid-template-rows var(--t-slow), opacity var(--t-slow);
     transition-delay: 0.25s;
 }
-.activity-item:focus-within .detail-wrap,
 .activity-item.is-open .detail-wrap {
     grid-template-rows: 1fr;
     opacity: 1;
@@ -907,7 +907,6 @@ body.dark-mode .model-poster img, body.dark-mode .model-mount { border-color: #3
     line-height: 1.65;
     transition: padding var(--t-slow) 0.25s;
 }
-.activity-item:focus-within .detail-box,
 .activity-item.is-open .detail-box {
     padding: 14px 0 4px 14px;
     transition-delay: 0.12s;
@@ -931,8 +930,10 @@ body.dark-mode .model-poster img, body.dark-mode .model-mount { border-color: #3
 }
 
 /* filled circle */
-.activity-item:focus-within::before,
+.activity-item:focus-visible::before,
 .activity-item.is-open::before,
+.edu-group:has(:focus-visible)::before,
+.edu-group:has(.is-open)::before,
 .activity-item.active::before,
 .activity-item.in-view::before {
   background-color: #000000;
@@ -940,7 +941,9 @@ body.dark-mode .model-poster img, body.dark-mode .model-mount { border-color: #3
 }
 
 body.dark-mode .activity-item::before { border-color: #c6c4c4; }
-body.dark-mode .activity-item:focus-within::before,
+body.dark-mode .activity-item:focus-visible::before,
+body.dark-mode .edu-group:has(:focus-visible)::before,
+body.dark-mode .edu-group:has(.is-open)::before,
 body.dark-mode .activity-item.is-open::before,
 body.dark-mode .activity-item.active::before,
 body.dark-mode .activity-item.in-view::before {
@@ -1248,8 +1251,7 @@ body.dark-mode .end-mark:hover { background-color: #dad9e2; border-color: #dad9e
     transition: grid-template-rows var(--t-slow), opacity var(--t-slow);
 }
 .edu-reveal-inner { overflow: hidden; }
-.edu-entry.is-open .edu-reveal,
-.edu-entry:focus-within .edu-reveal {
+.edu-entry.is-open .edu-reveal {
     grid-template-rows: 1fr;
     opacity: 1;
 }
@@ -1284,10 +1286,11 @@ body.dark-mode .edu-reveal-box { color: #9a9a9a; }
 .edu-doc .pdf-deck-slide { padding: 0; }
 .edu-doc .pdf-deck-canvas { box-shadow: none; }
 body.dark-mode .edu-doc .pdf-deck-track { border: none; background: transparent; }
-.edu-has-docs:focus-within .edu-docs-reveal { grid-template-rows: 1fr; opacity: 1; }
+/* opens for keyboard focus inside the letters, not for a click on a row above them */
+.edu-has-docs:has(.edu-docs-reveal :focus-visible) .edu-docs-reveal { grid-template-rows: 1fr; opacity: 1; }
 
 @media (hover: hover) {
-    .edu-entry.edu-has-detail:hover .edu-reveal { grid-template-rows: 1fr; opacity: 1; }
+    .edu-entry.edu-has-detail:not(.is-shut):hover .edu-reveal { grid-template-rows: 1fr; opacity: 1; }
     .edu-has-docs:hover .edu-docs-reveal { grid-template-rows: 1fr; opacity: 1; }
 }
 @media (hover: none) {
@@ -1295,6 +1298,7 @@ body.dark-mode .edu-doc .pdf-deck-track { border: none; background: transparent;
 }
 @media (max-width: 640px) {
     .edu-docs-row { flex-direction: column; gap: 26px; }
+    .doc-list .doc-meta { white-space: normal; }
 }
 @media print {
     .edu-reveal,
@@ -1323,6 +1327,13 @@ body.dark-mode .edu-doc .pdf-deck-track { border: none; background: transparent;
     background: #d9d9d9;
 }
 body.dark-mode .edu-logo-sep { background: #3a3a3a; }
+/* phones: the crests shrink to share the column instead of running off the screen */
+@media (max-width: 640px) {
+    .edu-logos { gap: 16px; }
+    .edu-logo { flex: 0 1 auto; min-width: 0; }
+    .edu-logo img { height: auto; max-height: 88px; max-width: 100%; }
+    .edu-logo-sep { height: 60px; }
+}
 /* the U of T seal is navy line-work on nothing, which disappears into a dark page. It gets a
    white ground of its own — always on where there is no cursor to hover with, and faded in
    with the colour on the devices that do, so the row stays quiet until it is reached for. */
@@ -1949,11 +1960,11 @@ body.dark-mode .lost-dot canvas { border-color: #2e2e2e; }
     font-style: italic;
     transition: opacity var(--t);
 }
-.activity-item:focus-within .date-rel,
+.activity-item:focus-visible .date-rel,
 .activity-item.is-open .date-rel { opacity: 1; }
 
 /* reading focus: while you're in the essay, everything else steps back */
-.sidebar { transition: opacity 450ms ease; }
+.sidebar { transition: opacity 450ms ease, left 0.3s ease; } /* keeps the phone drawer's slide */
 body.reading-focus .sidebar { opacity: 0.45; }
 body.reading-focus .read-rail { opacity: 1; }
 
@@ -2118,12 +2129,12 @@ body.dark-mode .cursor-burst { border-color: #c6c4c4; }
    details open. Touch relies on tap-to-pin (.is-open) instead.
    ============================================================ */
 @media (hover: hover) {
-    .activity-item:hover .detail-wrap {
+    .activity-item:not(.is-shut):hover .detail-wrap {
         grid-template-rows: 1fr;
         opacity: 1;
         transition-delay: 0.12s;
     }
-    .activity-item:hover .detail-box {
+    .activity-item:not(.is-shut):hover .detail-box {
         padding: 14px 0 4px 14px;
         transition-delay: 0.12s;
     }

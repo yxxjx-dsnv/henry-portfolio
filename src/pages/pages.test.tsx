@@ -51,9 +51,38 @@ test('timeline rows are announced as expandable controls — BUG-3', () => {
   const row = container.querySelector('.activity-item')!;
   expect(row).toHaveAttribute('role', 'button');
   expect(row).toHaveAttribute('aria-expanded', 'false');
+  // focus alone does not hold a row open (a clicked row keeps focus)
   fireEvent.focus(row);
-  expect(row).toHaveAttribute('aria-expanded', 'true');
+  expect(row).toHaveAttribute('aria-expanded', 'false');
   fireEvent.keyDown(row, { key: 'Enter' });
+  expect(row).toHaveAttribute('aria-expanded', 'true');
+  expect(row.className).toContain('is-open');
+  fireEvent.keyDown(row, { key: 'Enter' });
+  expect(row).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('a clicked row closes on the next click, even while hovered and focused', () => {
+  const { container } = renderExtraCurricular();
+  const row = container.querySelector('.activity-item')!;
+  const mouseClick = () => {
+    fireEvent.pointerDown(row, { pointerType: 'mouse' });
+    fireEvent.click(row, { detail: 1 });
+  };
+  fireEvent.focus(row);
+  mouseClick();
+  expect(row.className).toContain('is-open');
+  mouseClick();
+  expect(row.className).not.toContain('is-open');
+  expect(row.className).toContain('is-shut'); // the hover preview stays shut until the pointer leaves
+  fireEvent.pointerLeave(row);
+  expect(row.className).not.toContain('is-shut');
+  // a keyboard close has no hover preview to shut
+  fireEvent.keyDown(row, { key: 'Enter' });
+  fireEvent.keyDown(row, { key: 'Enter' });
+  expect(row.className).not.toContain('is-shut');
+  // the second click of a double-click (selecting a word) does not toggle
+  mouseClick();
+  fireEvent.click(row, { detail: 2 });
   expect(row.className).toContain('is-open');
 });
 
