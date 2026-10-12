@@ -1,6 +1,6 @@
 export type LinkedLine = {
   prefix: string;
-  link?: { label: string; url?: string };
+  link?: { label: string; url: string }; // a path on this site, or an address elsewhere
   suffix?: string;
 };
 
@@ -48,5 +48,4 @@ export type Project = {
   link?: { label: string; url: string };
   detail?: string[]; // hover-expand description paragraphs
   slug?: string; // has a full story page at /projects/<slug>
-  url?: string; // or the name links out to a page elsewhere (MONO lives on aerious.co)
 };

@@ -55,17 +55,14 @@ export function Home() {
             <br />
             <li>
               {tx(
-                "({hold}) I'm building a startup called {mono}. It uses AI and automation to analyze global resale markets and helps users find profitable opportunities faster. I lead it as Founder & CEO.",
+                "I'm working toward a startup I call {aerious}. Its first attempt, {mono}, an AI tool for finding profitable resale opportunities, is ({hold}).",
                 {
+                  aerious: <Link to="/projects/aerious">ÆRIOUS</Link>,
+                  mono: <Link to="/projects/aerious#mono">MONO</Link>,
                   hold: (
                     <u>
                       <b>{t('On hold')}</b>
                     </u>
-                  ),
-                  mono: (
-                    <a href="https://aerious.co/mono" target="_blank" rel="noopener noreferrer">
-                      MONO
-                    </a>
                   ),
                 },
               )}

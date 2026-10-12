@@ -13,8 +13,8 @@ import greenstoneGrind from './greenstone-grind';
 import utkesa from './utkesa';
 import pendulum from './pendulum';
 import campusPulse from './campus-pulse';
-import mono from './mono';
+import aerious from './aerious';
 import aps105 from './aps105';
 import components from './components';
 
-export const KO: Record<string, string> = Object.assign({}, common, home, data, education, essays, writing, colophon, incheon, holyBridge, gyroscopeWand, greenstoneGrind, utkesa, pendulum, campusPulse, mono, aps105, components);
+export const KO: Record<string, string> = Object.assign({}, common, home, data, education, essays, writing, colophon, incheon, holyBridge, gyroscopeWand, greenstoneGrind, utkesa, pendulum, campusPulse, aerious, aps105, components);

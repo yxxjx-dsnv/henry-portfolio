@@ -5,6 +5,7 @@ import { useLocation, useNavigationType } from 'react-router-dom';
 // - A new page (a link, a key, the palette) starts at the top, as the original
 //   site did. Coming back to Home that way lands on the site itself, below the
 //   badge cover, which greets only an arrival.
+// - A link to a #section of a page (/projects/aerious#mono) opens it there.
 // - Back and Forward return to where the reader was on that page. The browser
 //   can't do this for a single-page app (the new page is not drawn yet when it
 //   tries), so each history entry's scroll position is remembered here, in
@@ -42,6 +43,8 @@ export function useRouteScroll() {
   const entry = useRef(entryId(location.key)); // the history entry on screen
   const shownKey = useRef(location.key);
   const previous = useRef<string | null>(null); // the previous page's path; null on arrival
+  const previousHash = useRef('');
+  const handled = useRef<string | null>(null); // the location last placed
 
   // Remember where the reader was on the page being left. Read while rendering
   // the new location: the old page is still on screen until React commits, so
@@ -61,27 +64,39 @@ export function useRouteScroll() {
   }, []);
 
   useLayoutEffect(() => {
-    // (compared with the previous page, not a "seen one already" flag: React's
-    // dev StrictMode runs this twice on arrival)
+    // React's dev StrictMode runs this twice on arrival; the second run would
+    // restore a stale 'default' position from sessionStorage over the #anchor
+    const at = location.key + location.pathname + location.hash;
+    if (handled.current === at) return;
+    handled.current = at;
     const arrival = previous.current === null;
     const samePage = previous.current === location.pathname;
+    const hadHash = previousHash.current !== '';
     previous.current = location.pathname;
+    previousHash.current = location.hash;
     shownKey.current = location.key;
     entry.current = entryId(location.key);
 
     const saved = !arrival && navType === 'POP' && entry.current ? positions.current!.get(entry.current) : undefined;
     if (saved !== undefined) return restore(saved);
-    if (samePage) return; // the same page again (or only its #fragment changed): stay put
+    // a #fragment naming a section on the page (/projects/aerious#mono) opens there
+    const anchor = location.hash ? document.getElementById(location.hash.slice(1)) : null;
+    // the same page again: stay put, unless a link asked for a section of it,
+    // or left a section for the page itself (#mono -> the top of the page)
+    if (samePage && !(navType !== 'POP' && (anchor || hadHash))) return;
 
     const backHome = location.pathname === '/' && !arrival;
     let top = 0;
-    if (backHome) {
+    if (anchor) {
+      // layout offsets, not getBoundingClientRect: the page is still mid rise-in (route-in's translateY)
+      for (let n: HTMLElement | null = anchor; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop;
+    } else if (backHome) {
       const cover = document.querySelector<HTMLElement>('.badge-cover');
       const tail = document.querySelector<HTMLElement>('.badge-cover-tail');
       top = (cover?.offsetHeight ?? 0) + (tail?.offsetHeight ?? 0);
     }
     scrollToY(top);
-  }, [location.key, location.pathname, navType]);
+  }, [location.key, location.pathname, location.hash, navType]);
 }
 
 function scrollToY(top: number) {

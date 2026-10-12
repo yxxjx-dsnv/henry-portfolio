@@ -23,8 +23,8 @@ const ko: Record<string, string> = {
   "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with {claude}, {chatgpt}, and {codex}, which moved the company's day-to-day operations onto AI automation.":
     '그 전에는 Branphic Inc.에서 약 3개월간 프리랜서 {role}로 일했습니다. {claude}, {chatgpt}, {codex}로 사내 자동화 도구를 9개 이상 설계하고 만들고 배포하고 유지보수했고, 그 결과 회사의 일상 업무가 AI 자동화로 옮겨 갔습니다.',
   'On hold': '보류 중',
-  "({hold}) I'm building a startup called {mono}. It uses AI and automation to analyze global resale markets and helps users find profitable opportunities faster. I lead it as Founder & CEO.":
-    '({hold}) 스타트업 {mono}를 만들고 있습니다. AI와 자동화로 글로벌 리셀 시장을 분석해 수익성 있는 기회를 더 빨리 찾도록 돕습니다. 창업자 겸 CEO로 이끌고 있습니다.',
+  "I'm working toward a startup I call {aerious}. Its first attempt, {mono}, an AI tool for finding profitable resale opportunities, is ({hold}).":
+    '{aerious}라는 이름으로 창업을 준비하고 있습니다. 첫 시도인 {mono}(수익성 있는 리셀 기회를 찾는 AI 도구)는 ({hold})입니다.',
   'Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS LEO Club, and Co-President of Unity 4 Charity (U4C).':
     '이전에는 WGSS 졸업 위원회 2025 프로젝트 리더, WGSS LEO 클럽 회장, Unity 4 Charity(U4C) 공동 회장을 맡았습니다.',
   "Now I'm an Executive member of the Event Dept. at {utkesa}.": '현재는 {utkesa} 행사부 임원으로 활동하고 있습니다.',

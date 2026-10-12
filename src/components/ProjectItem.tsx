@@ -15,15 +15,7 @@ export function ProjectItem({ project }: { project: Project }) {
   return (
     <div className={`activity-item${pinned ? ' is-open' : ''}${shut ? ' is-shut' : ''}`} {...rowProps}>
       <p>
-        {slug ? (
-          <Link to={`/projects/${slug}`}>{name}</Link>
-        ) : project.url ? (
-          <a href={project.url} target="_blank" rel="noopener noreferrer">
-            {name}
-          </a>
-        ) : (
-          name
-        )}
+        {slug ? <Link to={`/projects/${slug}`}>{name}</Link> : name}
         {link && (
           <>
             {' — '}

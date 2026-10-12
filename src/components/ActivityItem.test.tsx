@@ -23,15 +23,16 @@ test('renders prefix, linked org, suffix, date, and details', () => {
   expect(screen.getByText('Para two.')).toBeInTheDocument();
 });
 
-test('renders a link without href when url is absent (MONO case)', () => {
+test('a link to a page on this site stays in the site; one elsewhere opens a new tab', () => {
   render(
-    <ActivityItem
-      item={{ prefix: 'Founder & CEO at ', link: { label: 'MONO' }, suffix: ' (Startup)', date: 'x' }}
-    />,
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ActivityItem item={{ prefix: 'Founder & CEO at ', link: { label: 'MONO', url: '/projects/aerious#mono' }, suffix: ' (Startup)', date: 'x' }} />
+      <ActivityItem item={{ prefix: 'Member of ', link: { label: 'UTKESA', url: 'https://example.com' }, date: 'x' }} />
+    </MemoryRouter>,
   );
-  const link = screen.getByText('MONO');
-  expect(link.tagName).toBe('A');
-  expect(link).not.toHaveAttribute('href');
+  expect(screen.getByRole('link', { name: 'MONO' })).toHaveAttribute('href', '/projects/aerious#mono');
+  expect(screen.getByRole('link', { name: 'MONO' })).not.toHaveAttribute('target');
+  expect(screen.getByRole('link', { name: 'UTKESA' })).toHaveAttribute('target', '_blank');
 });
 
 test('a slugged activity titles itself as a link to its story page', () => {

@@ -6,8 +6,8 @@ const ko: Record<string, string> = {
     'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 하는 일입니다. AI/ML 음성 인식을 구현하고 로봇 제작에도 참여합니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어하게 하는 기능입니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
   'Built in one day at the IEEE × AWS "Hack the Student Life" hackathon (Amazon Toronto): a real-time dashboard showing how crowded each campus library is, floor by floor. My first hackathon. The full story, photos, and demo live on its own page.':
     'IEEE × AWS "Hack the Student Life" 해커톤(Amazon Toronto)에서 하루 만에 만든 대시보드입니다. 캠퍼스 도서관마다 층별 혼잡도를 실시간으로 보여 줍니다. 제 첫 해커톤이었습니다. 전체 이야기와 사진, 데모는 별도 페이지에 있습니다.',
-  'My startup, on hold for now: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront automatically. The vision, the Profit Score, and the research behind it live on its own page.':
-    '지금은 잠시 멈춰 둔 제 스타트업입니다. AI 리셀 분석 플랫폼으로, 상품의 수익성을 점수로 매기고 스토어에 자동으로 등록해 가격까지 조정합니다. 비전과 Profit Score, 그 뒤의 리서치는 별도 페이지에 있습니다.',
+  'Ærious is the startup I am building, named from the Latin aer, air: software you need the way you need air. The first attempt was MONO, a resale-analytics startup I started in 2025 and have put on hold. Its Profit Score, research and capstone deck are on the same page.':
+    'Ærious는 제가 만들어 가는 스타트업입니다. 라틴어로 공기를 뜻하는 aer에서 왔고, 공기처럼 꼭 필요한 소프트웨어라는 뜻을 담았습니다. 첫 시도는 2025년에 시작한 리셀 분석 스타트업 MONO였고, 지금은 보류 중입니다. MONO의 Profit Score와 리서치, 캡스톤 발표 자료도 같은 페이지에 있습니다.',
   "APS112 (Engineering Strategies & Practice II) design project for a real client: a motion-detecting wand that finds the first responder in Skule™ Kup's Discipline Feud games. I wrote the two-wand Arduino firmware and built the Blender prototype. The story, renders, reports, and code live on its own page.":
     'APS112(Engineering Strategies & Practice II)에서 실제 클라이언트를 위해 진행한 설계 프로젝트입니다. Skule™ Kup의 Discipline Feud 게임에서 가장 먼저 반응한 사람을 찾아내는 동작 감지 완드였습니다. 저는 완드 두 개를 잇는 Arduino 펌웨어를 작성하고 Blender 프로토타입을 만들었습니다. 이야기와 렌더링, 보고서, 코드는 별도 페이지에 있습니다.',
   'A 1,200 mm box girder built from one sheet of matboard and two tubes of contact cement, designed through seven documented iterations with Python-computed load envelopes (predicted failure load 1,096 N). The story, reports, and photos live on its own page.':
@@ -31,8 +31,8 @@ const ko: Record<string, string> = {
     '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영하며 물류와 협업을 맡고 있습니다.',
   "On the event team I supported UTKESA's Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum's Korean Gallery, Canada's only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The executive team raised the contribution over the year; it is documented on UTKESA's LinkedIn.":
     '행사팀에서 Korea Root Initiative와 함께한 UTKESA의 삼일절 기부를 도왔습니다. 로열 온타리오 박물관 한국관을 지키기 위한 기부였습니다. 캐나다 유일의 상설 한국관인데 전담 큐레이터가 없어 폐관 위기에 놓여 있었습니다. 임원진이 한 해 동안 모은 이 기부금은 UTKESA LinkedIn에 기록되어 있습니다.',
-  'Developed an AI resale analytics platform that predicts a product\'s resale profit and automates its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.':
-    '상품의 리셀 수익을 예측하고 Shopify 등록을 자동화하는 AI 리셀 분석 플랫폼을 개발했습니다. 소싱과 가격 책정에서 감에 기대는 부분을 줄이려는 것이었습니다. 아직 출시하지 않았고 지금은 잠시 멈춰 둔 상태입니다.',
+  'Designed an AI resale analytics platform meant to predict a product\'s resale profit and automate its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.':
+    '상품의 리셀 수익을 예측하고 Shopify 등록을 자동화하도록 AI 리셀 분석 플랫폼을 설계했습니다. 소싱과 가격 책정에서 감에 기대는 부분을 줄이려는 것이었습니다. 아직 출시하지 않았고 지금은 보류 중입니다.',
   'Elected to run the Class of 2025’s senior events: Spirit Week, the Grad Cruise, and the graduation ceremony. I handled the budgets and the problems that came up.':
     '2025년 졸업반의 주요 행사를 맡도록 선출되었습니다. 스피릿 위크, 졸업 크루즈, 졸업식이었습니다. 예산과 그때그때 생기는 문제를 제가 맡았습니다.',
   'Treasurer, then President, of a club whose fundraising and community service had gone quiet. I set up financial tracking, grew membership through eco-awareness projects like campus recycling, and expanded its local volunteering.':

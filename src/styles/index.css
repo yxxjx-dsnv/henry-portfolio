@@ -177,6 +177,11 @@ body.dark-mode .story-back:hover { color: #f1f1f1; }
 .mono-logo .mono-logo-light { display: none; }
 body.dark-mode .mono-logo .mono-logo-dark { display: none; }
 body.dark-mode .mono-logo .mono-logo-light { display: block; }
+/* ÆRIOUS: MONO, its first attempt, is a part of the page with its own heading and meta */
+/* (padding, not the heading's margin, so a link to #mono lands with room above the heading) */
+.essay-section .text .story-part { padding-top: 30px; }
+.essay-section .text .story-part h2 { font-size: 26px; margin: 0 0 16px; }
+.essay-section .text .section-body .story-meta p { font-size: 14px; }
 .essay-section .text .section-body p.story-head { font-weight: bold; margin: 12px 0 15px; }
 .story-figure { margin: 10px 0 26px; }
 .story-figure img {

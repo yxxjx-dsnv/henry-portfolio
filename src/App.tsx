@@ -10,6 +10,7 @@ import { Home } from './pages/Home';
 import { BadgeCover } from './components/badge/BadgeCover';
 import { Projects } from './pages/Projects';
 import { CampusPulse } from './pages/CampusPulse';
+import { Aerious } from './pages/Aerious';
 import { GyroscopeWand } from './pages/GyroscopeWand';
 import { HolyBridge } from './pages/HolyBridge';
 import { Pendulum } from './pages/Pendulum';
@@ -26,7 +27,6 @@ import { NotFound } from './pages/NotFound';
 import { Colophon } from './pages/Colophon';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useRouteScroll } from './hooks/useRouteScroll';
-import { GoTo } from './components/GoTo';
 import { useLang } from './i18n';
 
 const HASH_ROUTES: Record<string, string> = {
@@ -44,7 +44,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/projects/incheon-robotics': 'Incheon ASRS — Henry Kim',
   '/extra-curricular/incheon-robotics': 'Incheon ASRS — Henry Kim',
   '/projects/campus-pulse': 'Campus Pulse — Henry Kim',
-  '/projects/mono': 'MONO — Henry Kim',
+  '/projects/aerious': 'ÆRIOUS — Henry Kim',
   '/projects/gyroscope-wand': 'Gyroscope Wand — Henry Kim',
   '/projects/civ102-bridge': 'The Holy Bridge — Henry Kim',
   '/projects/pendulum': 'Simple Pendulum — Henry Kim',
@@ -245,7 +245,8 @@ export default function App() {
     { label: 'Switch language', hint: lang === 'en' ? '한국어' : 'English', run: () => setLang(lang === 'en' ? 'ko' : 'en') },
     { label: 'Incheon ASRS — the story', run: () => navigate('/projects/incheon-robotics') },
     { label: 'Campus Pulse — the story', run: () => navigate('/projects/campus-pulse') },
-    { label: 'MONO — on aerious.co', run: () => window.open('https://aerious.co/mono', '_blank', 'noopener') },
+    { label: 'ÆRIOUS — the story', keywords: 'aerious', run: () => navigate('/projects/aerious') },
+    { label: 'MONO — the first attempt', run: () => navigate('/projects/aerious#mono') },
     { label: 'Gyroscope Wand — the story', run: () => navigate('/projects/gyroscope-wand') },
     { label: 'The Holy Bridge — the story', run: () => navigate('/projects/civ102-bridge') },
     { label: 'Simple Pendulum — the story', run: () => navigate('/projects/pendulum') },
@@ -352,8 +353,9 @@ export default function App() {
             <Route path="/projects/incheon-robotics" element={<IncheonRobotics />} />
             <Route path="/extra-curricular/incheon-robotics" element={<IncheonRobotics />} />
             <Route path="/projects/campus-pulse" element={<CampusPulse />} />
-            {/* MONO now lives on aerious.co; the old address follows it there */}
-            <Route path="/projects/mono" element={<GoTo href="https://aerious.co/mono" />} />
+            <Route path="/projects/aerious" element={<Aerious />} />
+            {/* MONO now lives inside the ÆRIOUS story, as its first attempt */}
+            <Route path="/projects/mono" element={<Navigate to={`/projects/aerious${location.search}#mono`} replace />} />
             <Route path="/projects/gyroscope-wand" element={<GyroscopeWand />} />
             <Route path="/projects/civ102-bridge" element={<HolyBridge />} />
             <Route path="/projects/pendulum" element={<Pendulum />} />

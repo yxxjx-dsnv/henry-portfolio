@@ -37,11 +37,11 @@ export const activities: Activity[] = [
   },
   {
     prefix: 'Founder & CEO at ',
-    link: { label: 'MONO', url: 'https://aerious.co/mono' },
+    link: { label: 'MONO', url: '/projects/aerious#mono' }, // its story, inside the ÆRIOUS page
     suffix: ' (Startup)',
     date: 'May 2025 - On hold',
     detail: [
-      'Developed an AI resale analytics platform that predicts a product\'s resale profit and automates its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.',
+      'Designed an AI resale analytics platform meant to predict a product\'s resale profit and automate its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.',
     ],
   },
   {

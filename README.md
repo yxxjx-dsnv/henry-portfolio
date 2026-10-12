@@ -45,7 +45,7 @@ Beyond the résumé timeline, several projects have their own long-form pages wi
 | --- | --- |
 | [APS105 — Coding Labs](https://henrykim.ca/projects/aps105-labs) | Ten weeks of C labs, each compiled and run in the browser (above). |
 | [Campus Pulse](https://henrykim.ca/projects/campus-pulse) | A one-day hackathon build: live library-occupancy dashboard on AWS Rekognition + DynamoDB, with a faithful in-page port of the live dashboard and detection videos that autoplay on scroll. |
-| [MONO](https://henrykim.ca/projects/mono) | The AI resale-analytics startup I am building, with the pitch deck rendered inline. |
+| [ÆRIOUS](https://henrykim.ca/projects/aerious) | The startup I want to found, still a concept, and MONO, my first attempt at one, with its pitch deck rendered inline. |
 | [Gyroscope Wand](https://henrykim.ca/projects/gyroscope-wand) | An APS112 design project for a real client: a motion-detecting response wand. Two-wand Arduino firmware, a Blender prototype in an interactive 3D viewer, and the full report set. |
 | [Holy Bridge](https://henrykim.ca/projects/civ102-bridge) | A CIV102 matboard box girder designed across seven iterations with Python-computed load envelopes. |
 | [Simple Pendulum](https://henrykim.ca/projects/pendulum) | A PHY180 experiment measured against theory with Python curve-fitting and full uncertainty propagation. |
@@ -104,7 +104,7 @@ Everything is mouse-first with keyboard and touch fallbacks, and everything resp
 │   │                               #   CLab + CodeEditor, PdfDeck, DocShelf, ModelViewer,
 │   │                               #   FigureCarousel, CampusPulseDash, Sidebar, …
 │   ├── pages/                      # Home, Projects, Education, Colophon, NotFound, and the
-│   │                               #   story pages (Aps105Labs, CampusPulse, Mono, …)
+│   │                               #   story pages (Aps105Labs, CampusPulse, Aerious, …)
 │   ├── data/                       # typed content, incl. aps105Labs.ts (labs + writeups)
 │   ├── assets/                     # raw lab/firmware/analysis sources shown in code panels
 │   ├── hooks/  utils/  styles/index.css   # the one stylesheet

@@ -22,12 +22,12 @@ export const projects: Project[] = [
     ],
   },
   {
-    name: 'MONO — Resale Analytics Platform',
-    date: '2025',
-    stack: ['AI', 'Automation', 'Shopify'],
-    url: 'https://aerious.co/mono',
+    name: 'ÆRIOUS — My Startup and Its First Attempt, MONO',
+    date: 'May 2025 · Aug 2026', // both start points; not a range, so no running counter
+    stack: ['AI', 'Automation', 'Shopify', 'Brand'],
+    slug: 'aerious',
     detail: [
-      'My startup, on hold for now: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront automatically. The vision, the Profit Score, and the research behind it live on its own page.',
+      'Ærious is the startup I am building, named from the Latin aer, air: software you need the way you need air. The first attempt was MONO, a resale-analytics startup I started in 2025 and have put on hold. Its Profit Score, research and capstone deck are on the same page.',
     ],
   },
   {

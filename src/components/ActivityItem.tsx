@@ -14,12 +14,10 @@ export function ActivityItem({ item }: { item: Activity }) {
       <p>
         {slug ? <Link to={`/extra-curricular/${slug}`}>{prefix}</Link> : prefix}
         {link &&
-          (link.url ? (
-            <a href={link.url} target="_blank" rel="noopener noreferrer">
-              {link.label}
-            </a>
+          (link.url.startsWith('/') ? (
+            <Link to={link.url}>{link.label}</Link>
           ) : (
-            <a target="_blank" rel="noopener noreferrer">
+            <a href={link.url} target="_blank" rel="noopener noreferrer">
               {link.label}
             </a>
           ))}
