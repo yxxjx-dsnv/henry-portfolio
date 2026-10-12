@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
 type LoadingTask = ReturnType<(typeof import('pdfjs-dist'))['getDocument']>;
@@ -11,6 +11,7 @@ type RenderTask = ReturnType<import('pdfjs-dist').PDFPageProxy['render']>;
 export function PdfViewer({ src, title }: { src: string; title: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pageBox = useRef<HTMLDivElement>(null);
   const docRef = useRef<PDFDocument | null>(null);
   const loadingRef = useRef<LoadingTask | null>(null);
   const taskRef = useRef<RenderTask | null>(null);
@@ -20,6 +21,8 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [editing, setEditing] = useState<'top' | 'bottom' | null>(null);
   const [draft, setDraft] = useState('');
+  const [resizes, resized] = useReducer((n: number) => n + 1, 0); // each one draws the page again
+  const drawnAt = useRef(0); // the width the page was last drawn for
 
   useEffect(() => {
     let dead = false;
@@ -60,22 +63,47 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
         if (!canvas || !wrap || dead) return;
         const base = p.getViewport({ scale: 1 });
         const cssWidth = wrap.clientWidth || 560;
+        drawnAt.current = cssWidth;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const viewport = p.getViewport({ scale: (cssWidth / base.width) * dpr });
+        taskRef.current?.cancel(); // before the canvas it is drawing on changes size
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        taskRef.current?.cancel();
         const task = p.render({ canvas, viewport });
         taskRef.current = task;
         await task.promise;
       } catch {
-        /* render cancelled by a newer page turn */
+        /* render cancelled by a newer page turn or size */
       }
     })();
     return () => {
       dead = true;
     };
-  }, [page, status]);
+  }, [page, status, resizes]);
+
+  // Grown into the expand frame or back, the reader changes width: once the
+  // size settles, the page draws again, sharp for it (from the PDF already loaded).
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || typeof ResizeObserver !== 'function') return;
+    let timer = 0;
+    const ro = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (wrap.clientWidth && wrap.clientWidth !== drawnAt.current) resized();
+      }, 150);
+    });
+    ro.observe(wrap);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // a new page is read from its top (expanded, a page is taller than its box)
+  useEffect(() => {
+    pageBox.current?.scrollTo?.(0, 0);
+  }, [page]);
 
   const go = (dir: number) => setPage((p) => Math.min(Math.max(p + dir, 1), pages));
   const atStart = page <= 1;
@@ -194,7 +222,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
       ) : (
         <>
           {toolbar('top')}
-          <div className="pdf-page" onTouchStart={onTouchStartCapture} onTouchEnd={onTouchEnd}>
+          <div className="pdf-page" ref={pageBox} onTouchStart={onTouchStartCapture} onTouchEnd={onTouchEnd}>
             <canvas
               ref={canvasRef}
               onClick={onCanvasClick}

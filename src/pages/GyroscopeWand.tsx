@@ -6,6 +6,7 @@ import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfDeck } from '../components/PdfDeck';
 import { ModelViewer } from '../components/ModelViewer';
+import { Expandable, Photo } from '../components/Expandable';
 import { useLang } from '../i18n';
 import firmwareSource from '../assets/two-wand-system.ino?raw';
 
@@ -448,7 +449,7 @@ export function GyroscopeWand() {
             </p>
             <br />
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/photo-22.jpg`}
                 alt={t('The whiteboard from that meeting, with three numbered options: a hard hat with sensor choices listed, a gyroscope light stick with two SKULE wands wired to a hub box and a computer, and a general buzzer system. Notes beside them on collecting all data in one place and lighting up the first responder.')}
                 width={1600}
@@ -494,16 +495,18 @@ export function GyroscopeWand() {
               {t('The model below is the Blender file itself, converted for the web. Drag to orbit, scroll to zoom.')}
             </p>
             <br />
-            <ModelViewer
-              src={`${MEDIA}/wand.glb`}
-              poster={{
-                src: `${MEDIA}/render-1.jpg`,
-                alt: t('Poster for the interactive 3D model: the lineup of eight wands.'),
-                width: 1600,
-                height: 1027,
-              }}
-              caption={t('All eight wands in 3D, modeled in Blender™.')}
-            />
+            <Expandable label="Wand 3D model">
+              <ModelViewer
+                src={`${MEDIA}/wand.glb`}
+                poster={{
+                  src: `${MEDIA}/render-1.jpg`,
+                  alt: t('Poster for the interactive 3D model: the lineup of eight wands.'),
+                  width: 1600,
+                  height: 1027,
+                }}
+                caption={t('All eight wands in 3D, modeled in Blender™.')}
+              />
+            </Expandable>
             <p className="story-head">{t('Making it move')}</p>
             <p>
               {t("I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both sensors, derives speed and acceleration magnitudes from the readings, and compares them against a threshold. The first wand past the threshold locks the round, lights its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which wand was first. The code self-checks too: it scans the I2C bus, verifies each sensor's identity register, and runs the sensor's self-test before trusting it. A note on the name: we pitched the concept with a gyroscope, and the bench prototype detects motion with accelerometers.")}

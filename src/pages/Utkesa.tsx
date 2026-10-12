@@ -4,6 +4,7 @@ import { Hero } from '../components/Hero';
 import { ReadProgress } from '../components/ReadProgress';
 import { useLang } from '../i18n';
 import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel';
+import { Photo } from '../components/Expandable';
 
 const MEDIA = '/media/utkesa';
 
@@ -105,7 +106,7 @@ export function Utkesa() {
             <p>{t("The Korea Root Initiative recognized the contribution with a certificate: CAD $400 from the Korean Engineering Students' Association at the University of Toronto, toward a permanent curator for the Gallery of Korea at the ROM. It is a small amount next to what a curator costs, but it is on the record and it went to one specific gallery.")}</p>
             <br />
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/cert.jpg`}
                 alt={t("The Korea Root Initiative Certification of Contribution: presented to the Korean Engineering Students' Association at the University of Toronto for a CAD $400 contribution toward establishing a permanent curator for the Gallery of Korea at the Royal Ontario Museum, dated May 10, 2026.")}
                 width={1200}

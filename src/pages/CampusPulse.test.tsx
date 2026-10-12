@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { CampusPulse } from './CampusPulse';
 
@@ -89,9 +89,14 @@ test('runs the person-detector as video, one feed per building', () => {
 test('embeds the live interactive dashboard with the building directory', () => {
   renderPage();
   expect(document.querySelector('.cp-dash')).toBeTruthy();
+  // and it can grow out of the text into the expand frame
+  expect(document.querySelector('.cp-dash')!.parentElement).toContainElement(
+    screen.getByRole('button', { name: 'Expand Campus Pulse dashboard' }),
+  );
   // every building is a clickable directory row
+  const dash = within(document.querySelector<HTMLElement>('.cp-dash')!);
   for (const name of ['Robarts', 'Gerstein', 'Bahen', 'Sidney Smith']) {
-    expect(screen.getByRole('button', { name: new RegExp(name) })).toBeInTheDocument();
+    expect(dash.getByRole('button', { name: new RegExp(name) })).toBeInTheDocument();
   }
   // best-location banner recommends a building from the time-of-day occupancy
   expect(screen.getByText('Best location recommendation')).toBeInTheDocument();

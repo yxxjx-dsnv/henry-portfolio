@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { CLab } from '../components/CLab';
+import { Expandable } from '../components/Expandable';
 import { aps105Labs } from '../data/aps105Labs';
 import { useLang } from '../i18n';
 
@@ -84,7 +85,9 @@ export function Aps105Labs() {
               </div>
             )}
 
-            <CLab key={program.id} program={program} />
+            <Expandable label="C lab">
+              <CLab key={program.id} program={program} />
+            </Expandable>
           </div>
         </div>
       </section>

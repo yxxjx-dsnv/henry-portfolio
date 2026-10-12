@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { CodeViewer, type CodeLang } from './CodeViewer';
+import { Expandable } from './Expandable';
 import { PdfViewer } from './PdfViewer';
 
 export type ShelfDoc = {
@@ -99,7 +100,9 @@ export function DocShelf({ docs, base }: { docs: ShelfDoc[]; base: string }) {
             </button>
             {isOpen && (
               <div className="doc-viewer" id={panelId}>
-                {d.kind === 'code' ? <CodePanel doc={d} /> : <PdfViewer src={href} title={d.title} />}
+                <Expandable label={d.title}>
+                  {d.kind === 'code' ? <CodePanel doc={d} /> : <PdfViewer src={href} title={d.title} />}
+                </Expandable>
                 <p className="doc-escape">
                   <a href={href} target="_blank" rel="noopener noreferrer">
                     open in its own tab

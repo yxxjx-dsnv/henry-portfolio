@@ -63,6 +63,8 @@ test('offers the box girder as an interactive 3D model behind a poster', () => {
   renderPage();
   expect(screen.getByRole('button', { name: /View in 3D/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Run test day/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Expand Bridge studio' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Expand Test day' })).toBeInTheDocument();
   expect(document.querySelector('canvas')).toBeNull();
 });
 
@@ -70,7 +72,7 @@ test('the design report flows inline on the page, not behind a shelf row', () =>
   renderPage();
   // report shown continuously via PdfFlow; not a shelf accordion row
   expect(document.querySelector('.pdf-flow')).toBeTruthy();
-  expect(screen.queryByRole('button', { name: /Design Report/ })).toBeNull();
+  expect([...document.querySelectorAll('.doc-row')].some((r) => /Design Report/.test(r.textContent ?? ''))).toBe(false);
 });
 
 test('the document shelf lists the remaining five reports plus four scripts', () => {

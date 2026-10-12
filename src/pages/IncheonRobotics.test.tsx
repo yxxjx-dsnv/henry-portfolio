@@ -64,6 +64,9 @@ test('the 3D embeds stay dormant posters until asked (no WebGL in jsdom)', () =>
   expect(screen.getByRole('button', { name: /Inspect the robot in 3D/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Open the mechanism in 3D/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Run the simulation/ })).toBeInTheDocument();
+  // each can leave the text and grow to most of the window
+  for (const name of ['Robot inspector', 'Mechanism viewer', 'Fleet simulation'])
+    expect(screen.getByRole('button', { name: `Expand ${name}` })).toBeInTheDocument();
 });
 
 test('states plainly what is published: the application as submitted, nothing else confidential', () => {

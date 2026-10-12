@@ -67,6 +67,17 @@ export function CLab({ program }: { program: LabProgram }) {
     const el = outRef.current;
     if (el && stick.current) el.scrollTop = el.scrollHeight;
   }, [state.stdout]);
+  // …and when the box itself changes height (expanded or closed), which moves no text
+  const hasOutput = !!state.stdout;
+  useEffect(() => {
+    const el = outRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (stick.current) el.scrollTop = el.scrollHeight;
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hasOutput]);
   const onOutputScroll = (e: React.UIEvent<HTMLPreElement>) => {
     const el = e.currentTarget;
     stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;

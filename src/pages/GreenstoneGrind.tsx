@@ -4,6 +4,7 @@ import { Hero } from '../components/Hero';
 import { ReadProgress } from '../components/ReadProgress';
 import { useLang } from '../i18n';
 import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel';
+import { Photo } from '../components/Expandable';
 
 const MEDIA = '/media/greenstone-grind';
 
@@ -12,7 +13,7 @@ type FigureProps = { src: string; alt: string; caption: string; width: number; h
 function Figure({ src, alt, caption, width, height }: FigureProps) {
   return (
     <figure className="story-figure">
-      <img src={src} alt={alt} width={width} height={height} loading="lazy" />
+      <Photo src={src} alt={alt} width={width} height={height} loading="lazy" />
       <figcaption>{caption}</figcaption>
     </figure>
   );

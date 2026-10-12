@@ -9,6 +9,7 @@ import { VoicePipeline } from '../components/VoicePipeline';
 import { AsrsRobotViewer } from '../components/AsrsRobotViewer';
 import { AsrsRobotInspector } from '../components/AsrsRobotInspector';
 import { AsrsSim } from '../components/AsrsSim';
+import { Expandable, Photo } from '../components/Expandable';
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 
 const MEDIA = '/media/incheon-robotics';
@@ -225,7 +226,7 @@ type FigureProps = { src: string; alt: string; caption: string; width: number; h
 function Figure({ src, alt, caption, width, height }: FigureProps) {
   return (
     <figure className="story-figure">
-      <img src={src} alt={alt} width={width} height={height} loading="lazy" />
+      <Photo src={src} alt={alt} width={width} height={height} loading="lazy" />
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -377,7 +378,9 @@ export function IncheonRobotics() {
             </p>
             <p>{t("I modelled the robot in Blender from the company's robot description and photographs, close enough to read the screws. Spin it, run the deck and the tabs, and X-ray the shell:")}</p>
             <br />
-            <AsrsRobotInspector />
+            <Expandable label="Robot inspector">
+              <AsrsRobotInspector />
+            </Expandable>
             <p>{t("There is not much to it: a board, two axle assemblies, a scissor, four tab arms, one control board, and a deck on top.")}</p>
             <br />
             <FigureCarousel slides={tr(BOARD)} label={t("The controller board")} />
@@ -404,7 +407,9 @@ export function IncheonRobotics() {
             <br />
             <p>{t("The same cycle, in 3D. Step through it or let it run, and switch the shell off to see what is doing the work.")}</p>
             <br />
-            <AsrsRobotViewer />
+            <Expandable label="Mechanism viewer">
+              <AsrsRobotViewer />
+            </Expandable>
             <p className="story-head">Deep-N: thinking in fleets</p>
             <p>{t("Storing bins with no aisles buys density, and density brings its own problem. If the bin you want is ten layers down, a sequential system digs: it moves the bin above it, then the one above that, one machine doing one thing at a time, and retrieval time climbs steeply with depth. That is why small versions of enterprise ASRS congest so badly: the robots end up queueing on each other.")}</p>
             <br />
@@ -515,7 +520,9 @@ export function IncheonRobotics() {
             <br />
             <p>{t("The traffic is the part I watch. Each robot routes with A* around whatever squares the others are holding, so no two cross or share a tile, and when two end up nose to nose one steps aside. Telemetry reads out over the viewport. Press run, ask it for a bin, and use X-ray to follow one robot with its shell off.")}</p>
             <br />
-            <AsrsSim />
+            <Expandable label="Fleet simulation">
+              <AsrsSim />
+            </Expandable>
             <p className="story-head">The product film</p>
             <p>{t("The company's own product video, in English. Four and a half minutes.")}</p>
             <br />

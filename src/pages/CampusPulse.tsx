@@ -8,6 +8,7 @@ import { PdfDeck } from '../components/PdfDeck';
 import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel';
 import { AutoVideo } from '../components/AutoVideo';
 import { CampusPulseDash } from '../components/CampusPulseDash';
+import { Expandable, Photo } from '../components/Expandable';
 
 const MEDIA = '/media/campus-pulse';
 
@@ -117,7 +118,7 @@ type FigureProps = { src: string; alt: string; caption: string; width: number; h
 function Figure({ src, alt, caption, width, height }: FigureProps) {
   return (
     <figure className="story-figure">
-      <img src={src} alt={alt} width={width} height={height} loading="lazy" />
+      <Photo src={src} alt={alt} width={width} height={height} loading="lazy" />
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -178,7 +179,7 @@ export function CampusPulse() {
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/logo.jpg`}
                 alt={t("The Campus Pulse logo: navy line-art of campus towers rising into a bar chart and a pulse curve, above the wordmark 'CAMPUS PULSE'.")}
                 width={1127}
@@ -228,7 +229,9 @@ export function CampusPulse() {
             <br />
             <p>{t("The dashboard itself is below, ported from our React source. You can search or sort the directory, open a building for its floors and daily trend, switch between cards and table, and watch the occupancy refresh every few seconds.")}</p>
             <br />
-            <CampusPulseDash />
+            <Expandable label="Campus Pulse dashboard">
+              <CampusPulseDash />
+            </Expandable>
             <p className="doc-note">
               {t('This copy runs on the presentation data; the real one read live counts from the AWS pipeline.')}
             </p>

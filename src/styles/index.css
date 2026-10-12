@@ -2482,3 +2482,198 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
         text-shadow: 0 0 2px #121212, 0 0 4px #121212, 0 0 6px #121212;
     }
 }
+
+/* ============================================================
+   Expand (Expandable.tsx): a simulation, a tool or a deck leaves its place in the
+   text and grows to most of the window, over a dimmed, blurred page.
+   ============================================================ */
+.xp-slot { position: relative; }
+.xp { position: relative; }
+.xp-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 6;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 7px;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    background: rgba(255, 255, 255, 0.84);
+    color: #333333;
+    cursor: pointer;
+    opacity: 0.8;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition: opacity var(--t), background-color var(--t);
+}
+.xp-toggle:hover,
+.xp-toggle:focus-visible { opacity: 1; }
+.xp-toggle svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+body.dark-mode .xp-toggle { background: rgba(28, 28, 30, 0.84); color: #e6e6e6; border-color: rgba(255, 255, 255, 0.16); }
+.xp.is-open {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    margin: auto;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    outline: none;
+}
+body.dark-mode .xp.is-open { background: #161616; }
+/* what it holds fills the grown frame (each embed lets its own picture flex) */
+.xp.is-open > :not(.xp-toggle) { flex: 1 1 auto; min-height: 0; }
+.xp-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: rgba(12, 12, 14, 0.4);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: xp-fade 280ms ease both;
+}
+@keyframes xp-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .xp-backdrop { animation: none; } }
+/* expanded: the 3D model fills the frame */
+.xp.is-open > .model-viewer { display: flex; flex-direction: column; margin: 0; padding: 14px; }
+.xp.is-open .model-mount { flex: 1 1 auto; height: auto; min-height: 0; }
+.xp.is-open .model-poster { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.xp.is-open .model-poster img { max-height: 100%; width: auto; max-width: 100%; }
+/* the close button stays in the corner while a tall frame scrolls (its margins net to no height) */
+.xp.is-open > .xp-toggle { position: sticky; top: 8px; flex: none; align-self: flex-end; margin: 8px 8px -38px 0; }
+/* expanded pictures are in colour and unframed */
+.xp.is-open img,
+body.dark-mode .xp.is-open img { filter: none; opacity: 1; }
+@media print { .xp-toggle { display: none !important; } }
+
+/* a single photo: a click opens it in its own shape, the frame is the photo */
+.xp-tap:not(.is-open) img { cursor: zoom-in; }
+.xp-photo.is-open { overflow: hidden; }
+.xp-photo.is-open img { width: 100%; height: 100%; object-fit: contain; border: 0; cursor: zoom-out; }
+
+/* the 3D viewers (robot, inspector, fleet, bridge): the canvas takes the frame, the control rows
+   keep their height under it. Basis 0 so the canvas's own pixel size never holds the frame
+   open; the floor keeps it usable on a short screen, where the frame scrolls instead. */
+.xp.is-open .asrs-frame:not(.trk) { flex: 1 0 auto; display: flex; flex-direction: column; }
+.xp.is-open .asrs-frame:not(.trk) > .asrs-mount { flex: 1 1 0; height: auto; min-height: 220px; }
+/* the mechanism viewer's step note changes length every step: a floor stops the canvas resizing with it */
+.xp.is-open .asrs-frame:not(.trk) .asrs-note { min-height: calc(2lh + 22px); }
+@media (max-width: 640px) { .xp.is-open .asrs-frame:not(.trk) .asrs-note { min-height: calc(4lh + 22px); } }
+/* the studio's readout wraps short of the expand button instead of running under it (phones) */
+.xp .bridge-studio .asrs-hud { max-width: calc(100% - 58px); white-space: pre-wrap; }
+
+/* expanded pendulum lab: the first screen is the Tracker window's rig, plots and controls;
+   the result chart and its note scroll beneath */
+.xp-lab.is-open { container-type: size; }
+.xp-lab.is-open > .model-viewer:has(> .trk) { flex-shrink: 0; }
+.xp-lab.is-open .lab-chart { padding-inline: max(12px, calc(50% - 400px)); }
+@media (min-width: 721px) {
+    .xp-lab.is-open .trk-video { height: max(400px, calc(100cqh - 150px)); }
+}
+@media (max-width: 720px) {
+    /* one column: rig, experiments and controls first; plots, table and chart below */
+    .xp-lab.is-open .trk { display: flex; flex-direction: column; }
+    .xp-lab.is-open .trk-body { display: contents; }
+    .xp-lab.is-open .trk-side { order: 1; padding-top: 1px; }
+    .xp-lab.is-open .pl-data,
+    .xp-lab.is-open .pl-graph { order: 1; }
+    .xp-lab.is-open .trk-video { height: max(320px, calc(100cqh - 280px)); }
+}
+/* the rig's grid cell may shrink below its canvas, so closing the frame hands the canvas its
+   in-article width back (otherwise it keeps the expanded width and the plots column vanishes) */
+.xp .trk-video { min-width: 0; }
+.xp .trk-head { padding-right: 46px; }
+
+/* expanded: the C runner's editor takes the height the rest leaves (never less than in the
+   text), and a run's output scrolls in a shorter box so it stays in view under the code */
+.xp.is-open > .clab { flex: 1 0 auto; display: flex; flex-direction: column; margin: 0; padding: 14px; }
+.xp.is-open > .clab > * { flex: none; }
+.xp.is-open > .clab > .c-editor { flex: 1 1 0; height: auto; min-height: min(52vh, 460px); }
+.xp.is-open .clab-diag { max-height: 20vh; }
+.xp.is-open .clab-stdout { max-height: 30vh; }
+/* in the text, a multi-file lab's toggle sits below its file tabs, in the editor's corner */
+.xp:not(.is-open):has(> .clab > .clab-tabs) > .xp-toggle { top: 41px; }
+/* the dashboard: room for the toggle beside Refresh (in the text too); expanded, it
+   keeps its own card, wider, with the "Try it yourself" tag inside the frame */
+.xp > .cp-dash .cp-head-r { margin-right: 30px; }
+.xp.is-open > .cp-dash { flex: 1 0 auto; margin: 16px; }
+@media (max-width: 640px) { .xp.is-open > .cp-dash { margin: 14px 0 0; } }
+
+/* expanded: a deck's slide, a report's pages, a photo carousel, a document fill the frame */
+.xp.is-open > .pdf-deck { display: flex; flex-direction: column; margin: 0; padding: 14px; }
+.xp.is-open > .story-carousel { display: flex; flex-direction: column; margin: 0; padding: 0; }
+.xp.is-open > .story-carousel figcaption { margin: 0; padding: 12px 16px; } /* = the frame's 44px chrome */
+.xp.is-open .pdf-deck-stage,
+.xp.is-open .carousel-stage { flex: 1 1 auto; min-height: 0; display: flex; }
+.xp.is-open .pdf-deck-track,
+.xp.is-open .carousel-track { flex: 1 1 auto; min-width: 0; }
+/* a slide is fitted whole (PdfDeck draws it again for this box once the size settles) */
+.xp.is-open .pdf-deck-canvas { width: auto; max-width: 100%; max-height: 100%; }
+.xp.is-open .carousel-slide { height: auto; }
+.xp.is-open .carousel-slide img { border: 0; }
+.xp.is-open .carousel-video .carousel-slide video { width: auto; max-width: 100%; max-height: 100%; }
+/* a report keeps reading down; its box starts below the toggle */
+.xp.is-open > .pdf-flow { display: flex; flex-direction: column; margin: 0; padding: 46px 14px 14px; }
+.xp.is-open .pdf-flow-scroll { flex: 1 1 auto; min-height: 0; max-height: none; }
+.xp.is-open > .pdf-viewer { display: flex; flex-direction: column; padding: 14px; }
+.xp.is-open .pdf-page { flex: 1 1 auto; min-height: 0; max-height: none; }
+.xp.is-open > .code-viewer { display: flex; flex-direction: column; margin: 0; }
+.xp.is-open .code-body { flex: 1 1 0; min-height: 0; max-height: none; }
+/* the toggle keeps clear of each document's own controls: the reader's next-page
+   chevron, a report's scrollbar, the code panel's title bar (dark, like the panel) */
+.xp > .pdf-viewer > .pdf-toolbar:first-child { padding-right: 40px; }
+.xp > .pdf-viewer > .pdf-toolbar:first-child .pdf-count { margin-left: 40px; } /* still centred, in line with the bottom one */
+.xp:has(> .pdf-flow) > .xp-toggle { right: 26px; }
+.xp > .code-viewer .code-titlebar { padding-right: 44px; }
+.xp:has(> .code-viewer) > .xp-toggle {
+    top: 3px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    background: rgba(28, 28, 30, 0.84);
+    color: #e6e6e6;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+.xp.is-open:has(> .code-viewer) > .xp-toggle { margin: 3px 6px -29px 0; }
+/* Education: the letters' hover reveal stays open while one of them is expanded */
+.edu-has-docs:has(.xp.is-open) .edu-docs-reveal { grid-template-rows: 1fr; opacity: 1; }
+
+/* phones: a document's page or slide takes the frame's whole width */
+@media (max-width: 640px) {
+    .xp.is-open > .pdf-deck { padding: 0; }
+    .xp.is-open .pdf-deck-slide { padding: 0; }
+    .xp.is-open > .pdf-flow { padding: 46px 0 0; }
+    .xp.is-open > .pdf-viewer { padding: 14px 0 0; }
+    .xp.is-open > .pdf-deck > figcaption,
+    .xp.is-open > .pdf-deck > .doc-escape,
+    .xp.is-open > .pdf-flow > .doc-escape { padding-inline: 12px; } /* the words keep off the frame's edge */
+}
+
+/* photos, photo carousels and decks open with a long press on the picture, so their expand
+   button shows only to a keyboard (the close button stays, in the open frame) */
+.xp-hold:not(.is-open) > .xp-toggle:not(:focus-visible) { opacity: 0; pointer-events: none; }
+.xp-hold img,
+.xp-hold canvas {
+    -webkit-touch-callout: none; /* iOS: the long press is ours, not "Save image" */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+/* the picture gives a little under a held press, then the frame grows */
+.xp.is-holding img,
+.xp.is-holding canvas { transform: scale(0.975); transition: transform 420ms ease; }
+@media (prefers-reduced-motion: reduce) {
+    .xp.is-holding img,
+    .xp.is-holding canvas { transform: none; }
+}
+/* a mouse drags the slides: snapping waits until the slide is let go */
+.carousel-track.is-dragging,
+.pdf-deck-track.is-dragging { scroll-snap-type: none; scroll-behavior: auto; }
+

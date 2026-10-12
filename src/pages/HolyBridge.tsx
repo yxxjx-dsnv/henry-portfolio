@@ -6,6 +6,7 @@ import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfFlow } from '../components/PdfFlow';
 import { BridgeStudio } from '../components/BridgeStudio';
+import { Expandable, Photo } from '../components/Expandable';
 import { useLang } from '../i18n';
 
 const MEDIA = '/media/civ102-bridge';
@@ -327,7 +328,7 @@ export function HolyBridge() {
             <p>{t('The report states the objective as a research question: understand how failure mechanisms constrain the load a thin-plate structure can carry. In practice that meant two quantitative questions. Given a fixed amount of a weak material and a fixed span, where is that material best spent, and which way of failing decides the answer? Everything after the first sketch was an attempt to answer those with numbers.')}</p>
             <br />
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/holy-bridge.jpg`}
                 alt={t("The three teammates at the testing event holding the finished blue box girder, with 'HOLY BRIDGE', 'TEAM 107', the three names, and 'Predicted: 548 N' hand-written on its side, one teammate holding a volume of The New Interpreter's Bible.")}
                 width={1600}
@@ -347,7 +348,7 @@ export function HolyBridge() {
             <p>{t("The height and width came out of an equation. The factor of safety against bending rises roughly with the square of the section height, while the factor against web buckling falls with its square, so the two pull in opposite directions. The most efficient height is the one where the web buckles and the material yields at the same stress, because beyond that height the web gives out before the extra material can help. Solving that condition gave 74 millimetres of web and 121 of flange, which we then rounded to the project's 20-millimetre height increments and to what a knife can honestly cut.")}</p>
             <br />
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/layer-heatmap.jpg`}
                 alt={t("Heatmap titled 'Deck Stress vs. Layer Amounts (Darker is Better)': number of top layers on the vertical axis, bottom layers on the horizontal, with a red diagonal marking the four-layer area constraint. The darkest cells sit toward more top layers.")}
                 width={1600}
@@ -390,7 +391,7 @@ export function HolyBridge() {
                 playsInline
                 preload="metadata"
                 width={1280}
-                height={720}
+                height={2276} // portrait: the page keeps the right height before the video loads
                 aria-label={t('Video: applying contact cement during the glue-up')}
               />
               <figcaption>{t('The glue-up.')}</figcaption>
@@ -398,7 +399,9 @@ export function HolyBridge() {
             <FigureCarousel slides={tr(ASSEMBLY)} label={t('Assembling the box girder')} />
             <p>{t('The finished section is a closed box: a soffit, two webs, a layered top flange, and eight diaphragms inside. Below it is built from the assembly drawing, every piece, blue side out. Drag the slider and the bridge lays itself back onto the one sheet it was cut from. X-ray shows the diaphragms and the splice patches, and that there is no patch on the top sheet.')}</p>
             <br />
-            <BridgeStudio />
+            <Expandable label="Bridge studio">
+              <BridgeStudio />
+            </Expandable>
             <p className="story-head">{t('The Bible test')}</p>
             <p>{t('Before we closed the box we tested it ourselves: the bridge over the one-metre span between two tables, the same books that had clamped it now loading it, an acrylic ruler taped at one end to read the deflection. Around 20 kilograms it showed minor web buckling, and the soffit lifted near the diaphragms, where a roughly one-millimetre height mismatch kept it from seating. Some pieces also had to be patched from offcuts.')}</p>
             <br />
@@ -418,7 +421,7 @@ export function HolyBridge() {
             <p>{t('It did not fail anywhere the analysis pointed. It failed at a splice. To reach the full length from one sheet, we had joined shorter pieces end to end, and one of those joints sat in the top flange, the part of the bridge in compression. We had treated that joint as harmless, the way the model does, as if the layer were one continuous piece. Under load it was not. The compression had nowhere to cross the unreinforced seam, so the flange hinged there and folded into a sharp V, and the whole section went with it. It had held the Bibles a few nights earlier because the books were spread along the whole span. The competition load comes through a rig and is concentrated, so the splice carried far more than it ever had under the books.')}</p>
             <br />
             <figure className="story-figure">
-              <img
+              <Photo
                 src={`${MEDIA}/photo-failure.jpg`}
                 alt={t('The broken bridge: the top flange has torn and folded into a sharp V-shape at a splice joint where two matboard pieces were joined end to end, the two halves of the deck angling down from the break.')}
                 width={1200}
@@ -429,7 +432,9 @@ export function HolyBridge() {
             </figure>
             <p>{t('The run, replayed on the model below. Load case 1 goes in stages: one car alone, then the first two together, then all three, the full 400 N and the pass mark. Ours carried the first car across and back and let go on the second pass, with two cars on the span and the lead car on the seam. Its failure load is the last one it held, 133 N. Of the 75 bridges that term, 30 stopped at exactly that number and 39 carried the whole train or more.')}</p>
             <br />
-            <BridgeStudio variant="testday" />
+            <Expandable label="Test day">
+              <BridgeStudio variant="testday" />
+            </Expandable>
             <p>{t('So the number the research produced was real, but it was the failure load of the bridge we designed, not the bridge we built. The two differed at exactly one place: a discontinuity the analysis was never told about. A continuous compression flange carries load across its whole length; a spliced one is only as strong as the seam, and an unreinforced seam in the most-compressed part of the structure is the worst place to put it. In hindsight the fix is obvious: reinforce the splice with an overlapping doubler and extra glue tabs, or plan the cut layout so the compression flange is one uncut piece, or at least move any unavoidable joint away from midspan where the moment is highest. We had spent the whole design on the modes we modeled and almost nothing on the joint we improvised.')}</p>
             <br />
             <p>{t('The gap between 1,096 and 133 is the lesson, and a better one than a pass would have been. The equations narrowed the shape and the code checked them at every train position, but the model only knows what you tell it, and we never told it about the seam. What I kept is a specific suspicion: the failure is rarely at the point the analysis worked hardest to protect. It is at the detail you decided was too small to model.')}</p>
