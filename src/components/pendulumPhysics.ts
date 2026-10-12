@@ -79,12 +79,6 @@ export function fitQuadratic(x: number[], y: number[]): [number, number, number]
   return [out[0], out[1], out[2]];
 }
 
-/** T = k L^n via the log–log line. */
-export function fitPower(L: number[], T: number[]): { k: number; n: number } {
-  const f = fitLinear(L.map(Math.log10), T.map(Math.log10));
-  return { k: 10 ** f.b, n: f.a };
-}
-
 /** A e^(−t/τ) via the log line. */
 export function fitExp(t: number[], y: number[]): { A: number; tau: number } {
   const f = fitLinear(t, y.map(Math.log));

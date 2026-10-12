@@ -86,3 +86,19 @@ test('a reading shows the decimals its uncertainty earns', () => {
   expect(fmtReading(178.4, undefined)).toBe('178');
   expect(display('L', 'rad')).toEqual({ unit: 'cm', scale: 100, digits: 1 });
 });
+
+test('a short string’s decay is read before the swing sinks into the tracker’s noise', () => {
+  const p = PRESETS.find((x) => x.id === 'q')!;
+  const short = p.setups[0]; // 5 cm
+  const clean = trial(short, p.measure);
+  let seed = 11;
+  const rng = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const noisy = trial(short, p.measure, rng);
+  if (refused(clean.period) || refused(noisy.period)) throw new Error('refused');
+  expect(Math.abs(noisy.period.value / clean.period.value - 1)).toBeLessThan(0.02);
+});
+
+test('a stopwatch timing one swing still records enough to read it', () => {
+  const r = trial({ ...BENCH, stringLength: 0.3 }, { kind: 'stopwatch', swings: 1 });
+  expect(refused(r.period)).toBe(false);
+});

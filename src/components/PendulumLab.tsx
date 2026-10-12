@@ -3,7 +3,7 @@ import type { BufferAttribute, Object3D, Points } from 'three';
 import { useLang } from '../i18n';
 import { gauss } from './pendulumPhysics';
 import { BENCH, dynamics, swing, thetaAt, type Motion, type Setup } from './pendulumModel';
-import { protractor, refused, type Track, type TrackerSettings } from './pendulumInstruments';
+import { protractor, refused, track, type Track, type TrackerSettings } from './pendulumInstruments';
 import {
   DECAY_SECONDS,
   DEFAULT_MEASURE,
@@ -13,6 +13,7 @@ import {
   secondsFor,
   trackerOf,
   type AngleUnit,
+  type ColKey,
   type FitKind,
   type Measure,
   type Preset,
@@ -89,7 +90,8 @@ export function PendulumLab() {
   const frameRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<Live | null>(null);
   const clockRef = useRef({ t: 0, speed: 1 });
-  const bufRef = useRef<Track>({ t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 });
+  // lazily: useRef's argument would allocate the three 192 KB arrays on every render
+  const [bufRef] = useState(() => ({ current: { t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 } as Track }));
   const trailRef = useRef<{ points: Points; attr: BufferAttribute } | null>(null);
   const dragRef = useRef({ on: false, theta: 0, offset: 0 });
   const heldRef = useRef<{ th: number; L: number } | null>(null); // a sweep's trial, posed at its release
@@ -151,6 +153,7 @@ export function PendulumLab() {
     bufRef.current.n = 0;
     trailRef.current?.points.geometry.setDrawRange(0, 0);
     setTable([]);
+    setFrame({ t: 0, x: 0, y: -hangRef.current, th: 0, n: 0 }); // the readouts follow the ball back to hanging
   };
 
   // ── what the hand and the buttons do ──
@@ -174,6 +177,7 @@ export function PendulumLab() {
     ...read,
   });
   const release = (theta: number) => {
+    if (runningRef.current) return; // a sweep began while the ball was held: the bench is the sweep's
     if (!isRelease(theta)) {
       setNote(PULL); // a tap: the ball just hangs
       return;
@@ -186,20 +190,26 @@ export function PendulumLab() {
     setReleased(true);
     setNote(null);
   };
+  /** What the instrument holds so far: Tracker's frames, or for a stopwatch the true motion
+   *  (its error is the hand's, added when it is read; and a long stopwatch run can outlast
+   *  the frame buffer). */
+  const recording = (live: Live) =>
+    live.measure.kind === 'stopwatch' ? track(live.motion, Math.min(clockRef.current.t, live.seconds), live.tk) : bufRef.current;
   /** The run's time is up: read the whole recording, then the ball hangs. */
   const finish = () => {
     const live = liveRef.current;
     if (!live) return;
-    addRow(handRow(live, readTrack(bufRef.current, live.measure, Math.random)));
+    addRow(handRow(live, readTrack(recording(live), live.measure, Math.random)));
     hang();
   };
   /** Read the recording so far; too early, and the reason shows while the swing goes on. */
   const measureNow = () => {
     const live = liveRef.current;
     if (!live) return;
-    const read = readNow(bufRef.current, live.measure, Math.random);
+    const read = readNow(recording(live), live.measure, Math.random);
     if ('reason' in read) {
-      setNote(read.reason);
+      setNote(read.reason); // shown for a moment: the recording keeps growing past it
+      window.setTimeout(() => setNote((n) => (n === read.reason ? null : n)), 1500);
       return;
     }
     addRow(handRow(live, read));
@@ -258,6 +268,13 @@ export function PendulumLab() {
     nextId.current = 1;
     setNote(null);
     setPreset(null);
+    setGraph({ x: 'theta', y: 'T', fit: null });
+  };
+  /** A sweep: the graph takes the swept knob as its x and what is measured as its y. */
+  const runSweep = (setups: Setup[], col: ColKey) => {
+    setPreset(null);
+    setGraph({ x: col, y: measure.kind === 'tracker' && measure.decay ? 'Q' : 'T', fit: null });
+    run(setups, measure);
   };
   // the loop and the pointer handlers live in an effect: they call the latest of these
   const act = useRef({ release, finish, grab });
@@ -336,6 +353,7 @@ export function PendulumLab() {
               camera.aspect = w / h;
               camera.updateProjectionMatrix();
             }
+            paint(liveRef.current?.seconds ?? 8); // the plots beside it changed width too
           });
           ro.observe(mount);
           cleanupExtra.push(() => ro.disconnect());
@@ -468,10 +486,7 @@ export function PendulumLab() {
         const onMove = (e: PointerEvent) => {
           const p = toPlane(e.clientX, e.clientY);
           if (dragRef.current.on) {
-            if (p) {
-              dragRef.current.theta = clampAngle(angleOf(p) + dragRef.current.offset);
-              setPull(dragRef.current.theta);
-            }
+            if (p) dragRef.current.theta = clampAngle(angleOf(p) + dragRef.current.offset); // shown by the loop's tick
             return;
           }
           el.style.cursor = !runningRef.current && p && nearBob(p) ? 'grab' : '';
@@ -522,6 +537,7 @@ export function PendulumLab() {
             pose(th, L);
             if (now - lastUi > 100) {
               lastUi = now;
+              setPull(th);
               setFrame((f) => ({ ...f, x: L * Math.sin(th), y: -L * Math.cos(th), th }));
             }
           } else if (live) {
@@ -554,6 +570,7 @@ export function PendulumLab() {
           webgl.render(scene, camera);
         };
         raf = requestAnimationFrame(animate);
+        paint(8); // empty axes, not blank boxes, before the first run
         setStatus('ready');
       } catch (e) {
         console.error('PendulumLab', e);
@@ -623,8 +640,12 @@ export function PendulumLab() {
               </span>
               {status === 'ready' && (
                 <>
-                  <span className="trk-status" role="status" aria-live="polite">
+                  {/* the ticking line is for the eye; a screen reader hears the readings and refusals */}
+                  <span className="trk-status" aria-live="off">
                     {statusLine}
+                  </span>
+                  <span className="sr-only" role="status">
+                    {noteText}
                   </span>
                   <span className="trk-read" aria-hidden="true">
                     x = {fmtX(frame.x)} m · y = {fmtX(frame.y)} m · θ = {fmtAngle(frame.th, unit)}
@@ -672,45 +693,63 @@ export function PendulumLab() {
           {status === 'ready' && (
             <>
               <PendulumSweep
+                presets
+                showForm={false}
                 base={setup}
                 unit={unit}
                 progress={progress}
                 activePreset={preset}
                 onPreset={runPreset}
-                onRun={(setups) => {
-                  setPreset(null);
-                  run(setups, measure);
-                }}
+                onRun={runSweep}
                 onStop={stop}
-                showForm={bench}
               />
               <div className="asrs-controls">
-                {swinging && (
-                  <button type="button" className="asrs-btn" onClick={measureNow}>
-                    {t('measure now')}
-                  </button>
-                )}
                 <button type="button" className={`asrs-btn${bench ? ' asrs-btn-on' : ''}`} aria-pressed={bench} onClick={() => setBench((b) => !b)}>
                   {t('⚙ bench')}
                 </button>
                 <span className="trk-seg" role="group" aria-label={t('Angle unit')}>
                   {(['rad', 'deg'] as AngleUnit[]).map((u) => (
-                    <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} onClick={() => setUnit(u)}>
+                    <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} aria-pressed={u === unit} onClick={() => setUnit(u)}>
                       {u}
                     </button>
                   ))}
                 </span>
                 <span className="trk-seg" role="group" aria-label={t('Playback speed')}>
-                  {SPEEDS.map((s) => (
-                    <button key={s} type="button" className={`asrs-btn${s === speed ? ' asrs-btn-on' : ''}`} onClick={() => setSpeed(s)}>
-                      {s}×
+                  {SPEEDS.map((sp) => (
+                    <button key={sp} type="button" className={`asrs-btn${sp === speed ? ' asrs-btn-on' : ''}`} aria-pressed={sp === speed} onClick={() => setSpeed(sp)}>
+                      {sp}×
                     </button>
                   ))}
                 </span>
+                {/* last in the row, so nothing before it moves when it comes and goes */}
+                {progress ? (
+                  <button type="button" className="asrs-btn" onClick={stop}>
+                    {t('■ stop')}
+                  </button>
+                ) : (
+                  swinging && (
+                    <button type="button" className="asrs-btn" onClick={measureNow}>
+                      {t('measure now')}
+                    </button>
+                  )
+                )}
                 <span className="asrs-hint">{t('drag elsewhere to orbit · scroll to zoom')}</span>
               </div>
               {bench && (
-                <PendulumSetup setup={setup} onSetup={setSetup} measure={measure} onMeasure={setMeasure} unit={unit} locked={progress !== null} />
+                <div className="pl-bench">
+                  <PendulumSweep
+                    presets={false}
+                    showForm
+                    base={setup}
+                    unit={unit}
+                    progress={progress}
+                    activePreset={preset}
+                    onPreset={runPreset}
+                    onRun={runSweep}
+                    onStop={stop}
+                  />
+                  <PendulumSetup setup={setup} onSetup={setSetup} measure={measure} onMeasure={setMeasure} unit={unit} locked={progress !== null} />
+                </div>
               )}
               <PendulumData rows={rows} unit={unit} onClear={clear} onRemove={(id) => setRows((rs) => rs.filter((r) => r.id !== id))} />
               <PendulumGraph

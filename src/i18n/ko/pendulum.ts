@@ -134,6 +134,7 @@ const ko: Record<string, string> = {
   "A laptop running Tracker software: the pendulum video on the left, and mass-A position-versus-time plots on the right showing the decaying oscillation traced frame by frame.": "Tracker를 띄운 노트북. 왼쪽은 진자 영상, 오른쪽은 프레임 단위로 추적한 감쇠 진동을 보여 주는 질량 A의 위치-시간 그래프.",
   "Tracker, following the bob frame by frame to recover the decay curve.": "감쇠 곡선을 얻기 위해 추를 프레임 단위로 따라가는 Tracker.",
 
+  "remove": "remove",
 };
 
 export default ko;

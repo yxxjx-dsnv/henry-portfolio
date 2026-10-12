@@ -23,7 +23,7 @@ test('no rows, nothing drawn', () => {
 
 test('one row shows L and θ₀, then T to the decimals its uncertainty earns', () => {
   render(<PendulumData rows={[row(1, 0.2)]} unit="deg" onClear={noop} onRemove={noop} />);
-  expect(heads()).toEqual(['#', 'L (cm)', 'θ₀ (°)', 'T (s)', '']);
+  expect(heads()).toEqual(['#', 'L (cm)', 'θ₀ (°)', 'T (s)', 'remove']);
   const cells = screen.getAllByRole('cell').map((c) => c.textContent);
   expect(cells.slice(0, 4)).toEqual(['1', '20.0', '30.0', '0.9520 ± 0.0005']);
 });
@@ -35,7 +35,7 @@ test('only what varies gets a column; refusals keep their reasons', () => {
     row(3, 0.25, { decay: { value: 178, uncertainty: 4 }, q: { reason: 'the swing is not dying away' } }),
   ];
   render(<PendulumData rows={rows} unit="rad" onClear={noop} onRemove={noop} />);
-  expect(heads()).toEqual(['#', 'L (cm)', 'T (s)', 'τ (s)', 'Q', 'how', '']);
+  expect(heads()).toEqual(['#', 'L (cm)', 'T (s)', 'τ (s)', 'Q', 'how', 'remove']);
   const why = screen.getByText('needs 2 more full swings');
   expect(why).toHaveAttribute('colspan', '3');
   const r3 = screen.getAllByRole('row')[3];

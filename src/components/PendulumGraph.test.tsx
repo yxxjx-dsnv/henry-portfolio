@@ -52,10 +52,10 @@ test('a fit in SI against the report, its residuals, a refusal in words, and the
   const rows = [row(1, 0.1), row(2, 0.2), row(3, 0.4)];
   const { container, rerender } = render(<PendulumGraph rows={rows} base={BENCH} unit="deg" x="L" y="T" fitKind="power" onAxes={noop} onFit={onFit} />);
   const note = container.querySelector('.pl-graph-note')!;
-  expect(note).toHaveTextContent('y = 2·x^0.5 · n 0.500 — report 0.433');
+  expect(note).toHaveTextContent('y = 2·x^0.5 (x in m) · n 0.500 — report 0.433');
   expect(screen.getByText('ΔT')).toBeInTheDocument();
 
-  fireEvent.pointerEnter(container.querySelectorAll('.lab-twin-dot')[1].parentElement!);
+  fireEvent.click(container.querySelectorAll('.lab-twin-dot')[1].parentElement!); // a tap, or a mouse's hover
   expect(screen.getByText('20.0 cm, 0.8944 ± 0.0005 s')).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: 'none' }));

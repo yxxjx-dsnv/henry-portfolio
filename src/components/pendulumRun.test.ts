@@ -31,7 +31,7 @@ test('a trial run keeps the very row trial() gives, with the track to show', () 
   const r = trialRun(s, DEFAULT_MEASURE, seeded(7), 3);
   expect(r.row).toEqual(trial(s, DEFAULT_MEASURE, seeded(7), 3));
   expect(r.track.n).toBeGreaterThan(100);
-  expect(r.motion.theta[0]).not.toBe(0.4); // the hand's scatter on the release
+  expect(r.motion.theta[0]).not.toBeCloseTo(0.4, 3); // the hand's scatter on the release
 });
 
 test('a run goes a slice at a time, stops when told, and says when it is done', async () => {

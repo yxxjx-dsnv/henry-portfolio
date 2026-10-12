@@ -2252,14 +2252,11 @@ body.dark-mode .lab-chart { border-color: #333333; background: #161616; }
 .lab-twin { fill: none; stroke: #2f7bff; stroke-width: 2; }
 .lab-twin-dot { fill: #2f7bff; stroke: #fafafa; stroke-width: 1.5; }
 body.dark-mode .lab-twin-dot { stroke: #161616; }
-.lab-measured { fill: currentColor; }
 .lab-err { stroke: currentColor; stroke-opacity: 0.6; stroke-width: 1; }
 .lab-tip { font: 11px ui-monospace, Menlo, monospace; fill: currentColor; }
 .lab-legend { display: flex; gap: 16px; font-size: 11.5px; color: #6a6a6a; padding: 4px 4px 6px; }
 .lab-key { display: inline-block; width: 14px; height: 0; border-top: 2px solid currentColor; vertical-align: middle; margin-right: 6px; }
-.lab-key-measured { border-top: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .lab-key-report { border-top-style: dashed; opacity: 0.6; }
-.lab-key-twin { border-top-color: #2f7bff; }
 
 /* the pendulum lab's Tracker-style window: the site's type and theme, the layout of the
    Tracker session — video, two live plots, the frame table */
@@ -2811,7 +2808,6 @@ body.dark-mode .pl-axis { color: #a8a8a8; }
 .pl-axis select:hover { border-color: #8a8a8a; }
 body.dark-mode .pl-axis select { color: #e6e6e6; background: #222222; border-color: #3d3d3d; }
 body.dark-mode .pl-axis select:hover { border-color: #6a6a6a; }
-.pl-textbook { fill: none; stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.5; stroke-dasharray: 5 4; }
 .pl-report-line { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.5; }
 .pl-report-dot { fill: #fafafa; stroke: currentColor; stroke-width: 1.3; }
 body.dark-mode .pl-report-dot { fill: #161616; }
@@ -2823,4 +2819,13 @@ body.dark-mode .pl-report-dot { fill: #161616; }
 /* under 16px, iOS Safari zooms the page when a field is focused, and stays zoomed */
 @media (pointer: coarse) {
     .pl-num, .pl-select, .pl-axis select { font-size: 16px; }
+}
+
+/* the lab's small labels read in the dark too */
+body.dark-mode .lab-field,
+body.dark-mode .lab-legend { color: #a8a8a8; }
+/* fingers: a row's × and the table's buttons far enough apart not to hit the wrong one */
+@media (pointer: coarse) {
+    .pl-data-x { min-width: 32px; min-height: 28px; }
+    .pl-data-foot { gap: 24px; }
 }

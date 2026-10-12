@@ -1,4 +1,4 @@
-import { bigAngle, fitExp, fitLinear, fitPower, fitQuadratic, gauss } from './pendulumPhysics';
+import { bigAngle, fitExp, fitLinear, fitQuadratic, gauss } from './pendulumPhysics';
 
 test('the report’s fits give back the curves they are fed', () => {
   const xs = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3];
@@ -7,9 +7,6 @@ test('the report’s fits give back the curves they are fed', () => {
   expect(lin.b).toBeCloseTo(202, 6);
   const [c0, c1, c2] = fitQuadratic(xs, xs.map((x) => 0.936 - 0.001 * x + 0.075 * x * x));
   expect([c0, c1, c2].map((c) => +c.toFixed(6))).toEqual([0.936, -0.001, 0.075]);
-  const pow = fitPower(xs, xs.map((x) => 1.94 * x ** 0.433));
-  expect(pow.k).toBeCloseTo(1.94, 6);
-  expect(pow.n).toBeCloseTo(0.433, 6);
   const ts = [0, 20, 40, 60, 80];
   const exp = fitExp(ts, ts.map((t) => 0.52 * Math.exp(-t / 178)));
   expect(exp.A).toBeCloseTo(0.52, 6);

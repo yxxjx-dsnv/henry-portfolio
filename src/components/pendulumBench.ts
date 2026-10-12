@@ -5,6 +5,7 @@
 import { REPORT, bigAngle, fitLinear, fitQuadratic, type Point, type Rng } from './pendulumPhysics';
 import { BENCH, smallAnglePeriod, swing, type Setup } from './pendulumModel';
 import {
+  MIN_SWINGS,
   REACTION,
   decayOfTrack,
   envelopeOfTrack,
@@ -72,7 +73,9 @@ export const trackerOf = (m: Measure): TrackerSettings =>
 export function secondsFor(s: Setup, m: Measure): number {
   const T = smallAnglePeriod(s) * bigAngle(Math.abs(s.theta0));
   if (!Number.isFinite(T)) return 8;
-  if (m.kind === 'stopwatch') return T * m.swings + 1.5;
+  // a stopwatch is read off the swing it times, and that swing's period needs MIN_SWINGS
+  // full swings of its own to be read at all (×1 included)
+  if (m.kind === 'stopwatch') return T * Math.max(m.swings, MIN_SWINGS + 1) + 1.5;
   if (m.decay) return DECAY_SECONDS;
   return Math.max(4, 4.5 * T);
 }
@@ -96,8 +99,9 @@ export type Row = {
 
 /** Read a recorded track: what one trial gives, or why it cannot yet. A stopwatch is read off
  *  the same motion: the true period, timed over `swings` swings by a hand. */
-export function readTrack(tr: Track, m: Measure, rng?: Rng): Pick<Row, 'period' | 'decay' | 'q' | 'envelope'> {
+export function readTrack(rec: Track, m: Measure, rng?: Rng): Pick<Row, 'period' | 'decay' | 'q' | 'envelope'> {
   const tk = trackerOf(m);
+  const tr = untilNoise(rec, 8 * tk.jitter);
   const truth = periodOfTrack(tr, tk);
   if (m.kind === 'stopwatch') {
     if (refused(truth)) return { period: truth };
@@ -117,6 +121,16 @@ export function readTrack(tr: Track, m: Measure, rng?: Rng): Pick<Row, 'period' 
           uncertainty: Math.PI * Math.hypot(decay.uncertainty / truth.value, (decay.value * truth.uncertainty) / truth.value ** 2),
         };
   return { period: truth, decay, q, envelope: envelopeOfTrack(tr) };
+}
+
+/** A recording up to where the swing sinks into Tracker's jitter: past that, a strongly damped
+ *  swing (a short string, a rusty pivot, water) is noise, and reading it gives a wrong period
+ *  and τ with a falsely tight ±. */
+export function untilNoise(tr: Track, band: number): Track {
+  if (!(band > 0)) return tr;
+  let k = tr.n;
+  while (k > 0 && Math.abs(tr.x[k - 1]) < band) k--;
+  return k === tr.n ? tr : { ...tr, n: k };
 }
 
 /** One trial run straight through (a sweep or a preset): a hand lets go near the set angle

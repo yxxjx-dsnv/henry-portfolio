@@ -2,7 +2,7 @@
 // visitor's choosing with its residuals, the textbook's line, and the report's own points and
 // curve where the axes are one of the report's. Everything is computed in SI and scaled for
 // display only at the end (display()), so a fit's numbers never depend on the unit shown.
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useLang } from '../i18n';
 import type { Point } from './pendulumPhysics';
 import { refused } from './pendulumInstruments';
@@ -50,6 +50,8 @@ function reportData(file: string, peaks: boolean): Promise<Point[]> {
 
 const KNOB: Partial<Record<XAxis, VarKey>> = { L: 'stringLength', theta: 'theta0', r: 'bobRadius', m: 'bobMass', g: 'g', rho: 'fluidRho', friction: 'pivotFriction' };
 const Y_EMPTY: Record<YAxis, [number, number]> = { T: [0, 2], tau: [0, 300], Q: [0, 1000], A: [0, 0.6] }; // SI, when nothing at all is drawn
+/** The fit's line with true minus signs (and τ's sign folded into the exponent). */
+const equation = (f: Parameters<typeof fitEquation>[0]) => fitEquation(f).replace(/-/g, '−').replace('(−x/−', '(x/');
 const sym = (k: XAxis | YAxis) => (k === 't' ? 't' : k === 'A' ? 'A' : COLUMNS[k].label);
 
 function ticks(lo: number, hi: number, n = 5): number[] {
@@ -69,7 +71,7 @@ function extent(vs: number[], pad: number): [number, number] {
   return [lo - d, hi + d];
 }
 
-const W = 640;
+const W_MAX = 640; // the drawing's width in its own units; on a narrow screen it is drawn narrower, so the text stays legible
 const M = { l: 56, r: 16, t: 14, b: 44 };
 const PLOT_BOTTOM = 320 - M.b;
 const GAP = 10;
@@ -97,6 +99,15 @@ export function PendulumGraph({
   const { t, tx } = useLang();
   const clip = `pl-clip${useId().replace(/:/g, '')}`;
   const [hover, setHover] = useState<Point | null>(null);
+  const chart = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(W_MAX);
+  useEffect(() => {
+    const el = chart.current;
+    if (!el || typeof ResizeObserver !== 'function') return;
+    const ro = new ResizeObserver(() => setW(Math.max(360, Math.min(W_MAX, Math.round(el.clientWidth)))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // the report's own data for these axes
   const rep = reportSeries(x, y);
@@ -127,7 +138,7 @@ export function PendulumGraph({
   const theory = theoryLine(base, x, y);
   const lines: Array<[string, (v: number) => number]> = [];
   if (rep) lines.push(['pl-report-line', inD(rep.line)]);
-  if (theory) lines.push(['pl-textbook', inD(theory)]);
+  if (theory) lines.push(['lab-report', inD(theory)]);
   if (good) lines.push(['lab-twin', inD(good.at)]);
 
   // ranges: the points (the lab's and the report's), else the knob's whole range
@@ -142,7 +153,9 @@ export function PendulumGraph({
         : [0, 1];
   const along = Array.from({ length: 81 }, (_, i) => x0 + ((x1 - x0) * i) / 80);
   const ysAll = [...shown, ...repShown].flatMap((p) => [p.y - (p.dy ?? 0), p.y + (p.dy ?? 0)]);
-  for (const [, g] of lines) for (const v of along) ysAll.push(g(v));
+  // the points set the height; a line that runs steeply off past them is clipped, not allowed to
+  // squash them (the textbook's T(g) climbs to 6 s just left of the Moon)
+  if (!ysAll.length) for (const [, g] of lines) for (const v of along) ysAll.push(g(v));
   const ysFinite = ysAll.filter(Number.isFinite);
   const [y0, y1] = ysFinite.length ? extent(ysFinite, 0.08) : [Y_EMPTY[y][0] * dy.scale, Y_EMPTY[y][1] * dy.scale];
 
@@ -197,17 +210,32 @@ export function PendulumGraph({
     else if (x === 'L' && y === 'Q' && good.kind === 'linear')
       compare = tx('Q ≈ {a}·L + {b} — report 1960·L + 202', { a: p.slope.toFixed(0), b: p.intercept.toFixed(0) });
   }
+  // the fit is in SI: say so where an axis shows other units (cm, g, degrees)
+  const siNote = [x !== 't' && dx.scale !== 1 && `x in ${COLUMNS[x].unit}`, dy.scale !== 1 && `y in ${y === 'A' ? 'rad' : COLUMNS[y].unit}`]
+    .filter(Boolean)
+    .join(', ');
   const note: ReactNode = !pts.length
     ? t('each release adds a point')
     : !fitKind
       ? `n = ${pts.length}`
       : f && 'reason' in f
         ? f.reason
-        : <>{fitEquation(good!)}{compare && <> · {compare}</>}</>;
+        : (
+          <>
+            {equation(good!)}
+            {siNote && ` (${siNote})`}
+            {compare && <> · {compare}</>}
+          </>
+        );
 
   const tip = (p: Point) =>
     [`${p.x.toFixed(x === 't' ? 1 : dx.digits)} ${dx.unit}`, `${fmtReading(p.y, p.dy, dy.digits)} ${dy.unit}`].map((s) => s.trim()).join(', ');
-  const hoverOn = (p: Point) => ({ onPointerEnter: () => setHover(p), onPointerLeave: () => setHover(null) });
+  // a mouse hovers a point; a finger taps it (and taps it again, or another, to move on)
+  const hoverOn = (p: Point) => ({
+    onPointerEnter: (e: React.PointerEvent) => e.pointerType === 'mouse' && setHover(p),
+    onPointerLeave: (e: React.PointerEvent) => e.pointerType === 'mouse' && setHover(null),
+    onClick: () => setHover((h) => (h === p ? null : p)),
+  });
   const xLab = label(x, dx.unit);
   const yLab = label(y, dy.unit);
 
@@ -248,7 +276,7 @@ export function PendulumGraph({
           ))}
         </span>
       </div>
-      <div className="lab-chart">
+      <div className="lab-chart" ref={chart}>
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${yLab} — ${xLab}`}>
           <defs>
             <clipPath id={clip}>

@@ -64,7 +64,9 @@ export function PendulumData({ rows, unit, onClear, onRemove }: { rows: Row[]; u
                 <th key={k}>{head(k)}</th>
               ))}
               {showHow && <th className="pl-data-how">{t('how')}</th>}
-              <th />
+              <th>
+                <span className="sr-only">{t('remove')}</span>
+              </th>
             </tr>
           </thead>
           <tbody>

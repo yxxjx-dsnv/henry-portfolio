@@ -32,6 +32,9 @@ export function trialRun(s: Setup, m: Measure, rng: Rng | undefined, id: number)
 
 /** Run jobs 0…n−1 in slices of at most `budget` ms (at least one job each), yielding to the
  *  page between slices; `done` after the last. Returns stop(). */
+// ponytail: one job is one task, and a 200 s decay trial is ~20–50 ms of RK4 on a desktop
+// (several times that on a phone), so ■ stop can wait that long; move trialRun into a module
+// Worker if phone stop latency ever becomes a complaint.
 export function runSliced(n: number, job: (i: number) => void, done: () => void, budget = 12): () => void {
   let i = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;

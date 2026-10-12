@@ -53,11 +53,12 @@ export function PendulumSweep(props: {
   progress: { done: number; total: number } | null;
   activePreset: PresetId | null;
   onPreset: (p: Preset) => void;
-  onRun: (setups: Setup[]) => void;
+  onRun: (setups: Setup[], swept: ColKey) => void; // the swept knob's column, for the graph's x
   onStop: () => void;
   showForm: boolean;
+  presets?: boolean; // the experiments row (the lab shows it apart from the form)
 }): JSX.Element {
-  const { base, unit, progress, activePreset, onPreset, onRun, onStop, showForm } = props;
+  const { base, unit, progress, activePreset, onPreset, onRun, onStop, showForm, presets = true } = props;
   const { t, tx } = useLang();
   const [key, setKey] = useState<VarKey>('stringLength');
   const [[from, to], setEnds] = useState(ENDS.stringLength);
@@ -70,65 +71,54 @@ export function PendulumSweep(props: {
 
   return (
     <div className="pl-sweep">
-      <div className="asrs-steps" role="group" aria-label={t('Experiments')}>
-        {PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={`asrs-step${p.id === activePreset ? ' asrs-step-on' : ''}`}
-            aria-pressed={p.id === activePreset}
-            disabled={busy}
-            onClick={() => onPreset(p)}
-          >
-            {t(p.lab)} · {t(p.name)}
-          </button>
-        ))}
-      </div>
-      {(showForm || busy) && (
-        <div className="asrs-controls" role="group" aria-label={t('Sweep')}>
-          {showForm && (
-            <>
-              <select
-                className="pl-select"
-                aria-label={t('Variable')}
-                value={key}
-                disabled={busy}
-                onChange={(e) => {
-                  const k = e.target.value as VarKey;
-                  setKey(k);
-                  setEnds(ENDS[k]);
-                }}
-              >
-                {KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {t(VARIABLES[k].label)}
-                  </option>
-                ))}
-              </select>
-              {/* remounted on a new variable or angle unit, so the fields show the new values */}
-              <span key={`${key}-${unit}`} className="trk-seg">
-                <Num label={t('from')} si={from} set={(x) => setEnds([x, to])} {...field} />
-                <Num label={t('to')} si={to} set={(x) => setEnds([from, x])} {...field} />
-                <span className="trk-muted">{d.unit}</span>
-              </span>
-              <Num label={t('steps')} si={steps} set={setSteps} min={2} max={25} disabled={busy} />
-              <Num label={t('repeats')} si={repeats} set={setRepeats} min={1} max={10} disabled={busy} />
-            </>
-          )}
-          {busy ? (
-            <>
-              <button type="button" className="asrs-btn" onClick={onStop}>
-                {t('■ stop')}
-              </button>
-              <span className="trk-progress">
-                {progress.done} / {progress.total}
-              </span>
-            </>
-          ) : (
-            <button type="button" className="asrs-btn" onClick={() => onRun(sweep(base, key, from, to, steps, repeats))}>
-              {tx('▶ sweep {n}', { n: steps * repeats })}
+      {presets && (
+        // not disabled while a run goes on: another experiment simply starts over (and the
+        // keyboard keeps its place)
+        <div className="asrs-steps" role="group" aria-label={t('Experiments')}>
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`asrs-step${p.id === activePreset ? ' asrs-step-on' : ''}`}
+              aria-pressed={p.id === activePreset}
+              onClick={() => onPreset(p)}
+            >
+              {t(p.lab)} · {t(p.name)}
             </button>
-          )}
+          ))}
+        </div>
+      )}
+      {showForm && (
+        <div className="asrs-controls" role="group" aria-label={t('Sweep')}>
+          <select
+            className="pl-select"
+            aria-label={t('Variable')}
+            value={key}
+            disabled={busy}
+            onChange={(e) => {
+              const k = e.target.value as VarKey;
+              setKey(k);
+              setEnds(ENDS[k]);
+            }}
+          >
+            {KEYS.map((k) => (
+              <option key={k} value={k}>
+                {t(VARIABLES[k].label)}
+              </option>
+            ))}
+          </select>
+          {/* remounted on a new variable or angle unit, so the fields show the new values */}
+          <span key={`${key}-${unit}`} className="trk-seg">
+            <Num label={t('from')} si={from} set={(x) => setEnds([x, to])} {...field} />
+            <Num label={t('to')} si={to} set={(x) => setEnds([from, x])} {...field} />
+            <span className="trk-muted">{d.unit}</span>
+          </span>
+          <Num label={t('steps')} si={steps} set={setSteps} min={2} max={25} disabled={busy} />
+          <Num label={t('repeats')} si={repeats} set={setRepeats} min={1} max={10} disabled={busy} />
+          {/* one button, run or stop, so focus stays on it across the run (progress is in the status line) */}
+          <button type="button" className="asrs-btn" onClick={busy ? onStop : () => onRun(sweep(base, key, from, to, steps, repeats), COL[key])}>
+            {busy ? t('■ stop') : tx('▶ sweep {n}', { n: steps * repeats })}
+          </button>
         </div>
       )}
     </div>

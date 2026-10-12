@@ -32,6 +32,7 @@ test('the sweep runs in display units, clamped to the bench, steps × repeats', 
   fireEvent.change(num('to'), { target: { value: '999' } }); // past the bench's 60 cm
   fireEvent.click(screen.getByRole('button', { name: '▶ sweep 6' }));
   const Ls = onRun.mock.calls[0][0].map((s: typeof BENCH) => s.stringLength);
+  expect(onRun.mock.calls[0][1]).toBe('L'); // the graph's x follows the swept knob
   expect(Ls[0]).toBeCloseTo(0.05);
   expect(Ls[5]).toBeCloseTo(0.6);
 
@@ -46,12 +47,12 @@ test('the sweep runs in display units, clamped to the bench, steps × repeats', 
   expect(degs).toEqual([10, 10, 25, 25, 40, 40]);
 });
 
-test('while running: presets and fields locked, stop and the count shown', () => {
+test('while running: the fields lock, the run button becomes stop, a preset can start over', () => {
   const p = props({ progress: { done: 2, total: 6 } });
   render(<PendulumSweep {...p} />);
-  expect(PRESETS.every((x) => screen.getByRole('button', { name: `${x.lab} · ${x.name}` }).hasAttribute('disabled'))).toBe(true);
   expect(num('from')).toBeDisabled();
-  expect(screen.getByText('2 / 6')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '■ stop' }));
   expect(p.onStop).toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: `${PRESETS[0].lab} · ${PRESETS[0].name}` }));
+  expect(p.onPreset).toHaveBeenCalledWith(PRESETS[0]);
 });
