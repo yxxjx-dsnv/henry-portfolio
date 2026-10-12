@@ -68,6 +68,8 @@ export function attachCoverResistance(cover: Edge) {
   let ownY = NaN; // the last scroll position we set, to tell our scrolls from others
   let raf = 0;
   let lastT = 0;
+  let beat = 0; // the display's frame interval (ms), learned from the frames
+  let clock = 0; // the band's own time (ms), in whole beats
   let held = false; // the badge is in someone's hand: their drag is not a scroll
   // a glide: from `from` to `to` over `T` s, leaving at speed `v0` (px/s)
   const glide = { from: 0, to: 0, v0: 0, t0: 0, T: 0.7 };
@@ -80,41 +82,81 @@ export function attachCoverResistance(cover: Edge) {
     window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
   };
   const run = () => {
-    if (!raf) {
-      lastT = now();
-      raf = requestAnimationFrame(frame);
-    }
+    if (!raf) raf = requestAnimationFrame(frame);
   };
 
-  function frame() {
+  // A trackpad's momentum can't always be cancelled: once a gesture's first
+  // wheel event went through (scrolling up inside the site, say), the browser
+  // scrolls on whatever the page says, and it and the band moved the page in
+  // turn (30, 20, back 27, 29 px). While the band holds the page, the page
+  // can't be scrolled by hand (overflow hidden; the band's own scrolling still
+  // works), which ends that momentum at once. It frees when the band is at rest
+  // and the wheel has gone quiet. Wheel only: a finger is already the band's.
+  const root = document.documentElement;
+  let freeAt = 0;
+  let taken = -1e9; // the last wheel event the band took (the momentum it is absorbing)
+  const free = () => {
+    window.clearTimeout(freeAt);
+    root.classList.remove('band-held');
+  };
+  const tryFree = () => {
+    freeAt = 0;
+    // (a wheel the band didn't take, like scrolling back down into the site, frees it soon)
+    if (mode === 'glide' || p > 0 || shown > 0 || now() - taken < 150) freeAt = window.setTimeout(tryFree, 150);
+    else free();
+  };
+  const hold = () => {
+    taken = now();
+    root.classList.add('band-held');
+    if (!freeAt) freeAt = window.setTimeout(tryFree, 150);
+  };
+
+  // The band keeps its own time, counted in whole frames. Reading the clock
+  // inside this callback moves with whatever ran before it in the frame (the
+  // badge's 3D, the cover's flying name), and even the frame's timestamp
+  // wobbles around the display's beat (7.4 then 9.3 ms at a steady 120 Hz): a
+  // page stepped by either goes 15, 19.5, 15 px, a judder anything tied to the
+  // scroll shows. A frame is one beat, a dropped one two.
+  function frame(ts: number) {
     raf = 0;
-    const t = now();
-    const dt = Math.min((t - lastT) / 1000, 0.05);
-    lastT = t;
+    const raw = ts - lastT;
+    lastT = ts;
+    let step = 0; // a fresh start (or a stall) moves nothing
+    if (raw > 0 && raw < 50) {
+      if (!beat || Math.abs(raw - beat) < beat * 0.4) beat = beat ? beat + (raw - beat) * 0.05 : raw;
+      step = Math.max(1, Math.round(raw / beat)) * beat;
+    }
+    clock += step;
+    const dt = step / 1000;
     const e = edge();
     if (mode === 'glide') {
-      const k = (t - glide.t0) / 1000 / glide.T;
+      if (!Number.isFinite(glide.t0)) glide.t0 = clock; // the trip starts on its first frame
+      const k = (clock - glide.t0) / 1000 / glide.T;
       if (k >= 1) {
         put(glide.to);
         mode = glide.to === 0 ? 'cover' : 'site';
         vel = 0;
         return;
       }
-      // the eased trip, plus the speed it left with fading out: s(1-s)^3 starts
-      // at slope 1 and ends flat, so nothing jumps at either end
-      put(glide.from + (glide.to - glide.from) * smoother(k) + glide.v0 * glide.T * k * (1 - k) ** 3);
+      // the eased trip, plus the speed it left with fading out: k(1-k)^3(1+3k)
+      // starts at slope 1 with no bend and ends flat, so the push hands over to
+      // the trip without the page catching (k(1-k)^3 braked hard at once: the
+      // page slowed by a third, then sped up again)
+      put(glide.from + (glide.to - glide.from) * smoother(k) + glide.v0 * glide.T * k * (1 - k) ** 3 * (1 + 3 * k));
       run();
       return;
     }
     if (mode !== 'cover' && mode !== 'site') return;
-    const letGo = !touching && t - lastInput > IDLE;
+    const letGo = !touching && ts - lastInput > IDLE;
     p *= Math.exp(-dt / (letGo ? RELAX : LEAK));
     if (p < 0.5) p = 0;
     const target = mode === 'cover' ? stretch(p) : stretch(p, BAND_UP);
     shown += (target - shown) * (1 - Math.exp(-dt / FOLLOW));
     if (p === 0 && shown < 0.3) shown = 0;
     const y = mode === 'cover' ? shown : e - shown;
-    if (dt > 0 && Number.isFinite(prevY)) vel = 0.6 * vel + 0.4 * ((y - prevY) / dt);
+    // the page's own speed this frame (it already trails the wheel through FOLLOW;
+    // averaging it again made a glide leave slower than the page was moving)
+    if (dt > 0 && Number.isFinite(prevY)) vel = (y - prevY) / dt;
     prevY = y;
     put(y);
     if (p > 0 || shown > 0) run();
@@ -140,9 +182,10 @@ export function attachCoverResistance(cover: Edge) {
     glide.to = to;
     glide.T = Math.min(0.85, Math.max(0.5, 0.35 + dist / 2400));
     // keep the push's speed only if it is heading the right way, and never more
-    // than the trip can absorb without overshooting
-    glide.v0 = Math.sign(v) === Math.sign(to - from) ? Math.sign(v) * Math.min(Math.abs(v), (1.2 * dist) / glide.T) : 0;
-    glide.t0 = now();
+    // than the trip can absorb without overshooting (with k(1-k)^3(1+3k) that is
+    // up to about 2.5x the trip's average; 2x keeps a margin)
+    glide.v0 = Math.sign(v) === Math.sign(to - from) ? Math.sign(v) * Math.min(Math.abs(v), (2 * dist) / glide.T) : 0;
+    glide.t0 = NaN; // set by the first frame
     mode = 'glide';
     prevY = NaN;
     vel = 0;
@@ -198,7 +241,10 @@ export function attachCoverResistance(cover: Edge) {
     const t = now();
     const fresh = t - lastInput > GAP;
     lastInput = t;
-    if (input(dy, fresh)) ev.preventDefault();
+    if (input(dy, fresh)) {
+      ev.preventDefault();
+      hold();
+    }
   }
   function onTouchStart(ev: TouchEvent) {
     // a second finger makes it a pinch, the browser's to zoom; a finger on a
@@ -261,6 +307,7 @@ export function attachCoverResistance(cover: Edge) {
     },
     dispose() {
     cancelAnimationFrame(raf);
+    free();
     window.removeEventListener('wheel', onWheel);
     window.removeEventListener('touchstart', onTouchStart);
     window.removeEventListener('touchmove', onTouchMove);

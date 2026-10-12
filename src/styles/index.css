@@ -970,6 +970,8 @@ body.dark-mode .activity-item:hover .date p { color: #c6c4c4; }
 body.dark-mode .extra-curricular-section .text .activity-item .date p { color: #c6c4c4; }
 
 html { scrollbar-gutter: stable both-edges; }
+/* the cover's rubber band holds the page: no scrolling by hand (see coverResistance) */
+html.band-held { overflow: hidden; }
 /* W2: dark scrollbars on Windows/Firefox when the site is dark */
 html.dark-mode { color-scheme: dark; scrollbar-color: #3f3f3f #121212; }
 

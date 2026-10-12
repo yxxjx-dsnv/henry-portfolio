@@ -38,6 +38,26 @@ test('scrolling inside the site is untouched', () => {
   expect(y).toBe(1900);
 });
 
+test("momentum the browser won't cancel can't scroll the page while the band holds it", () => {
+  // scrolling up inside the site: the gesture's first event went through, so the
+  // rest can't be cancelled (Chrome), and the browser would scroll on its own
+  start(EDGE + 60);
+  const root = document.documentElement;
+  let fought = 0;
+  for (let i = 0; i < 20; i++) {
+    const e = new WheelEvent('wheel', { deltaY: -20, cancelable: false });
+    window.dispatchEvent(e);
+    if (getComputedStyle(root).overflowY !== 'hidden' && !root.classList.contains('band-held')) y = Math.max(0, y - 20);
+    else fought++;
+    vi.advanceTimersByTime(16);
+  }
+  expect(fought).toBeGreaterThan(0); // held once it reached the edge
+  expect(y).toBeGreaterThan(EDGE - 120); // only the band's stretch, not the momentum
+  settle();
+  expect(y).toBe(EDGE);
+  expect(root.classList.contains('band-held')).toBe(false); // and scrolling is free again
+});
+
 test('a short push up from the site only stretches, then springs back', () => {
   start(EDGE);
   stroke(-15, 8);
