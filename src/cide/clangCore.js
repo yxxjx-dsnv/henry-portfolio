@@ -19,6 +19,8 @@
 //  - App.run records exitCode instead of throwing on a normal non-zero exit
 //  - clock_time_get implemented (binji threw NotImplemented)
 //  - added API.compileLinkRunMulti(files); exported as an ES module
+//  - options.onRunStart: called just before the user's program starts running
+//  - host_write passes every byte through (it stopped at the first NUL)
 // See docs/superpowers/specs/2026-07-21-aps105-labs-ide-design.md
 
 let canvas = null;
@@ -226,7 +228,10 @@ class MemFS {
       iovs += 4;
       const len = this.hostMem_.read32(iovs);
       iovs += 4;
-      str += this.hostMem_.readStr(buf, len);
+      // every byte, NULs included (readStr stops at the first 0 and dropped the rest)
+      const bytes = this.hostMem_.u8.subarray(buf, buf + len);
+      for (let j = 0; j < bytes.length; j += 8192)
+        str += String.fromCharCode.apply(null, bytes.subarray(j, j + 8192));
       size += len;
     }
     this.hostMem_.write32(nwritten_out, size);
@@ -657,6 +662,7 @@ class API {
     this.readBuffer = options.readBuffer;
     this.compileStreaming = options.compileStreaming;
     this.hostWrite = options.hostWrite;
+    this.onRunStart = options.onRunStart;
     this.clangFilename = options.clang || 'clang';
     this.lldFilename = options.lld || 'lld';
     this.sysrootFilename = options.sysroot || 'sysroot.tar';
@@ -833,6 +839,7 @@ class API {
     const buffer = this.memfs.getFileContents(wasm);
     const mod = await WebAssembly.compile(buffer);
     this._phase = 'run';
+    if (this.onRunStart) this.onRunStart();
     const app = await this.run(mod, wasm);
     return {exitCode: app.exitCode, stage: 'run'};
   }

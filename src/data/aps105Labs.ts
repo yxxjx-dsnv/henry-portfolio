@@ -85,9 +85,9 @@ export const aps105Labs: Lab[] = [
     task: "Lab 2 asked for three small C programs that use the math library and decision-making with scanf and printf. Part 1 uses the law of sines to find a triangle's third side and its other two angles from two sides and the included angle alpha. Part 2 decodes a 4-digit lock combination by swapping the first and fourth digits and taking the 9's complement of the middle two. Part 3 computes the electrostatic force between two charges with Coulomb's law, then prints it in nN, uN, mN, or N depending on how large it is.",
     approach: "For Part 1 I define PI as a macro and precompute degree-to-radian and radian-to-degree factors, read side A, side B, and alpha with scanf, convert alpha to radians, then get angle beta with asin((b*sin A)/a), get gamma as PI minus the other two angles, and get side C from the law of sines. I convert the angles back to degrees and print everything with %.2lf. For Part 2 I read the code as one integer with scanf, pull out each digit using % 10 and integer division by 10, 100, and 1000, then rebuild the real number as d(9-b)(9-c)a with place-value multiplication. For Part 3 I read both charges and their unit letters in a single scanf format string (\"%lf%c%c %lf%c%c\"), check whether each unit char is 'n' or 'u' to scale the charge to Coulombs, compute F = k*fabs(q1*q2)/(r*r), then use an if / else-if cascade comparing F against 1e-6, 1e-3, and 1 to pick the right unit, rescale F, and print it.",
     programs: [
-      one('lab2p1', 'Part 1 — triangle', 'lab2part1.c', lab2p1, '3\n4\n90\n'),
-      one('lab2p2', 'Part 2 — code', 'lab2part2.c', lab2p2, '2\n'),
-      one('lab2p3', 'Part 3 — quantities', 'lab2part3.c', lab2p3, '2.5kg + 1.5kg\n3\n'),
+      one('lab2p1', 'Part 1 — triangle', 'lab2part1.c', lab2p1, '3\n2\n30\n'),
+      one('lab2p2', 'Part 2 — code', 'lab2part2.c', lab2p2, '8021\n'),
+      one('lab2p3', 'Part 3 — Coulomb force', 'lab2part3.c', lab2p3, '2nC 3uC\n2\n'),
     ],
   },
   {
@@ -169,7 +169,8 @@ export const aps105Labs: Lab[] = [
           { name: 'lab8part1.c', code: lab8p1C },
           { name: 'lab8part1.h', code: lab8p1H, readonly: true },
         ],
-        stdin: '8\nW\n',
+        // five legal moves for Black; when they run out the game ends on an invalid move
+        stdin: '8\nW\ncd\ncb\nab\nbd\ncf\n',
       },
       {
         id: 'lab8p2',

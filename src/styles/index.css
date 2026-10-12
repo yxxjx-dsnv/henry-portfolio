@@ -618,6 +618,8 @@ body.dark-mode .labs-objective { color: #9a9a9a; }
 .labs-wu-body { margin: 0; line-height: 1.62; }
 .labs-progtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
 
+/* read by screen readers, not shown */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .clab { margin: 14px 0 8px; }
 .clab-note { font-size: 13px; line-height: 1.55; color: #8a8a8a; margin: 12px 0; max-width: 64ch; }
 .clab-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
@@ -703,12 +705,18 @@ body.dark-mode .labs-objective { color: #9a9a9a; }
     tab-size: 2;
     white-space: pre;
 }
+/* under 16px, iOS Safari zooms the page when a field is focused, and stays zoomed */
+@media (pointer: coarse) {
+    .c-editor, .clab-stdin { font-size: 16px; }
+}
 .clab-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
 .clab-run {
     font: inherit; font-size: 13px; padding: 7px 20px; border-radius: 7px; cursor: pointer;
     border: 1px solid #3a6ea5; background: #274b74; color: #eaf1fb;
 }
 .clab-run:hover:not(:disabled) { background: #2f5a8a; }
+.clab-run.is-stop { border-color: #8a5a5a; background: #5a2f2f; color: #f6e9e9; }
+.clab-run.is-stop:hover { background: #6e3838; }
 .clab-run:disabled { opacity: 0.6; cursor: default; }
 .clab-reset {
     font: inherit; font-size: 13px; padding: 7px 15px; border-radius: 7px; cursor: pointer;
@@ -728,7 +736,9 @@ body.dark-mode .labs-objective { color: #9a9a9a; }
     line-height: 1.55;
     background: #1a1a1e;
 }
-.clab-diag { color: #e58a8a; border-bottom: 1px solid #2a2a2e; }
+.clab-diag { color: #e58a8a; border-bottom: 1px solid #2a2a2e; max-height: 240px; overflow: auto; }
+/* a long run scrolls inside its box instead of stretching the page */
+.clab-stdout { max-height: 380px; overflow: auto; }
 .clab-stdout { color: #d4d4d4; }
 .clab-exit {
     padding: 6px 14px;
