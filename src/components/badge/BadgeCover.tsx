@@ -67,19 +67,120 @@ export function BadgeCover() {
     // the site rises into view, tied to the scroll (and so to the band's glide).
     const sidebar = document.querySelector<HTMLElement>('.sidebar');
     const wide = window.matchMedia?.('(min-width: 769px)');
+    const smooth = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+
+    // The big name and the site's heading are the same words. On the way down
+    // the name shrinks and flies into the heading's place, each word to its own
+    // (on phones the two lines become one), and the heading takes over as it
+    // lands: a crossfade, as the name is regular and the heading bold. Back up,
+    // it runs in reverse. Tied to the scroll, like the sidebar.
+    const name = nameRef.current;
+    const words = name ? [...name.querySelectorAll('span')] : [];
+    // Everything the flight needs is measured once, at take-off (and again if
+    // the name is refitted mid-flight): each frame is then arithmetic on the
+    // scroll and a transform, with no layout read, so it keeps up with the glide.
+    type Flight = {
+      h1: HTMLElement;
+      sub: HTMLElement | null; // the "last updated" line
+      size: string;
+      vw: number;
+      end: number; // the heading's size over the name's
+      at: { x: number; y: number }[]; // the words' centres at rest, page coordinates
+      to: { x: number; y: number }[]; // the heading's words' centres, page coordinates
+      box: { x: number; y: number; w: number; h: number }[]; // each word's box in the fixed name
+    };
+    let flight: Flight | null = null;
+    const h1Of = () => document.querySelector<HTMLElement>('.hero-playful');
+    const ground = () => {
+      flight = null;
+      name?.classList.remove('is-flying');
+      if (name) name.style.opacity = '';
+      words.forEach((w) => (w.style.transform = ''));
+      const h1 = h1Of();
+      if (h1) h1.style.opacity = '';
+      const sub = h1?.nextElementSibling as HTMLElement | null | undefined;
+      if (sub) sub.style.opacity = '';
+    };
+    const takeOff = (): Flight | null => {
+      const h1 = h1Of();
+      const letters = h1 ? [...h1.querySelectorAll<HTMLElement>('.hl')] : [];
+      if (!name || !h1 || letters.length < 9) return null;
+      ground();
+      const sy = window.scrollY;
+      const centre = (l: DOMRect, r: DOMRect) => ({ x: (l.left + r.right) / 2, y: (l.top + l.bottom) / 2 + sy });
+      const at = words.map((w) => {
+        const r = w.getBoundingClientRect();
+        return centre(r, r);
+      });
+      // "Henry" lands on the heading's first five letters, "Kim" on letters 7–9
+      // (in Korean the heading goes on: "Henry Kim | 김연준")
+      const to = [
+        [0, 4],
+        [6, 8],
+      ].map(([a, b]) => centre(letters[a].getBoundingClientRect(), letters[b].getBoundingClientRect()));
+      name.classList.add('is-flying');
+      // the screen's corner (the page's scrollbar gutters move it off 0,0)
+      const corner = name.getBoundingClientRect();
+      return {
+        h1,
+        sub: h1.nextElementSibling as HTMLElement | null,
+        size: name.style.fontSize,
+        vw: window.innerWidth,
+        end: parseFloat(getComputedStyle(h1).fontSize) / parseFloat(getComputedStyle(name).fontSize),
+        at,
+        to,
+        box: words.map((w) => ({ x: corner.left + w.offsetLeft, y: corner.top + w.offsetTop, w: w.offsetWidth, h: w.offsetHeight })),
+      };
+    };
+    const fly = (t: number) => {
+      if (!name || calm || t <= 0 || t >= 1) {
+        if (flight || name?.classList.contains('is-flying')) ground();
+        return;
+      }
+      if (!flight || flight.size !== name.style.fontSize || flight.vw !== window.innerWidth) flight = takeOff();
+      if (!flight) return;
+      const { end, at, to, box } = flight;
+      // it lands a little before the scroll ends, and then the weight changes in place
+      const scale = end ** smooth(t / 0.85); // shrinks evenly, like a zoom
+      // and the words travel as far as they have shrunk, so they keep together
+      const e = (1 - scale) / (1 - end);
+      // "Henry" flies; "Kim" keeps to it, at its place relative to "Henry" at
+      // the name's size. On phones, where "Kim" starts on the line below, it
+      // slides out sideways first and only then rises beside "Henry" (so it
+      // never crosses it).
+      const sy = window.scrollY;
+      const ax = at[0].x + (to[0].x - at[0].x) * e;
+      const ay = at[0].y + (to[0].y - at[0].y) * e - sy;
+      const ex = 1 - (1 - e) ** 2;
+      const ey = e ** 4;
+      words.forEach((w, i) => {
+        const x = ax + (at[i].x - at[0].x + ((to[i].x - to[0].x) / end - (at[i].x - at[0].x)) * ex) * scale;
+        const y = ay + (at[i].y - at[0].y + ((to[i].y - to[0].y) / end - (at[i].y - at[0].y)) * ey) * scale;
+        const b = box[i];
+        w.style.transform = `translate(${x - b.x - b.w / 2}px, ${y - b.y - b.h / 2}px) scale(${scale})`;
+      });
+      const k = smooth((t - 0.85) / 0.15);
+      name.style.opacity = String(1 - k);
+      flight.h1.style.opacity = String(k);
+      if (flight.sub) flight.sub.style.opacity = String(k);
+    };
+
     let frame = 0;
     const place = () => {
       frame = 0;
+      const vh = window.innerHeight;
+      const t = Math.min(1, Math.max(0, (window.scrollY - (cover.offsetHeight + (tail?.offsetHeight ?? 0) - vh)) / vh));
+      // offsetLeft ignores the transform, so it is always the sidebar's home (read
+      // before anything is written, so the frame lays out once)
+      const home = sidebar?.offsetLeft ?? 0;
+      fly(t);
       if (!sidebar) return;
       if (!wide?.matches) {
         sidebar.style.transform = sidebar.style.opacity = sidebar.style.filter = sidebar.style.transition = '';
         return;
       }
-      const vh = window.innerHeight;
-      const t = Math.min(1, Math.max(0, (window.scrollY - (cover.offsetHeight + (tail?.offsetHeight ?? 0) - vh)) / vh));
-      const eased = t * t * (3 - 2 * t); // lingers at the edge, then slides, then settles
-      // offsetLeft ignores the transform, so it is always the sidebar's home
-      sidebar.style.transform = eased < 1 ? `translateX(${-sidebar.offsetLeft * (1 - eased)}px)` : '';
+      const eased = smooth(t); // lingers at the edge, then slides, then settles
+      sidebar.style.transform = eased < 1 ? `translateX(${-home * (1 - eased)}px)` : '';
       // and comes into focus on the way: faint and soft at the edge, solid a
       // little before it lands
       const f = Math.min(1, t / 0.85);
@@ -103,6 +204,7 @@ export function BadgeCover() {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       cancelAnimationFrame(frame);
+      ground();
       if (sidebar)
         sidebar.style.transform = sidebar.style.opacity = sidebar.style.filter = sidebar.style.transition = '';
       io?.disconnect();
@@ -238,15 +340,10 @@ export function BadgeCover() {
     const name = nameRef.current;
     if (!cover || !name) return;
     const fit = () => {
-      if (typeof Range.prototype.getBoundingClientRect !== 'function') return; // jsdom
       name.style.fontSize = '';
       const lines = [...name.querySelectorAll('span')];
-      const width = (nodes: Element[]) => {
-        const r = document.createRange();
-        r.setStartBefore(nodes[0]);
-        r.setEndAfter(nodes[nodes.length - 1]);
-        return r.getBoundingClientRect().width;
-      };
+      // layout widths: a flying name's transforms don't count
+      const width = (nodes: HTMLElement[]) => nodes[nodes.length - 1].offsetLeft + nodes[nodes.length - 1].offsetWidth - nodes[0].offsetLeft;
       const stacked = getComputedStyle(lines[0]).display === 'block';
       const now = stacked ? Math.max(...lines.map((l) => width([l]))) : width(lines);
       const target = cover.clientWidth * (stacked ? 0.88 : 1.018); // desktop: bleeds 2.3vw off the left, ends just inside the right

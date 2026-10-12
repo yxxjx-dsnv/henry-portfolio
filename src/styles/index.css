@@ -2402,6 +2402,12 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     white-space: nowrap;
     pointer-events: none;
 }
+/* each word flies on its own (BadgeCover's fly): a transform needs a box */
+.badge-cover-name span { display: inline-block; }
+/* in flight it leaves the cover (which clips) for the screen's corner */
+.badge-cover-name.is-flying { position: fixed; left: 0; top: 0; bottom: auto; transform: none; }
+/* drawn once and scaled by the GPU, not redrawn at every size on the way */
+.badge-cover-name.is-flying span { will-change: transform; }
 /* The demonstration's fingertip: a soft translucent disc that lands on the
    card, presses, strokes down with the pull and lifts off — on badgeScene's
    DEMO clock (press 0.35s, pull to 1.1s, let go at 1.1s) over a 1.45s run. The
@@ -2476,7 +2482,7 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
         white-space: normal;
         width: max-content;
     }
-    .badge-cover-name span { display: block; }
+    .badge-cover-name span { display: block; width: fit-content; }
     /* the canvas is the whole cover, as on desktop, so a pulled badge can come
        down over the name and the strap runs all the way up past the copy; the
        badge is framed in the room between the copy and the name (badgeScene).
