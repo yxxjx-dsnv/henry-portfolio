@@ -2839,3 +2839,43 @@ body.dark-mode .lab-legend { color: #a8a8a8; }
     .pl-data-x { min-width: 32px; min-height: 28px; }
     .pl-data-foot { gap: 24px; }
 }
+
+/* ── the pendulum lab's layout (phase 3) ── */
+.pl-bench.is-shut { display: none; }
+.pl-tabs { display: none; }
+/* expanded on a wide screen, everything on one screen: the rig, its plots and the controls on
+   the left; the bench (always open here), the results and the graph on the right, scrolling on
+   their own */
+@media (min-width: 1100px) {
+    .xp-lab.is-open > .model-viewer > figcaption { display: none; }
+    .xp-lab.is-open .trk {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr);
+        grid-template-rows: auto auto auto minmax(0, 1fr);
+        height: calc(100cqh - 28px);
+    }
+    .xp-lab.is-open .trk > .trk-head { grid-column: 1 / -1; }
+    .xp-lab.is-open .trk > .trk-body { grid-column: 1; grid-row: 2; }
+    .xp-lab.is-open .trk > .pl-sweep { grid-column: 1; grid-row: 3; }
+    .xp-lab.is-open .trk > .asrs-controls { grid-column: 1; grid-row: 4; align-self: start; }
+    .xp-lab.is-open .trk > .pl-side { grid-column: 2; grid-row: 2 / 5; min-height: 0; overflow: auto; border-left: 1px solid #e3e3e3; }
+    body.dark-mode .xp-lab.is-open .trk > .pl-side { border-color: #333333; }
+    .xp-lab.is-open .pl-bench.is-shut { display: block; }
+    .xp-lab.is-open .pl-bench-toggle { display: none; }
+    .xp-lab.is-open .trk-video { height: max(280px, calc(100cqh - 175px)); }
+    .xp-lab.is-open .lab-chart { padding-inline: 12px; }
+}
+/* phones: one panel at a time — the rig (with its plots and controls), the results, the graph,
+   or the bench */
+@media (max-width: 640px) {
+    .trk .pl-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; border-bottom: 1px solid #e3e3e3; }
+    body.dark-mode .trk .pl-tabs { border-color: #333333; }
+    .trk[data-tab]:not([data-tab='rig']) > .trk-body,
+    .trk[data-tab]:not([data-tab='rig']) > .pl-sweep,
+    .trk[data-tab]:not([data-tab='rig']) > .asrs-controls { display: none; }
+    .trk:not([data-tab='data']) .pl-data,
+    .trk:not([data-tab='graph']) .pl-graph,
+    .trk:not([data-tab='bench']) .pl-bench { display: none; }
+    .trk[data-tab='bench'] .pl-bench.is-shut { display: block; }
+    .trk .pl-bench-toggle { display: none; }
+}

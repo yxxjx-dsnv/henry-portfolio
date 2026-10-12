@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { BufferAttribute, Object3D, Points } from 'three';
 import { useLang } from '../i18n';
 import { gauss } from './pendulumPhysics';
-import { BENCH, dynamics, swing, thetaAt, type Motion, type Setup } from './pendulumModel';
+import { BENCH, MATERIALS, dynamics, solidBobMass, swing, thetaAt, type Motion, type Setup } from './pendulumModel';
 import { protractor, refused, track, type Track, type TrackerSettings } from './pendulumInstruments';
 import {
   DECAY_SECONDS,
@@ -38,6 +38,7 @@ const MAX = 240 * DECAY_SECONDS + 2; // the longest recording's frames, at the f
 const ROWS = 8; // the table rows that fit beside the video
 const SPEEDS = [1, 4, 16];
 const PULL = 'pull further'; // the note after a tap, worded at render
+const PANEL = { rig: 'Rig', data: 'Data', graph: 'Graph', bench: 'Bench' } as const;
 
 // The pendulum lab: the rig from the photos as a physics twin calibrated to the report
 // (pendulumModel), inside a window laid out like the Tracker session that read the real video
@@ -58,6 +59,26 @@ const fmtAngle = (th: number, unit: AngleUnit, signed = false) => {
 };
 const hangLength = (s: Setup) => dynamics(s).L; // pivot to the bob's centre
 
+/** How the bob looks on the rig: the lab's own 8-ball keychain, a solid sphere of one of the bench's
+ *  materials (its mass is that material's at its radius), or a plain one (a mass typed in). */
+type Look = 'lab' | keyof typeof MATERIALS | 'other';
+const LOOKS: Record<Exclude<Look, 'lab'>, { color: number; metalness: number; roughness: number }> = {
+  steel: { color: 0x9aa0a6, metalness: 1, roughness: 0.32 },
+  brass: { color: 0xc2a24c, metalness: 1, roughness: 0.3 },
+  lead: { color: 0x6c6e72, metalness: 0.7, roughness: 0.55 },
+  aluminium: { color: 0xcfd3d8, metalness: 1, roughness: 0.25 },
+  wood: { color: 0x9c6b3c, metalness: 0, roughness: 0.75 },
+  plastic: { color: 0xd8473f, metalness: 0, roughness: 0.35 },
+  styrofoam: { color: 0xf3f1ea, metalness: 0, roughness: 0.95 },
+  other: { color: 0x8c8c8c, metalness: 0.4, roughness: 0.5 },
+};
+function lookOf(s: Setup): Look {
+  const near = (a: number, b: number) => Math.abs(a / b - 1) < 0.005;
+  if (near(s.bobMass, BENCH.bobMass) && near(s.bobRadius, BENCH.bobRadius)) return 'lab';
+  for (const [k, rho] of Object.entries(MATERIALS)) if (near(s.bobMass, solidBobMass(rho, s.bobRadius))) return k as Look;
+  return 'other';
+}
+
 /** A row's result as the status line shows it: numbers only, or why there are none. */
 function readingOf(r: Row): string {
   const res = r.q ?? r.period;
@@ -67,9 +88,7 @@ function readingOf(r: Row): string {
 
 export function PendulumLab() {
   const { t, tx } = useLang();
-  const [active, setActive] = useState(
-    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'),
-  );
+  const [active, setActive] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('3d'));
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [setup, setSetup] = useState<Setup>(BENCH);
   const [measure, setMeasure] = useState<Measure>(DEFAULT_MEASURE);
@@ -78,6 +97,8 @@ export function PendulumLab() {
   const [unit, setUnit] = useState<AngleUnit>('rad');
   const [speed, setSpeed] = useState(1);
   const [bench, setBench] = useState(false); // the knobs and the sweep form
+  const [tab, setTab] = useState<'rig' | 'data' | 'graph' | 'bench'>('rig'); // phones: one panel at a time
+  const shown = tab === 'data' && !rows.length ? 'rig' : tab; // no results yet: the data panel would be empty
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null); // a sweep or preset running
   const [preset, setPreset] = useState<PresetId | null>(null);
   const [swinging, setSwinging] = useState(false); // a hand release under the tracker
@@ -96,7 +117,8 @@ export function PendulumLab() {
   const [bufRef] = useState(() => ({ current: { t: new Float32Array(MAX), x: new Float32Array(MAX), y: new Float32Array(MAX), n: 0 } as Track }));
   const trailRef = useRef<{ points: Points; attr: BufferAttribute } | null>(null);
   const dragRef = useRef({ on: false, theta: 0, offset: 0 });
-  const heldRef = useRef<{ th: number; L: number } | null>(null); // a sweep's trial, posed at its release
+  const heldRef = useRef<{ th: number; L: number; s: Setup } | null>(null); // a sweep's trial, posed at its release
+  const setupRef = useRef(setup); // the bench as set, for the rig
   const hangRef = useRef(hangLength(BENCH));
   const unitRef = useRef<AngleUnit>('rad');
   const styleRef = useRef<PlotStyle | null>(null);
@@ -108,6 +130,7 @@ export function PendulumLab() {
   clockRef.current.speed = speed;
   unitRef.current = unit;
   hangRef.current = hangLength(setup);
+  setupRef.current = setup;
 
   // ── the Tracker window: the buffer of frames, the red marks, the plots and the table ──
 
@@ -245,7 +268,7 @@ export function PendulumLab() {
         setRows((rs) => [...rs, r.row]);
         setNote(readingOf(r.row));
         setProgress({ done: i + 1, total });
-        heldRef.current = { th: r.motion.theta[0], L: r.motion.L };
+        heldRef.current = { th: r.motion.theta[0], L: r.motion.L, s: setups[i] };
         const n = Math.min(r.track.n, MAX);
         for (let k = 0; k < n; k++) writeFrame(k, r.track.t[k], r.track.x[k], r.track.y[k]);
         bufRef.current.n = n;
@@ -288,21 +311,18 @@ export function PendulumLab() {
     let disposed = false;
     let raf = 0;
     const cleanupExtra: (() => void)[] = [];
-    let renderer:
-      | { dispose: () => void; forceContextLoss: () => void; domElement: HTMLCanvasElement }
-      | undefined;
+    let renderer: { dispose: () => void; forceContextLoss: () => void; domElement: HTMLCanvasElement } | undefined;
     let controls: { dispose: () => void } | undefined;
 
     (async () => {
       try {
         const THREE = await import('three');
-        const [{ GLTFLoader }, { DRACOLoader }, { OrbitControls }, { RoomEnvironment }] =
-          await Promise.all([
-            import('three/examples/jsm/loaders/GLTFLoader.js'),
-            import('three/examples/jsm/loaders/DRACOLoader.js'),
-            import('three/examples/jsm/controls/OrbitControls.js'),
-            import('three/examples/jsm/environments/RoomEnvironment.js'),
-          ]);
+        const [{ GLTFLoader }, { DRACOLoader }, { OrbitControls }, { RoomEnvironment }] = await Promise.all([
+          import('three/examples/jsm/loaders/GLTFLoader.js'),
+          import('three/examples/jsm/loaders/DRACOLoader.js'),
+          import('three/examples/jsm/controls/OrbitControls.js'),
+          import('three/examples/jsm/environments/RoomEnvironment.js'),
+        ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
         const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
@@ -323,12 +343,7 @@ export function PendulumLab() {
           };
         };
         restyle(); // and again every half second in the loop: the theme sweep animates the colours
-        const camera = new THREE.PerspectiveCamera(
-          36,
-          (mount.clientWidth || 560) / (mount.clientHeight || 400),
-          0.01,
-          20,
-        );
+        const camera = new THREE.PerspectiveCamera(36, (mount.clientWidth || 560) / (mount.clientHeight || 400), 0.01, 20);
         camera.position.set(0.05, -0.08, 0.78);
 
         const webgl = new THREE.WebGLRenderer({ antialias: true });
@@ -397,6 +412,51 @@ export function PendulumLab() {
         const thread = model.getObjectByName('Thread');
         const bob = model.getObjectByName('Bob');
         if (!arm || !thread || !bob) throw new Error('pendulum.glb rig nodes missing');
+
+        // the bob as the bench sets it: its size, its material (the 8-ball's markings only on the
+        // lab's own bob), and a tank of water round the swing when the fluid is water
+        const ball = bob.getObjectByName('BobBall') as InstanceType<typeof THREE.Mesh> | undefined;
+        const markings = ['BobCircle', 'BobEight', 'BobRing'].map((n) => bob.getObjectByName(n)).filter((o): o is Object3D => !!o);
+        const labLook = ball?.material;
+        const looks = new Map<Look, InstanceType<typeof THREE.MeshStandardMaterial>>();
+        const tank = new THREE.Mesh(
+          new THREE.BoxGeometry(1, 1, 1),
+          new THREE.MeshStandardMaterial({ color: 0x3f8fd8, transparent: true, opacity: 0.3, roughness: 0.1, depthWrite: false }),
+        );
+        // the glass's edges, so the tank reads as a tank and not a tint
+        const glass = new THREE.LineSegments(new THREE.EdgesGeometry(tank.geometry), new THREE.LineBasicMaterial({ color: 0x2f6fae }));
+        tank.add(glass);
+        tank.visible = false;
+        scene.add(tank);
+        cleanupExtra.push(() => {
+          tank.geometry.dispose();
+          (tank.material as { dispose: () => void }).dispose();
+          glass.geometry.dispose();
+          glass.material.dispose();
+          looks.forEach((m) => m.dispose());
+        });
+        let dressed: Setup | null = null;
+        const dress = (st: Setup) => {
+          if (st === dressed) return;
+          dressed = st;
+          bob.scale.setScalar(st.bobRadius / BOB_R);
+          const look = lookOf(st);
+          if (ball) {
+            if (look === 'lab') {
+              ball.material = labLook!;
+            } else {
+              let m = looks.get(look);
+              if (!m) looks.set(look, (m = new THREE.MeshStandardMaterial(LOOKS[look])));
+              ball.material = m;
+            }
+          }
+          for (const o of markings) o.visible = look === 'lab';
+          const L = hangLength(st);
+          tank.visible = st.fluid.rho > 500;
+          // from just under the pivot to below the bob, wide enough for a wide swing
+          tank.scale.set(Math.max(0.3, 2 * L + 0.1), L + st.bobRadius + 0.06, 0.12);
+          tank.position.set(0, -0.02 - tank.scale.y / 2, SWING_Z);
+        };
 
         // Tracker's overlay: the coordinate axes through the pivot and the red step marks on the bob
         const axes = new THREE.LineSegments(
@@ -518,10 +578,11 @@ export function PendulumLab() {
         let last = 0;
         let lastUi = 0;
         let lastStyle = 0;
-        const pose = (th: number, L: number) => {
+        const pose = (th: number, L: number, st: Setup) => {
+          dress(st);
           curL = L;
           arm.rotation.z = th;
-          thread.scale.y = L - BOB_R;
+          thread.scale.y = L - st.bobRadius;
           bob.position.y = -L;
         };
         const animate = (now: number) => {
@@ -538,7 +599,7 @@ export function PendulumLab() {
           if (dragRef.current.on) {
             const L = hangRef.current;
             const th = dragRef.current.theta;
-            pose(th, L);
+            pose(th, L, setupRef.current);
             if (now - lastUi > 100) {
               lastUi = now;
               setPull(th);
@@ -548,7 +609,7 @@ export function PendulumLab() {
             const clock = clockRef.current;
             clock.t = Math.min(live.seconds, clock.t + dt * clock.speed);
             const { motion, tk } = live;
-            pose(thetaAt(motion, clock.t), motion.L);
+            pose(thetaAt(motion, clock.t), motion.L, live.setup);
             // the frames Tracker would have stepped through since the last draw, each with the
             // autotracker's jitter
             const buf = bufRef.current;
@@ -566,9 +627,9 @@ export function PendulumLab() {
             }
             if (clock.t >= live.seconds) act.current.finish();
           } else if (held) {
-            pose(held.th, held.L);
+            pose(held.th, held.L, held.s);
           } else {
-            pose(0, hangRef.current); // hanging still
+            pose(0, hangRef.current, setupRef.current); // hanging still
           }
           // a run goes on while the reader is down at the table or the graph; only the picture rests
           if (seen.on) {
@@ -603,13 +664,20 @@ export function PendulumLab() {
   const noteText = note === PULL ? t('pull further') : note;
   const tail = noteText ? <> · {noteText}</> : null;
   const statusLine =
-    pull !== null
-      ? tx('pulled to {angle}', { angle: fmtAngle(pull, unit, true) })
-      : progress
-        ? <>{tx('sweep {k} / {n}', { k: progress.done, n: progress.total })}{tail}</>
-        : swinging
-          ? <>{t('tracking')} {frame.t.toFixed(0)} s{tail}</>
-          : noteText ?? (released ? t('✋ pull the ball and let go') : t('✋ pull the ball and let go · click a knot to re-tie'));
+    pull !== null ? (
+      tx('pulled to {angle}', { angle: fmtAngle(pull, unit, true) })
+    ) : progress ? (
+      <>
+        {tx('sweep {k} / {n}', { k: progress.done, n: progress.total })}
+        {tail}
+      </>
+    ) : swinging ? (
+      <>
+        {t('tracking')} {frame.t.toFixed(0)} s{tail}
+      </>
+    ) : (
+      (noteText ?? (released ? t('✋ pull the ball and let go') : t('✋ pull the ball and let go · click a knot to re-tie')))
+    );
 
   return (
     <figure className="story-figure model-viewer" id="pendulum-lab">
@@ -617,7 +685,9 @@ export function PendulumLab() {
         <button type="button" className="model-poster" onClick={() => setActive(true)}>
           <img
             src={`${MEDIA}/fig-lab-render.jpg`}
-            alt={t('Rendered model of the pendulum rig: the acrylic rest and laptop on the oak shelf, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the lined-paper backdrop.')}
+            alt={t(
+              'Rendered model of the pendulum rig: the acrylic rest and laptop on the oak shelf, the protractor at the pivot, the orange thread and the black 8-ball bob mid-swing in front of the lined-paper backdrop.',
+            )}
             width={1600}
             height={1000}
             loading="lazy"
@@ -625,7 +695,7 @@ export function PendulumLab() {
           <span className="model-cta">{t('Try the pendulum')}</span>
         </button>
       ) : (
-        <div className="asrs-frame trk" ref={frameRef}>
+        <div className="asrs-frame trk" ref={frameRef} data-tab={shown}>
           <div className="trk-head">
             <span className="trk-title">Tracker</span>
             <span className="trk-muted">{t('tracking the bob · pivot as origin')}</span>
@@ -633,6 +703,18 @@ export function PendulumLab() {
               {t('frame')} {frame.n} · t = {frame.t.toFixed(2)} s
             </span>
           </div>
+          {status === 'ready' && (
+            // phones: the rig, the results, the graph and the bench as four panels (CSS shows this
+            // row only on a narrow screen)
+            <div className="pl-tabs" role="group" aria-label={t('Lab panels')}>
+              {(['rig', 'data', 'graph', 'bench'] as const).map((k) => (
+                <button key={k} type="button" className={`asrs-btn${shown === k ? ' asrs-btn-on' : ''}`} aria-pressed={shown === k} disabled={k === 'data' && !rows.length} onClick={() => setTab(k)}>
+                  {t(PANEL[k])}
+                  {k === 'data' && rows.length > 0 && ` ${rows.length}`}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="trk-body">
             <div
               className="trk-video"
@@ -711,19 +793,36 @@ export function PendulumLab() {
                 onStop={stop}
               />
               <div className="asrs-controls">
-                <button type="button" className={`asrs-btn${bench ? ' asrs-btn-on' : ''}`} aria-pressed={bench} onClick={() => setBench((b) => !b)}>
+                <button
+                  type="button"
+                  className={`asrs-btn pl-bench-toggle${bench ? ' asrs-btn-on' : ''}`}
+                  aria-pressed={bench}
+                  onClick={() => setBench((b) => !b)}
+                >
                   {t('⚙ bench')}
                 </button>
                 <span className="trk-seg" role="group" aria-label={t('Angle unit')}>
                   {(['rad', 'deg'] as AngleUnit[]).map((u) => (
-                    <button key={u} type="button" className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`} aria-pressed={u === unit} onClick={() => setUnit(u)}>
+                    <button
+                      key={u}
+                      type="button"
+                      className={`asrs-btn${u === unit ? ' asrs-btn-on' : ''}`}
+                      aria-pressed={u === unit}
+                      onClick={() => setUnit(u)}
+                    >
                       {u}
                     </button>
                   ))}
                 </span>
                 <span className="trk-seg" role="group" aria-label={t('Playback speed')}>
                   {SPEEDS.map((sp) => (
-                    <button key={sp} type="button" className={`asrs-btn${sp === speed ? ' asrs-btn-on' : ''}`} aria-pressed={sp === speed} onClick={() => setSpeed(sp)}>
+                    <button
+                      key={sp}
+                      type="button"
+                      className={`asrs-btn${sp === speed ? ' asrs-btn-on' : ''}`}
+                      aria-pressed={sp === speed}
+                      onClick={() => setSpeed(sp)}
+                    >
                       {sp}×
                     </button>
                   ))}
@@ -742,8 +841,10 @@ export function PendulumLab() {
                 )}
                 <span className="asrs-hint">{t('drag elsewhere to orbit · scroll to zoom')}</span>
               </div>
-              {bench && (
-                <div className="pl-bench">
+              {/* the bench, the results and the graph: under the controls in the article; the right
+                  column of an expanded frame on a wide screen, with the bench always open there */}
+              <div className="pl-side">
+                <div className={`pl-bench${bench ? '' : ' is-shut'}`}>
                   <PendulumSweep
                     presets={false}
                     showForm
@@ -757,18 +858,18 @@ export function PendulumLab() {
                   />
                   <PendulumSetup setup={setup} onSetup={setSetup} measure={measure} onMeasure={setMeasure} unit={unit} locked={progress !== null} />
                 </div>
-              )}
-              <PendulumData rows={rows} unit={unit} onClear={clear} onRemove={(id) => setRows((rs) => rs.filter((r) => r.id !== id))} />
-              <PendulumGraph
-                rows={rows}
-                base={setup}
-                unit={unit}
-                x={graph.x}
-                y={graph.y}
-                fitKind={graph.fit}
-                onAxes={(x, y) => setGraph((g) => ({ ...g, x, y }))}
-                onFit={(fit) => setGraph((g) => ({ ...g, fit }))}
-              />
+                <PendulumData rows={rows} unit={unit} onClear={clear} onRemove={(id) => setRows((rs) => rs.filter((r) => r.id !== id))} />
+                <PendulumGraph
+                  rows={rows}
+                  base={setup}
+                  unit={unit}
+                  x={graph.x}
+                  y={graph.y}
+                  fitKind={graph.fit}
+                  onAxes={(x, y) => setGraph((g) => ({ ...g, x, y }))}
+                  onFit={(fit) => setGraph((g) => ({ ...g, fit }))}
+                />
+              </div>
             </>
           )}
         </div>

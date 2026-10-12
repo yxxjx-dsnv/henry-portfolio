@@ -29,12 +29,12 @@ test('the sweep runs in display units, clamped to the bench, steps × repeats', 
   const onRun = vi.fn();
   render(<PendulumSweep {...props({ onRun })} />);
   expect([num('from').value, num('to').value]).toEqual(['5', '30']); // cm
-  fireEvent.change(num('to'), { target: { value: '999' } }); // past the bench's 60 cm
+  fireEvent.change(num('to'), { target: { value: '999' } }); // past the bench's 30 cm
   fireEvent.click(screen.getByRole('button', { name: '▶ sweep 6' }));
   const Ls = onRun.mock.calls[0][0].map((s: typeof BENCH) => s.stringLength);
   expect(onRun.mock.calls[0][1]).toBe('L'); // the graph's x follows the swept knob
   expect(Ls[0]).toBeCloseTo(0.05);
-  expect(Ls[5]).toBeCloseTo(0.6);
+  expect(Ls[5]).toBeCloseTo(0.3);
 
   // a new variable resets its ends; the angle reads in the lab's unit
   fireEvent.change(screen.getByRole('combobox', { name: 'Variable' }), { target: { value: 'theta0' } });

@@ -135,6 +135,11 @@ const ko: Record<string, string> = {
   "Tracker, following the bob frame by frame to recover the decay curve.": "감쇠 곡선을 얻기 위해 추를 프레임 단위로 따라가는 Tracker.",
 
   "remove": "remove",
+  "Lab panels": "Lab panels",
+  "Rig": "Rig",
+  "Data": "Data",
+  "Graph": "Graph",
+  "Bench": "Bench",
 };
 
 export default ko;

@@ -82,7 +82,7 @@ export function PendulumSetup(props: {
             id={`${id}L`}
             type="range"
             min={3}
-            max={60}
+            max={30}
             step={0.5}
             value={s.stringLength * 100}
             aria-valuetext={fmt('L', s.stringLength, unit)}

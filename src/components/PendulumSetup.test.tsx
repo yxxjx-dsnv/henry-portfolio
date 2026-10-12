@@ -62,8 +62,8 @@ test('environment chips and the g box agree; instrument switches its own choices
   fireEvent.click(screen.getByRole('button', { name: '×5' }));
   expect(now.measure).toEqual({ kind: 'stopwatch', swings: 5 });
 
-  fireEvent.change(screen.getByLabelText('length'), { target: { value: '45' } });
-  expect(now.setup.stringLength).toBeCloseTo(0.45, 9);
+  fireEvent.change(screen.getByLabelText('length'), { target: { value: '25' } });
+  expect(now.setup.stringLength).toBeCloseTo(0.25, 9);
   fireEvent.click(screen.getByRole('button', { name: '↺ bench' }));
   expect(now).toEqual({ setup: BENCH, measure: DEFAULT_MEASURE });
 });

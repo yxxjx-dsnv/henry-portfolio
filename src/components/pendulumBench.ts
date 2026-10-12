@@ -31,7 +31,8 @@ export const VARIABLES: Record<
   VarKey,
   { label: string; unit: string; min: number; max: number; get: (s: Setup) => number; set: (s: Setup, v: number) => Setup }
 > = {
-  stringLength: { label: 'String length', unit: 'm', min: 0.03, max: 0.6, get: (s) => s.stringLength, set: (s, v) => ({ ...s, stringLength: v }) },
+  // up to 30 cm, the rig's own limit: its knots run 5–30 cm and a longer string would hang the bob into the shelf
+  stringLength: { label: 'String length', unit: 'm', min: 0.03, max: 0.3, get: (s) => s.stringLength, set: (s, v) => ({ ...s, stringLength: v }) },
   theta0: { label: 'Release angle', unit: 'rad', min: 1 * DEG, max: 85 * DEG, get: (s) => s.theta0, set: (s, v) => ({ ...s, theta0: v }) },
   bobRadius: { label: 'Bob radius', unit: 'm', min: 0.005, max: 0.04, get: (s) => s.bobRadius, set: (s, v) => ({ ...s, bobRadius: v }) },
   bobMass: { label: 'Bob mass', unit: 'kg', min: 0.001, max: 2, get: (s) => s.bobMass, set: (s, v) => ({ ...s, bobMass: v }) },
