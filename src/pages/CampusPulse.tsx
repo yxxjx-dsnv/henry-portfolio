@@ -197,17 +197,17 @@ export function CampusPulse() {
               width={1200}
               height={1600}
             />
-            <p className="story-head">Why I signed up</p>
+            <h2 className="story-head">Why I signed up</h2>
             <p>{t("The application form asked why I wanted to attend. I wrote that small problems in campus life had been bothering me for a while. Information is scattered across department websites, email newsletters, Quercus announcements and club social media, and more than once I found out about a lecture I wanted only after registration had closed. Students end up doing the searching that software should do for them. I wanted to stop just noticing that and try to analyze and redesign the system under one of those problems.")}</p>
             <br />
             <p>{t("Working on MONO, my resale-analytics idea, had taught me to think about software around a real problem: collect inventory from retail sites, compare retail prices against resale prices, and calculate the margins. But everything I had built so far ran on tools I already knew. Under the question about AWS experience I wrote the only thing I could write: that I had none, and that I was prepared to learn quickly.")}</p>
             <br />
-            <p className="story-head">Choosing the problem</p>
+            <h2 className="story-head">Choosing the problem</h2>
             <p>{t("The problem we picked was an ordinary one, and all four of us had lived it. During midterm season you walk to Robarts, take the elevator up, walk the floor, find nothing, and repeat the loop in the next building. Thousands of students hunt for seats at the same time, and there is no live signal telling you where not to bother going.")}</p>
             <br />
             <p>{t("Deciding how to measure occupancy was the part of the day I learned the most from. Our first idea was counting devices on campus Wi-Fi. It sounded clever until we said \"track everyone's phones\" out loud, and we dropped it. The second was T-card tap data, which fails on coverage: only a few buildings, like Robarts and Gerstein, have T-card gates at all, so it could never cover the whole campus. What survived was the simplest idea: point a camera at a study space, count the people in frame, and compare the count to the floor's seat capacity. It measures the thing a student actually cares about, which is seats.")}</p>
             <br />
-            <p className="story-head">What we built</p>
+            <h2 className="story-head">What we built</h2>
             <p>{t("The system we built is a straight line. Video frames from a study space go to Amazon Rekognition, which detects people without us training any model of our own. A Python processor turns the detections into headcounts, the headcounts land in DynamoDB, a Lambda function behind API Gateway serves them, and a React dashboard reads the API. By mid-afternoon the dashboard was live on a public URL. I remember refreshing the page on an iPad and feeling amazed that something we had planned at breakfast was now on the internet.")}</p>
             <br />
             <p>
@@ -244,14 +244,14 @@ export function CampusPulse() {
               />
               <figcaption>{t("The demo, recorded on the iPad at 2:26 that afternoon.")}</figcaption>
             </figure>
-            <p className="story-head">The deck we presented</p>
+            <h2 className="story-head">The deck we presented</h2>
             <p>{t("The slides, with a note under each on what it covered and who presented it.")}</p>
             <br />
             <PdfDeck src={`${MEDIA}/deck.pdf`} title="Campus Pulse presentation" captions={DECK_NOTES.map(t)} />
             <p>{t("The code behind the system opens here too:")}</p>
             <br />
             <DocShelf docs={DOCS} base={MEDIA} />
-            <p className="story-head">The team</p>
+            <h2 className="story-head">The team</h2>
             <p>{t("Campus Pulse was built by four people who had mostly just met: Joshua, Suyeon, Byeongmin, and me, registered under the team code 6SIX7. We split the work roughly along the pipeline. Detection and the AWS setup went to one side, the dashboard and its data to the other, and we merged everything in the final hours. Building MONO had taught me the hard way to break a problem into smaller units, put structure ahead of speed, and test while building instead of after. We spent the first half hour agreeing on what we would not build, which paid off at the end of the day when everything had to be merged at once.")}</p>
             <br />
             <Figure
@@ -261,12 +261,12 @@ export function CampusPulse() {
               width={1600}
               height={1326}
             />
-            <p className="story-head">What I learned</p>
+            <h2 className="story-head">What I learned</h2>
             <p>{t("The concrete lessons were about AWS. Rekognition gives you working computer vision without training or hosting a model of your own. DynamoDB stores and serves the readings, Lambda and API Gateway turn a function into an API, and a static site on S3 becomes a URL anyone can open. I had never used AWS before that morning, and by the afternoon our service was on a public URL.")}</p>
             <br />
             <p>{t("The other lesson was about being honest in design. Twice that day we gave up an idea that sounded impressive for one that would work: when we chose the sensor, and again when we cut the features down to what could be real by 5 p.m. I try to remember that whenever one of my projects starts getting too ambitious.")}</p>
             <br />
-            <p className="story-head">Where this goes</p>
+            <h2 className="story-head">Where this goes</h2>
             <p>{t("The obvious next steps are room booking on top of the live map, occupancy prediction once the readings build up a history, better alerts, and more buildings. What I care about more is the idea I put in the application: campus information is scattered, and it should work like one system. I had sketched it there, one place where every campus event can be found and joined in a click, synced to your calendar, with deadlines that come to you. Campus Pulse is the first piece of that I have built and put on the internet.")}</p>
             <br />
             <Figure

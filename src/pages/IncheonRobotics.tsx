@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { ReadProgress } from '../components/ReadProgress';
@@ -278,7 +278,7 @@ export function IncheonRobotics() {
             />
             <p>{t("On August 10, 2026 I started as an AI/Robotics Engineering Intern at Incheon Robotics, a warehouse-robotics company at the Incheon Global Campus in Songdo, with an R&D room in Mapo, Seoul. I worked there until October 2026, under the direct supervision of the CEO. This page is what the company builds, why the machine is shaped the way it is, and the piece of it I was hired to make.")}</p>
             <br />
-            <p className="story-head">The problem is not that they don't want it</p>
+            <h2 className="story-head">The problem is not that they don't want it</h2>
             <p>{t("Walk into a small third-party logistics warehouse in Korea and you will find fifteen people walking aisles all day, reading labels, putting things into cardboard boxes. Labour costs go up every year. Everyone in the building knows automation exists.")}</p>
             <br />
             <p>{t("The reason they don't have it is arithmetic. Enterprise ASRS (AutoStore, Exotec, Geek+, the systems Amazon-scale operations run on) starts at roughly half a million to a million US dollars, takes three to six months to install, and assumes an empty warehouse to install it into. No small operator can stop for a season to find out whether it works. So the small and mid segment, about 85% of Korea's logistics centres, gets offered pick-assist robots that follow a worker around instead. Those are cheap to start, but a person is still in the loop for every pick, so the labour cost they were bought to remove is still there. Incheon Robotics sells into the space between those two options.")}</p>
@@ -289,7 +289,7 @@ export function IncheonRobotics() {
               width={1600}
               height={991}
             />
-            <p className="story-head">No aisles</p>
+            <h2 className="story-head">No aisles</h2>
             <p>{t("A conventional warehouse spends most of its floor on air. Shelves need aisles because people need to walk between them; even a crane-based ASRS needs a channel for the crane. Incheon ASRS deletes the aisle. Bins sit directly beside and on top of each other in a grid, and the robots drive across the top of the structure. Nothing walks between the shelves, so nothing needs a gap.")}</p>
             <Figure
               src={`${MEDIA}/carry.jpg`}
@@ -331,7 +331,7 @@ export function IncheonRobotics() {
               {t("The solver reports the load multiplier at which each mode goes unstable, and the shape it goes unstable in, which is as useful as the number. The company's own study puts the ceiling at:")}
             </p>
             <Stat value="27 floors" label={t("estimated from the buckling analysis; AutoStore 24, HaiPick 30, Exotec 33")} />
-            <p className="story-head">The robot is cheap because the grid is precise</p>
+            <h2 className="story-head">The robot is cheap because the grid is precise</h2>
             <p>{t("The design decision I find most interesting is where the precision lives. An autonomous mobile robot has to know where it is in an open room, which is why it carries lidar and a thousand dollars of sensing. A grid robot does not: the structure already knows where everything is, and the robot only has to follow lines and count tiles. So the robot can be simple: line sensors instead of lidar, four mecanum wheels so it can move in any of four directions without turning, and a spring-assisted scissor lift under a flat plate. That is nearly the whole machine.")}</p>
             <br />
             <p>{t("The result weighs 8 kg, lifts 30 kg, and draws around 30 watts doing it.")}</p>
@@ -410,7 +410,7 @@ export function IncheonRobotics() {
             <Expandable label="Mechanism viewer">
               <AsrsRobotViewer />
             </Expandable>
-            <p className="story-head">Deep-N: thinking in fleets</p>
+            <h2 className="story-head">Deep-N: thinking in fleets</h2>
             <p>{t("Storing bins with no aisles buys density, and density brings its own problem. If the bin you want is ten layers down, a sequential system digs: it moves the bin above it, then the one above that, one machine doing one thing at a time, and retrieval time climbs steeply with depth. That is why small versions of enterprise ASRS congest so badly: the robots end up queueing on each other.")}</p>
             <br />
             <p>{t("Deep-N, the company's answer, is software: several robots clear the stack in parallel and agree on who moves what, so they are not competing for the same square. It is the piece the company patented. In testing it reaches a bin buried ten layers deep in about thirty-six seconds.")}</p>
@@ -431,7 +431,7 @@ export function IncheonRobotics() {
               <figcaption>{t("The retrieval in simulation: Deep 3, from the test series.")}</figcaption>
             </figure>
             <Stat value="80%" label={t("less floor space than a conventional warehouse holding the same goods; that is what storing deep buys, and the scheduling is what makes it workable")} />
-            <p className="story-head">Gwangju, December 2025</p>
+            <h2 className="story-head">Gwangju, December 2025</h2>
             <p>{t("The first warehouse running on it went live in December 2025 at N09, a logistics operation in Gwangju, under a three-year field-validation agreement. It fills real orders with this system every day.")}</p>
             <br />
             <p>{t("The numbers the company leads with come from that site: the floor went from eighteen operators to six, operating margin from three to five per cent to twenty, and average bin retrieval settled around thirty-five seconds.")}</p>
@@ -451,7 +451,7 @@ export function IncheonRobotics() {
               />
               <figcaption>{t("The system running.")}</figcaption>
             </figure>
-            <p className="story-head">The bottleneck nobody designed for</p>
+            <h2 className="story-head">The bottleneck nobody designed for</h2>
             <p>{t("The robots got fast, and then the interface the workers were given became the slow part.")}</p>
             <br />
             <p>{t("The kiosk is a touchscreen. To retrieve three items a worker types the first product name, taps retrieve, types the second, taps retrieve, types the third. With a few hundred SKUs that is fine. At five thousand, a single lookup takes about twenty-seven seconds, and it gets worse as the catalogue grows. Two lines from the field validation, quoted in the company's deck:")}</p>
@@ -462,7 +462,7 @@ export function IncheonRobotics() {
                 quoteB: <i>{t('"I\'m spending half my time searching for products on the UI screen."')}</i>,
               })}
             </p>
-            <p className="story-head">What I was hired to build</p>
+            <h2 className="story-head">What I was hired to build</h2>
             <p>
               {tx('My assignment was the voice layer that takes that screen out of the loop. You say what you need out loud, the way you would to a colleague; the system works out what you meant, and the robots go and get it. Instead of three type-and-tap cycles, one sentence, {quote}, and three bins queue up at the front.', {
                 quote: <i>{t('"give me A, B and C"')}</i>,
@@ -474,7 +474,7 @@ export function IncheonRobotics() {
             <br />
             <p>{t("The targets: product lookup from twenty-seven seconds down to about eight, and retrieval from thirty-five down to around twenty. The kiosk is also meant to learn, moving what gets asked for often nearer the front so tomorrow's picks are already close.")}</p>
             <Stat value="27s → 8s" label={t("the lookup target, per request")} />
-            <p className="story-head">And the hardware half</p>
+            <h2 className="story-head">And the hardware half</h2>
             <p>{t("The other half of the job was the robot build. The voice chain ends in a motor turning, and to know what the software can promise I needed to have had a hand in the machine that has to keep the promise. So I was in the build too, in the R&D room in Mapo, where the elevator and lift mechanisms get tested on a bench before they are trusted at height.")}</p>
             <br />
             <figure className="story-figure">
@@ -511,11 +511,11 @@ export function IncheonRobotics() {
               />
               <figcaption>{t("The map editor: tiles, coordinates, stations, and which square the robot calls home.")}</figcaption>
             </figure>
-            <p className="story-head">The half of the job that wasn't engineering</p>
+            <h2 className="story-head">The half of the job that wasn't engineering</h2>
             <p>{t("Incheon Robotics is a foreign-founded company operating in Korea. Its market, its first customer, its trade shows, its regulators and its grant paperwork are all in Korean; much of its engineering conversation is not. I am fluent in both, so that was a job of its own: the company website, and the company's communication with everyone outside the building.")}</p>
             <br />
             <p>{t("I did not expect to be glad about that part. But a warehouse robot is bought by a person who has to be convinced first, and thirty-six-second retrieval does not help if the explanation never lands.")}</p>
-            <p className="story-head">Run the whole thing yourself</p>
+            <h2 className="story-head">Run the whole thing yourself</h2>
             <p>{t("The scene from the company's renders, rebuilt as a working simulation: two storage levels on their cradles, three robots, the elevator, the kiosk. The robots run the real cycle: drive under a bin, grip, lift it off its cradle, ride the elevator down if it came from an upper deck, present it at the picking station, and shelve it somewhere new.")}</p>
             <br />
             <p>{t("The traffic is the part I watch. Each robot routes with A* around whatever squares the others are holding, so no two cross or share a tile, and when two end up nose to nose one steps aside. Telemetry reads out over the viewport. Press run, ask it for a bin, and use X-ray to follow one robot with its shell off.")}</p>
@@ -523,7 +523,7 @@ export function IncheonRobotics() {
             <Expandable label="Fleet simulation">
               <AsrsSim />
             </Expandable>
-            <p className="story-head">The product film</p>
+            <h2 className="story-head">The product film</h2>
             <p>{t("The company's own product video, in English. Four and a half minutes.")}</p>
             <br />
             <figure className="story-figure">
@@ -539,12 +539,12 @@ export function IncheonRobotics() {
               />
               <figcaption>{t("Incheon ASRS product film (English).")}</figcaption>
             </figure>
-            <p className="story-head">Day one</p>
+            <h2 className="story-head">Day one</h2>
             <p>{t("I am nineteen, in my second year of Electrical & Computer Engineering, and I have been here for a day. Everything above is what the company had built before I walked in. The voice chain does not exist yet, which is why it is the part I was given.")}</p>
             <br />
             <p>{t("What I want from this: to have shipped something a person on a warehouse floor uses without thinking about it, and to be able to point at a robot and say I know why it does that. I'll update this page as that happens, including the parts that turn out harder than they look on a diagram.")}</p>
             <br />
-            <p className="story-head">Five weeks in: an application, and a demo to go with it</p>
+            <h2 className="story-head">Five weeks in: an application, and a demo to go with it</h2>
             <p>{t("The company was applying to 모두의 창업, a government startup programme, and the second-round submission came to me: ten answers in Korean, a character limit on each, and a video. A colleague had drafted the boxes. I rewrote them end to end — same facts, less padding — filled each one to its limit, and submitted it on 17 September 2026.")}</p>
             <br />
             <p>{t("For the video the ask was a staged demo: read a script out loud while the robots run a fixed route, the way a product film does. I built it to listen for real instead. Korean speech recognition in the browser, fourteen products printed on the bins, and nothing moves until the operator confirms. It took about the same week to write, and it means the thing in the video is the thing that happened.")}</p>
@@ -573,15 +573,7 @@ export function IncheonRobotics() {
             <p>{t("Below is the video that went in with the application, recorded on that demo.")}</p>
             <br />
             <figure className="story-figure">
-              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
-                <iframe
-                  src="https://www.youtube-nocookie.com/embed/Z_R9Kt0soYg"
-                  title={t("Incheon ASRS voice-command prototype, the video submitted with the application")}
-                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
-                />
-              </div>
+              <YouTube id="Z_R9Kt0soYg" poster={`${MEDIA}/voice-demo.jpg`} title={t("Incheon ASRS voice-command prototype, the video submitted with the application")} />
               <figcaption>{t("The submitted video: the kiosk mock-up and the simulation, driven by voice.")}</figcaption>
             </figure>
             <p>{t("And the application itself, as it was submitted, in Korean.")}</p>
@@ -595,5 +587,30 @@ export function IncheonRobotics() {
         </div>
       </section>
     </section>
+  );
+}
+
+/** A YouTube video that is a picture until it is played: YouTube's player (a megabyte of script,
+ *  and its cookies) loads only on the click, then starts at once. */
+function YouTube({ id, poster, title }: { id: string; poster: string; title: string }) {
+  const { t } = useLang();
+  const [on, setOn] = useState(false);
+  return (
+    <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+      {on ? (
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1`}
+          title={title}
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+        />
+      ) : (
+        <button type="button" className="model-poster" style={{ position: 'absolute', inset: 0 }} aria-label={`${t('Play')}: ${title}`} onClick={() => setOn(true)}>
+          <img src={poster} alt={title} width={1600} height={900} loading="lazy" style={{ height: '100%', objectFit: 'cover' }} />
+          <span className="model-cta">▶ {t('Play')}</span>
+        </button>
+      )}
+    </div>
   );
 }

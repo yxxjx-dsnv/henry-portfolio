@@ -438,12 +438,12 @@ export function GyroscopeWand() {
               title={t('Buzzer Beaters, the final presentation')}
               captions={DECK_NOTES.map((n) => t(n))}
             />
-            <p className="story-head">{t('A real client')}</p>
+            <h2 className="story-head">{t('A real client')}</h2>
             <p>
               {t('APS112 gives first-year teams a real client, and ours was Alexandre Klaus, a second-year Engineering Science student and the current Skule™ Kup director. His brief was specific: detect the first responder reliably, handle a changing number of contestants in real time, and keep the system safe and portable. The requirements came from visiting the rooms themselves. We measured the EngSoc Arena at 46 decibels of ambient sound and noted its lighting controls and table heights, so the design would fit the room it will be used in.')}
             </p>
             <br />
-            <p className="story-head">{t('Three ideas on a whiteboard')}</p>
+            <h2 className="story-head">{t('Three ideas on a whiteboard')}</h2>
             <p>
               {t('My formal role was quality assurance. The part I care most about happened at a whiteboard. Earlier in the term, my first peer evaluation said plainly that I should be more present in team discussions. So during idea selection I came to one of our in-person meetings prepared and put three design directions on the whiteboard: a hard-hat concept with built-in buzzers, a gyroscope-based wand, and a conventional buzzer system. For each one I walked through the detection method, the physical layout, and how it would be used on game day. After several rounds of deliberation the team chose the wand. The client also responded well to the less conventional ideas.')}
             </p>
@@ -485,7 +485,7 @@ export function GyroscopeWand() {
               {t('The Pugh method decided it. With the wand as the datum, the Hard-Hat Smack scored minus three and the Boom-Box minus one, mostly on weight and size, and the Skule™ Wand became the proposed design.')}
             </p>
             <br />
-            <p className="story-head">{t('Modeling it')}</p>
+            <h2 className="story-head">{t('Modeling it')}</h2>
             <p>
               {t('To make the concept concrete I built a prototype model in Blender, finishing it the day before the CDS deadline. The model works out the full assembly: a gripped handle, a globe mount, an LED puck that lights when a wand wins the round, and the globe with a discipline topper inside. I modeled eight toppers, one per discipline.')}
             </p>
@@ -507,7 +507,7 @@ export function GyroscopeWand() {
                 caption={t('All eight wands in 3D, modeled in Blender™.')}
               />
             </Expandable>
-            <p className="story-head">{t('Making it move')}</p>
+            <h2 className="story-head">{t('Making it move')}</h2>
             <p>
               {t("I also wrote the firmware for a two-wand bench prototype. It runs on an Arduino with a TCA9548A I2C multiplexer and a motion sensor in each wand. The loop samples both sensors, derives speed and acceleration magnitudes from the readings, and compares them against a threshold. The first wand past the threshold locks the round, lights its own LED, and plays its own tone on the hub's buzzer, so everyone can hear which wand was first. The code self-checks too: it scans the I2C bus, verifies each sensor's identity register, and runs the sensor's self-test before trusting it. A note on the name: we pitched the concept with a gyroscope, and the bench prototype detects motion with accelerometers.")}
             </p>
@@ -518,7 +518,7 @@ export function GyroscopeWand() {
             </p>
             <br />
             <FigureCarousel slides={tr(LEGWORK)} label={t('MyFab and hardware legwork')} />
-            <p className="story-head">{t('From model to hardware')}</p>
+            <h2 className="story-head">{t('From model to hardware')}</h2>
             <p>
               {t("After the model, we built it. We printed five handles, capped them with clear globes, and wired two of them up as live wands into a breadboard hub carrying the Arduino, the multiplexer, the LEDs, and the buzzer. One assembled wand weighs 106 grams on a kitchen scale; the CDS had calculated 102. The number mattered, because portability was in the client's brief from the first meeting.")}
             </p>
@@ -548,7 +548,7 @@ export function GyroscopeWand() {
               />
               <figcaption>{t('Both wands wired up: the first one to move wins the round.')}</figcaption>
             </figure>
-            <p className="story-head">{t('The paper trail')}</p>
+            <h2 className="story-head">{t('The paper trail')}</h2>
             <p>
               {t('Alongside the hardware, the course asked for formal documents, and the writing took as much work as the build. The Project Requirements came first, in early March. The Conceptual Design Specification followed three weeks later: 95 pages of problem framing, morph charts, alternative designs, and measures of success. The night before the CDS was due we were 700 words over the limit at 2 a.m., and the whole team stayed on call until seven in the morning cutting words and fixing formatting. As quality assurance manager I did the final proofreading and kept our submissions on time. Everything below opens right here on the page.')}
             </p>
@@ -558,7 +558,7 @@ export function GyroscopeWand() {
             <p className="doc-note">
               {t('Student numbers and personal contact details are redacted from the published copies.')}
             </p>
-            <p className="story-head">{t('The feedback loop')}</p>
+            <h2 className="story-head">{t('The feedback loop')}</h2>
             <p>
               {t('I treated the peer feedback like a bug report. The first evaluation said I needed to engage more. I answered it with the whiteboard session and the prototype, and later wrote the whole loop up in the Team Feedback Analysis above. By the second evaluation, teammates were writing about the late nights on the CDS and the resources I kept bringing to meetings. It also gave me new things to work on: sharing more during discussions, and responding faster online. I would rather find these out in first year than at a job.')}
             </p>

@@ -88,8 +88,10 @@ export function useRouteScroll() {
     const backHome = location.pathname === '/' && !arrival;
     let top = 0;
     if (anchor) {
-      // layout offsets, not getBoundingClientRect: the page is still mid rise-in (route-in's translateY)
-      for (let n: HTMLElement | null = anchor; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop;
+      top = offsetTop(anchor);
+    } else if (location.hash && arrival) {
+      // a story page is its own chunk: on arrival it may not be drawn yet, so wait for the section
+      return waitFor(location.hash.slice(1));
     } else if (backHome) {
       const cover = document.querySelector<HTMLElement>('.badge-cover');
       const tail = document.querySelector<HTMLElement>('.badge-cover-tail');
@@ -97,6 +99,35 @@ export function useRouteScroll() {
     }
     scrollToY(top);
   }, [location.key, location.pathname, location.hash, navType]);
+}
+
+// layout offsets, not getBoundingClientRect: the page is still mid rise-in (route-in's translateY)
+function offsetTop(el: HTMLElement) {
+  let top = 0;
+  for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) top += n.offsetTop;
+  return top;
+}
+
+/** Scroll to the element with this id once it exists (for up to 3 s); anything the reader does first wins. */
+function waitFor(id: string) {
+  let tries = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const done = () => {
+    clearTimeout(timer);
+    for (const ev of USER_INPUT) window.removeEventListener(ev, done);
+  };
+  const look = () => {
+    const el = document.getElementById(id);
+    if (el) {
+      done();
+      return scrollToY(offsetTop(el));
+    }
+    if (tries++ < 60) timer = setTimeout(look, 50);
+    else done();
+  };
+  for (const ev of USER_INPUT) window.addEventListener(ev, done, { passive: true });
+  timer = setTimeout(look, 50);
+  return done;
 }
 
 function scrollToY(top: number) {

@@ -337,12 +337,12 @@ export function HolyBridge() {
               />
               <figcaption>{t('Test day. The name, the team, and the prediction, in marker on the side.')}</figcaption>
             </figure>
-            <p className="story-head">{t('The method')}</p>
+            <h2 className="story-head">{t('The method')}</h2>
             <p>{t('A moving load is harder to analyze than a fixed one, because the worst case is different at every point along the span. So the first thing we built was a model of the loading. We swept the train across the 1,200 millimetres in one-millimetre steps and, at each position, computed the shear force and bending moment everywhere along the bridge. Taking the worst value at each point over all train positions gives the shear-force and bending-moment envelopes: two curves that say how hard the structure is pushed at every station. Every check that followed was made against them.')}</p>
             <br />
             <p>{t('We checked six independent ways the bridge could fail against them: crushing and tearing of the matboard, buckling of the compressed flange and of the tall thin webs, and two kinds of shear failure. Each has its own equation, and each produces its own factor of safety at every point on the span. The design is only as strong as its weakest mode at its weakest point, so the whole design problem came down to raising the lower envelope of those six curves with the material we had.')}</p>
             <br />
-            <p className="story-head">{t('Seven designs on paper')}</p>
+            <h2 className="story-head">{t('Seven designs on paper')}</h2>
             <p>{t('The seven iterations in the report are really seven experiments, each asking the equations where material was being wasted. Buckling was the recurring answer. A thin plate buckles at a stress that scales with the square of its thickness-to-width ratio, so slender, unsupported spans of matboard give out long before the material itself would crush. We added internal diaphragms to keep the box from racking into a parallelogram under shear, and we layered the compression flange rather than the whole deck, because every failure equation improves with the second moment of area and that is where the bending moment concentrates.')}</p>
             <br />
             <p>{t("The height and width came out of an equation. The factor of safety against bending rises roughly with the square of the section height, while the factor against web buckling falls with its square, so the two pull in opposite directions. The most efficient height is the one where the web buckles and the material yields at the same stress, because beyond that height the web gives out before the extra material can help. Solving that condition gave 74 millimetres of web and 121 of flange, which we then rounded to the project's 20-millimetre height increments and to what a knife can honestly cut.")}</p>
@@ -359,13 +359,13 @@ export function HolyBridge() {
             </figure>
             <p>{t('Iteration seven exists because the checks caught our own mistake. We had optimized so hard against compression and buckling that we removed the bottom layer entirely, and only when we re-ran the checks did we find we had never properly tested failure by tension. The design failed it. The bottom layer went back in, which moved the governing failure to shear through the new glue joints, which is why the finished bridge has glue tabs along the soffit. The report says so plainly, which I like.')}</p>
             <br />
-            <p className="story-head">{t('The code')}</p>
+            <h2 className="story-head">{t('The code')}</h2>
             <p>{t('The design rests on a set of Python scripts. They sweep the train across the span and build the shear force and bending moment envelopes, compute the factor of safety against every failure mode we knew, and solve for how long each top layer needs to be. The final run predicted a failure load of 1,096 newtons, with the weakest point at x = 379 millimetres and a factor of safety of 1.009 there. In other words, the design uses up its material almost exactly, which is what the optimization was for. The number we wrote on the bridge on test day, 548 N, is the working-load prediction we carried into the competition. The scripts are in the shelf below, next to the reports: the main solver, the bending-moment envelope, the layer-stress calculation, and the one that drew the heatmap above. The full output, graphs included, is there too.')}</p>
             <br />
             <FigureCarousel slides={tr(ANALYSIS)} label={t('The analysis, in graphs')} />
             <p>{t('The first graph sums up the design: all six failure modes plotted along the span, every curve just above the dashed line where the factor of safety equals one. A bridge that clears every mode by a wide margin has wasted material. Ours clears them by almost nothing, on purpose.')}</p>
             <br />
-            <p className="story-head">{t('Two nights of building')}</p>
+            <h2 className="story-head">{t('Two nights of building')}</h2>
             <p>{t('Construction took two evenings, five days before testing so the cement could cure. On November 19 we marked and cut the sheet at the Myhal fabrication facility, with permission from the supervisors: tape measure and rulers against a prepared floorplan, every line double-checked by a second person, three hours of precision knife work.')}</p>
             <br />
             <FigureCarousel slides={tr(MARKING)} label={t('Marking and cutting the matboard')} />
@@ -402,19 +402,19 @@ export function HolyBridge() {
             <Expandable label="Bridge studio">
               <BridgeStudio />
             </Expandable>
-            <p className="story-head">{t('The Bible test')}</p>
+            <h2 className="story-head">{t('The Bible test')}</h2>
             <p>{t('Before we closed the box we tested it ourselves: the bridge over the one-metre span between two tables, the same books that had clamped it now loading it, an acrylic ruler taped at one end to read the deflection. Around 20 kilograms it showed minor web buckling, and the soffit lifted near the diaphragms, where a roughly one-millimetre height mismatch kept it from seating. Some pieces also had to be patched from offcuts.')}</p>
             <br />
             <FigureCarousel slides={tr(FINISHED)} label={t('The finished bridge and the light-load test')} />
             <p>{t('All of it was fixable. We added glue tabs to hold the soffit to the webs, the connection the calculations already assume exists. The patched joints we treated as harmless, because the analysis models each layer as one continuous piece. That assumption would come back to bite us. By 11 p.m. on November 20 the box was closed.')}</p>
-            <p className="story-head">{t('The report itself')}</p>
+            <h2 className="story-head">{t('The report itself')}</h2>
             <p>{t('Everything above is a retelling. The design report is the record itself, nine pages, readable here in full.')}</p>
             <br />
             <PdfFlow src={`${MEDIA}/design-report.pdf`} title={t('Box Girder Bridge Design Report')} />
             <p>{t('The rest of the record is in the shelf below: nineteen pages of hand calculations, the assembly drawings, the construction log, and the code output with every envelope and factor of safety. Each opens on this page too.')}</p>
             <br />
             <DocShelf docs={DOCS.map((d) => ({ ...d, title: t(d.title), meta: t(d.meta) }))} base={MEDIA} />
-            <p className="story-head">{t('Test day')}</p>
+            <h2 className="story-head">{t('Test day')}</h2>
             <p>{t('The prediction was 1,096 newtons. The bridge failed at 133, a factor of eight off. That miss is the most useful thing this project taught me.')}</p>
             <br />
             <FigureCarousel slides={tr(TESTDAY)} label={t('Test day')} />

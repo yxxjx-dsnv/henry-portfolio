@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../i18n';
+import { DRACO } from './dracoPath';
+import { onScreen } from './onScreen';
 
 type Props = {
   src: string; // .glb path
@@ -44,6 +46,8 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
         ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
+        const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
+        cleanupExtra.push(seen.stop);
 
         const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
@@ -98,7 +102,7 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
         scene.add(key);
 
         const draco = new DRACOLoader();
-        draco.setDecoderPath('/draco/');
+        draco.setDecoderPath(DRACO);
         cleanupExtra.push(() => draco.dispose());
         const loader = new GLTFLoader();
         loader.setDRACOLoader(draco);
@@ -136,6 +140,7 @@ export function ModelViewer({ src, poster, caption, label }: Props) {
 
         const animate = () => {
           raf = requestAnimationFrame(animate);
+          if (!seen.on) return;
           orbit.update();
           webglRenderer.render(scene, camera);
         };

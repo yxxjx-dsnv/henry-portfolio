@@ -54,7 +54,7 @@ export function Utkesa() {
     <section className="section">
       <ReadProgress />
       <Link to="/extra-curricular" className="story-back">
-        &larr; All activities
+        &larr; {t('All activities')}
       </Link>
       <Hero title="UTKESA & the Gallery of Korea" subtitle="Event Department · Korea Root Initiative donation" />
       <section className="essay-section">
@@ -93,16 +93,16 @@ export function Utkesa() {
           >
             <p>{t("UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025, became an executive in January 2026, and helped plan and run the association's events until August 2026. What I care about most from that time is a donation the association made to a museum campaign.")}</p>
             <br />
-            <p className="story-head">The gallery at risk</p>
+            <h2 className="story-head">The gallery at risk</h2>
             <p>{t("The Royal Ontario Museum has Canada's only permanent Gallery of Korea. Without a dedicated curator it could have closed or been folded into a broader East Asian gallery, and the specific history it is there to tell would have blurred into that. The Korea Root Initiative started a campaign to fund a permanent curator, and UTKESA decided to support it.")}</p>
             <br />
             <p>{t("We made the donation around Samil-jeol, the March 1st holiday that commemorates the 1919 Korean independence movement, on purpose. For Korean students studying abroad it was our way of marking the day. The money had been raised over the year by the executive team.")}</p>
             <br />
-            <p className="story-head">The event</p>
+            <h2 className="story-head">The event</h2>
             <p>{t("The Korea Root Initiative later held a fundraiser where community leaders, organizations, and student groups gathered for the cause, and the contribution was handed over there in person. Our 43rd president Jihan Kang and 44th president Leo Choung represented UTKESA. I helped with the work behind our part of it as a member of the event team. The photos below are from that day, at the fundraiser and at the gallery itself.")}</p>
             <br />
             <FigureCarousel slides={slides} label={t('The Korea Root Initiative event and the Gallery of Korea')} />
-            <p className="story-head">The certificate</p>
+            <h2 className="story-head">The certificate</h2>
             <p>{t("The Korea Root Initiative recognized the contribution with a certificate: CAD $400 from the Korean Engineering Students' Association at the University of Toronto, toward a permanent curator for the Gallery of Korea at the ROM. It is a small amount next to what a curator costs, but it is on the record and it went to one specific gallery.")}</p>
             <br />
             <figure className="story-figure">
@@ -115,7 +115,7 @@ export function Utkesa() {
               />
               <figcaption>{t("The certificate: CAD $400, dated May 10, 2026.")}</figcaption>
             </figure>
-            <p className="story-head">What I took from it</p>
+            <h2 className="story-head">What I took from it</h2>
             <p>{t("Most of what a student association does is logistics: rooms, sign-ups, schedules. A club also lets a group put a bit of money and effort toward something it decides matters, and for us that was the Gallery of Korea. That money came from the events the executive team ran all year, which is reason enough for the logistics.")}</p>
             <br />
             <div className="end-mark" aria-hidden="true" />

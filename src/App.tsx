@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -9,15 +9,6 @@ import { profile } from './data/profile';
 import { Home } from './pages/Home';
 import { BadgeCover } from './components/badge/BadgeCover';
 import { Projects } from './pages/Projects';
-import { CampusPulse } from './pages/CampusPulse';
-import { Aerious } from './pages/Aerious';
-import { GyroscopeWand } from './pages/GyroscopeWand';
-import { HolyBridge } from './pages/HolyBridge';
-import { Pendulum } from './pages/Pendulum';
-import { Aps105Labs } from './pages/Aps105Labs';
-import { IncheonRobotics } from './pages/IncheonRobotics';
-import { GreenstoneGrind } from './pages/GreenstoneGrind';
-import { Utkesa } from './pages/Utkesa';
 import { Essays } from './pages/Essays';
 import { Writing } from './pages/Writing';
 import { WayOfLife } from './pages/WayOfLife';
@@ -28,6 +19,19 @@ import { Colophon } from './pages/Colophon';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useRouteScroll } from './hooks/useRouteScroll';
 import { useLang } from './i18n';
+
+// The story pages are their own chunks, fetched when one is opened; Home and the index pages
+// stay in the first load. A link waits on the old page until the new one is ready (the router
+// navigates in a transition), so nothing blanks in between.
+const CampusPulse = lazy(() => import('./pages/CampusPulse').then((m) => ({ default: m.CampusPulse })));
+const Aerious = lazy(() => import('./pages/Aerious').then((m) => ({ default: m.Aerious })));
+const GyroscopeWand = lazy(() => import('./pages/GyroscopeWand').then((m) => ({ default: m.GyroscopeWand })));
+const HolyBridge = lazy(() => import('./pages/HolyBridge').then((m) => ({ default: m.HolyBridge })));
+const Pendulum = lazy(() => import('./pages/Pendulum').then((m) => ({ default: m.Pendulum })));
+const Aps105Labs = lazy(() => import('./pages/Aps105Labs').then((m) => ({ default: m.Aps105Labs })));
+const IncheonRobotics = lazy(() => import('./pages/IncheonRobotics').then((m) => ({ default: m.IncheonRobotics })));
+const GreenstoneGrind = lazy(() => import('./pages/GreenstoneGrind').then((m) => ({ default: m.GreenstoneGrind })));
+const Utkesa = lazy(() => import('./pages/Utkesa').then((m) => ({ default: m.Utkesa })));
 
 const HASH_ROUTES: Record<string, string> = {
   '#home': '/',
@@ -345,34 +349,36 @@ export default function App() {
       <div className="main-container">
         <Sidebar isDark={isDark} onToggleDark={toggleDarkFrom} open={sidebarOpen} onClose={closeSidebar} />
         <div className="content-wrapper">
-          <div className="route-fade" key={location.pathname}>
-            <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/projects" element={<Projects />} />
-            {/* The Incheon ASRS story is reachable from both timelines it belongs to. */}
-            <Route path="/projects/incheon-robotics" element={<IncheonRobotics />} />
-            <Route path="/extra-curricular/incheon-robotics" element={<IncheonRobotics />} />
-            <Route path="/projects/campus-pulse" element={<CampusPulse />} />
-            <Route path="/projects/aerious" element={<Aerious />} />
-            {/* MONO now lives inside the ÆRIOUS story, as its first attempt */}
-            <Route path="/projects/mono" element={<Navigate to={`/projects/aerious${location.search}#mono`} replace />} />
-            <Route path="/projects/gyroscope-wand" element={<GyroscopeWand />} />
-            <Route path="/projects/civ102-bridge" element={<HolyBridge />} />
-            <Route path="/projects/pendulum" element={<Pendulum />} />
-            <Route path="/projects/aps105-labs" element={<Aps105Labs />} />
-            <Route path="/writing" element={<Writing />} />
-            <Route path="/writing/a-way-of-life" element={<WayOfLife />} />
-            <Route path="/writing/learnings-from-past-three-years" element={<Essays />} />
-            {/* the essay's old address */}
-            <Route path="/essays" element={<Navigate to="/writing/learnings-from-past-three-years" replace />} />
-            <Route path="/extra-curricular" element={<ExtraCurricular />} />
-            <Route path="/extra-curricular/greenstone-grind" element={<GreenstoneGrind />} />
-            <Route path="/extra-curricular/utkesa" element={<Utkesa />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/colophon" element={<Colophon />} />
-            <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <Suspense fallback={null}>
+            <div className="route-fade" key={location.pathname}>
+              <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/projects" element={<Projects />} />
+              {/* The Incheon ASRS story is reachable from both timelines it belongs to. */}
+              <Route path="/projects/incheon-robotics" element={<IncheonRobotics />} />
+              <Route path="/extra-curricular/incheon-robotics" element={<IncheonRobotics />} />
+              <Route path="/projects/campus-pulse" element={<CampusPulse />} />
+              <Route path="/projects/aerious" element={<Aerious />} />
+              {/* MONO now lives inside the ÆRIOUS story, as its first attempt */}
+              <Route path="/projects/mono" element={<Navigate to={`/projects/aerious${location.search}#mono`} replace />} />
+              <Route path="/projects/gyroscope-wand" element={<GyroscopeWand />} />
+              <Route path="/projects/civ102-bridge" element={<HolyBridge />} />
+              <Route path="/projects/pendulum" element={<Pendulum />} />
+              <Route path="/projects/aps105-labs" element={<Aps105Labs />} />
+              <Route path="/writing" element={<Writing />} />
+              <Route path="/writing/a-way-of-life" element={<WayOfLife />} />
+              <Route path="/writing/learnings-from-past-three-years" element={<Essays />} />
+              {/* the essay's old address */}
+              <Route path="/essays" element={<Navigate to="/writing/learnings-from-past-three-years" replace />} />
+              <Route path="/extra-curricular" element={<ExtraCurricular />} />
+              <Route path="/extra-curricular/greenstone-grind" element={<GreenstoneGrind />} />
+              <Route path="/extra-curricular/utkesa" element={<Utkesa />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/colophon" element={<Colophon />} />
+              <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </Suspense>
         </div>
       </div>
     </main>

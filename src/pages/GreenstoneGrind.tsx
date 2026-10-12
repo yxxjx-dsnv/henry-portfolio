@@ -80,28 +80,33 @@ const GROUP: CarouselSlide[] = [
 ];
 
 export function GreenstoneGrind() {
-  const { t } = useLang();
+  const { t, tx } = useLang();
   const tr = (slides: CarouselSlide[]) => slides.map((sl) => ({ ...sl, alt: t(sl.alt), caption: t(sl.caption) }));
   useEffect(() => () => document.body.classList.remove('reading-focus'), []);
   return (
     <section className="section">
       <ReadProgress />
       <Link to="/extra-curricular" className="story-back">
-        &larr; All activities
+        &larr; {t('All activities')}
       </Link>
-      <Hero title="The Greenstone Grind" subtitle="a week inside a gold mine — February 16–20, 2026" />
+      <Hero title="The Greenstone Grind" subtitle={t('a week inside a gold mine — February 16–20, 2026')} />
       <section className="essay-section">
         <div className="text">
           <div className="story-meta">
-            <p>One of 11 students selected from 75+ applicants across U of T Engineering</p>
+            <p>{t('One of 11 students selected from 75+ applicants across U of T Engineering')}</p>
             <p>
-              <a href="https://greenstonegoldmines.com" target="_blank" rel="noopener noreferrer">
-                Greenstone Mine
-              </a>{' '}
-              (Equinox Gold), Geraldton, Ontario · a program of the{' '}
-              <a href="https://oma.on.ca" target="_blank" rel="noopener noreferrer">
-                Ontario Mining Association
-              </a>
+              {tx('{mine} (Equinox Gold), Geraldton, Ontario · a program of the {oma}', {
+                mine: (
+                  <a href="https://greenstonegoldmines.com" target="_blank" rel="noopener noreferrer">
+                    Greenstone Mine
+                  </a>
+                ),
+                oma: (
+                  <a href="https://oma.on.ca" target="_blank" rel="noopener noreferrer">
+                    Ontario Mining Association
+                  </a>
+                ),
+              })}
             </p>
           </div>
           <div
@@ -111,7 +116,7 @@ export function GreenstoneGrind() {
           >
             <p>{t("Before this trip I thought mining was mostly about heavy machinery. It turned out to be about systems: the layers of safety, redundancy, and human judgement that let those machines run responsibly at that scale. For one week in February, through the Greenstone Grind, a partnership between the Ontario Mining Association and Equinox Gold's Greenstone Gold Mines, eleven of us from U of T Engineering rotated through the departments of an operating gold mine in Northwestern Ontario.")}</p>
             <br />
-            <p className="story-head">Getting in</p>
+            <h2 className="story-head">Getting in</h2>
             <p>{t("I applied because I wanted to understand mining past the usual misconceptions, including my own. In the application I wrote about the MacBook I was typing on: its circuits run on copper, gold, and lithium, and every one of those metals came out of the ground through someone's hands. Almost everything around us starts that way, and most of us know almost nothing about it.")}</p>
             <br />
             <p>{t("The program was built for that gap: a Reading Week at Ontario's newest gold mine, open to first-year undeclared engineering students, with travel, meals, and lodging covered, and only eight to twelve spots. More than seventy-five students applied and eleven were chosen, so when the email arrived saying \"Congrats! You're invited to the Greenstone Grind Experience,\" I was excited. In the application I had written that I wanted the week to turn \"pre-experience curiosity into post-experience conviction.\" Getting into a working mine felt unreal at first.")}</p>
@@ -124,17 +129,17 @@ export function GreenstoneGrind() {
               height={1600}
             />
             <FigureCarousel slides={tr(JOURNEY)} label={t("Getting credentialed and heading north")} />
-            <p className="story-head">North</p>
+            <h2 className="story-head">North</h2>
             <p>{t("Geraldton is a long way north of Toronto, and the route runs through Thunder Bay. We each had a full kit: hard hat, steel-toe boots, hi-vis layers, winter gloves. Before we were allowed anywhere near operations we completed safety training, did a lock-out demonstration, and earned industry credentials through NORCAT. The training list ran from WHMIS to fall protection and confined-space awareness. Safety is built into every process there. The environment is hazardous by nature, so every procedure exists to reduce that risk.")}</p>
             <br />
             <FigureCarousel slides={tr(ARRIVAL)} label={t("Arriving on site: the bus, the kit, the gear")} />
-            <p className="story-head">The scale of it</p>
+            <h2 className="story-head">The scale of it</h2>
             <p>{t("The open pit is already about 240 metres deep. Haul trucks carry up to 250 tonnes on tyres over ten feet tall. I rode along with a haul truck operator for part of a shift and learned about stockpiles, dump locations, the navigation systems, automated loading and unloading, and the braking redundancies built in for a failure. The trucks have huge blind spots, covered by camera systems and procedural controls, and their operators work 12-hour shifts on 14-day rotations to keep the mine running 24/7. That is a lot of responsibility to carry.")}</p>
             <br />
             <p>{t("I also sat inside a shovel, a machine even larger than the haul trucks that lifts around 70 tonnes in a single bucket, and learned about remote dozer operation, where equipment in hazardous zones is driven from a safe spot. We went through blasting too: how small parts like detonators and boosters, with automation on top, break the rock in a controlled way. Paul Dawe and the mining operations team showed me how much of managing that risk is experience and situational awareness sitting on top of all those systems.")}</p>
             <br />
             <FigureCarousel slides={tr(PIT)} label={t("The open pit: shovels, haul trucks, and dozers")} />
-            <p className="story-head">Inside the mill</p>
+            <h2 className="story-head">Inside the mill</h2>
             <p>{t("The mill is where rock becomes gold, and it was one of the parts of the trip I enjoyed most. We walked the whole process: crushing, ball mills, high-pressure grinding rolls, flotation, gravity concentration, leaching, cyanidation, carbon stripping, electrowinning, the furnace, and tailings handling. Chemical, mechanical, and electrical systems all run together there, at a scale I had only read about.")}</p>
             <br />
             <FigureCarousel slides={tr(MILL)} label={t("Inside the mill: the process plant end to end")} />
@@ -146,7 +151,7 @@ export function GreenstoneGrind() {
             <br />
             <p>{t("Much of this came from Freddie (Frederique Belanger) and Eric, who explained the reasoning along with the process flow: why the redundancy is there, how the control systems decide, and how the chemistry gets decided under real operating constraints. Equations I have learned, and some I have not yet, were running continuously in front of us, and none of it felt theoretical.")}</p>
             <br />
-            <p className="story-head">Beneath the surface</p>
+            <h2 className="story-head">Beneath the surface</h2>
             <p>{t("In geology we handled real rock samples and learned how deposits are found by following quartz veins through folds, faults, and changes in rock type. The mine sits on an Archean greenstone belt, formed billions of years ago when magma flowed at the Earth's surface, and it felt more real than anything in a textbook. In engineering and planning I saw how modelling, blast simulations, surveying, drone mapping, and geotechnical analysis feed the daily decisions, and meeting Nick Pantis, a mining engineer in training, made that career path feel reachable.")}</p>
             <br />
             <p>{t("Maintenance and reliability engineering was the rotation I liked most. With Fabricio Crego I saw how vehicles come in for planned maintenance after a set number of operating hours, and how oil samples are analyzed, like blood tests, to catch internal wear before it becomes a failure. The engineers there use the data from repeated failures to trace root causes and design long-term solutions rather than quick fixes. In the shop I saw loaders and haul trucks up close, and among them couplings and components I once drew in Grade 12 mechanical drawing, now at full industrial scale.")}</p>
@@ -158,7 +163,7 @@ export function GreenstoneGrind() {
               width={1200}
               height={1600}
             />
-            <p className="story-head">What stays with me</p>
+            <h2 className="story-head">What stays with me</h2>
             <p>{t("The tailings management facility is where mine closure gets planned for. Detoxified slurry is managed, water is reclaimed and reused, and the land is engineered to return to a vegetated, natural state after the mine's life, which changed how I think about sustainability in mining. The Emergency Response Team left a similar mark: wearing the gear and feeling its weight, and the physical limits the responders work under, made me appreciate the people who train to protect everyone else on site.")}</p>
             <br />
             <FigureCarousel slides={tr(STAYS)} label={t("Tailings, closure, and the emergency-response team")} />

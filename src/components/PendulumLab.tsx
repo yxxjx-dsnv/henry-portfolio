@@ -27,6 +27,8 @@ import { PendulumSetup } from './PendulumSetup';
 import { PendulumSweep } from './PendulumSweep';
 import { PendulumData } from './PendulumData';
 import { PendulumGraph } from './PendulumGraph';
+import { DRACO } from './dracoPath';
+import { onScreen } from './onScreen';
 
 const MEDIA = '/media/pendulum';
 const GLB = `${MEDIA}/pendulum.glb`;
@@ -303,6 +305,8 @@ export function PendulumLab() {
           ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
+        const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
+        cleanupExtra.push(seen.stop);
 
         const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
@@ -369,7 +373,7 @@ export function PendulumLab() {
         scene.add(key);
 
         const draco = new DRACOLoader();
-        draco.setDecoderPath('/draco/');
+        draco.setDecoderPath(DRACO);
         cleanupExtra.push(() => draco.dispose());
         const loader = new GLTFLoader();
         loader.setDRACOLoader(draco);
@@ -566,8 +570,11 @@ export function PendulumLab() {
           } else {
             pose(0, hangRef.current); // hanging still
           }
-          orbit.update();
-          webgl.render(scene, camera);
+          // a run goes on while the reader is down at the table or the graph; only the picture rests
+          if (seen.on) {
+            orbit.update();
+            webgl.render(scene, camera);
+          }
         };
         raf = requestAnimationFrame(animate);
         paint(8); // empty axes, not blank boxes, before the first run

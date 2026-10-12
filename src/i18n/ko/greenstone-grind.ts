@@ -110,6 +110,10 @@ const ko: Record<string, string> = {
   "Video of the eleven students in their green shirts gathered in the cabin, waving.": "초록 셔츠를 입은 학생 열한 명이 통나무집에 모여 손을 흔드는 영상.",
   "The group, the same night.": "같은 날 밤의 우리.",
 
+  'All activities': '모든 활동',
+  'a week inside a gold mine — February 16–20, 2026': '금광 안에서 보낸 일주일 — 2026년 2월 16–20일',
+  'One of 11 students selected from 75+ applicants across U of T Engineering': 'U of T 공과대학 지원자 75명 이상 가운데 선발된 학생 11명 중 한 명',
+  '{mine} (Equinox Gold), Geraldton, Ontario · a program of the {oma}': '{mine}(Equinox Gold), 온타리오주 제럴턴 · {oma}의 프로그램',
 };
 
 export default ko;

@@ -1,3 +1,4 @@
+import { useLang } from '../i18n';
 import { useEffect, useId, useState } from 'react';
 import { CodeViewer, type CodeLang } from './CodeViewer';
 import { Expandable } from './Expandable';
@@ -45,6 +46,7 @@ function DocIcon({ kind }: { kind: ShelfDoc['kind'] }) {
 }
 
 function CodePanel({ doc }: { doc: ShelfDoc }) {
+  const { t } = useLang();
   const [source, setSource] = useState<string | null>(doc.source ?? null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -58,7 +60,7 @@ function CodePanel({ doc }: { doc: ShelfDoc }) {
       dead = true;
     };
   }, [doc, source]);
-  if (failed) return <p className="pdf-status">Couldn't load the source here.</p>;
+  if (failed) return <p className="pdf-status">{t("Couldn't load the source here.")}</p>;
   if (source === null)
     return (
       <p className="pdf-status" role="status">

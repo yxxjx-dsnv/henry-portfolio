@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AnimationAction, AnimationMixer, Material, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { useLang } from '../i18n';
+import { DRACO } from './dracoPath';
+import { onScreen } from './onScreen';
 
 const MEDIA = '/media/civ102-bridge';
 const GLB = `${MEDIA}/bridge.glb`;
@@ -64,6 +66,8 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
+        const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
+        cleanupExtra.push(seen.stop);
 
         const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
@@ -120,7 +124,7 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         cleanupExtra.push(() => env.dispose());
 
         const draco = new DRACOLoader();
-        draco.setDecoderPath('/draco/');
+        draco.setDecoderPath(DRACO);
         cleanupExtra.push(() => draco.dispose());
         const loader = new GLTFLoader();
         loader.setDRACOLoader(draco);
@@ -287,6 +291,10 @@ export function BridgeStudio({ className, variant = 'studio' }: { className?: st
         let last = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
+          if (!seen.on) {
+            last = 0; // and the first frame back starts afresh, with no leap
+            return;
+          }
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;

@@ -13,6 +13,13 @@ const ko: Record<string, string> = {
   "Next photo": "다음 사진",
   "slide deck": "slide deck",
   "carousel": "carousel",
+  'Previous page': '이전 페이지',
+  'Next page': '다음 페이지',
+  'page': '페이지',
+  'Go to page (1 to {n})': '페이지로 이동 (1–{n})',
+  'Page {page} of {pages} — click to jump to a page': '{pages}쪽 중 {page}쪽 — 눌러서 원하는 페이지로 이동',
+  '{title}, page {page} of {pages}. Click the left or right side to turn.': '{title}, {pages}쪽 중 {page}쪽. 왼쪽이나 오른쪽을 누르면 넘어갑니다.',
+  "Couldn't load the source here.": '여기서 소스를 불러오지 못했습니다.',
 };
 
 export default ko;

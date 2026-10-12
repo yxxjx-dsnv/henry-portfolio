@@ -15,6 +15,7 @@ import {
 import { loadRobotAsset, makeRobot, liftPose, liftFraction, clampFraction, type Robot } from './asrsRobot';
 import { Fleet, PITCH, LEVEL_H, PHASE_LABEL, cellPos, type FleetOpts } from './asrsFleet';
 import { useLang } from '../i18n';
+import { onScreen } from './onScreen';
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -99,6 +100,8 @@ export function AsrsSim() {
         ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
+        const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
+        cleanupExtra.push(seen.stop);
 
         const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
@@ -348,6 +351,10 @@ export function AsrsSim() {
         let hudAt = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
+          if (!seen.on) {
+            last = 0; // and the first frame back starts afresh, with no leap
+            return;
+          }
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;

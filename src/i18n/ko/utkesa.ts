@@ -21,6 +21,7 @@ const ko: Record<string, string> = {
   "The Royal Ontario Museum's Gallery of Korea: glass cases of Korean drums, instruments, and artifacts, visitors walking through.": "로열 온타리오 박물관 한국관. 유리 진열장 안의 한국 북과 악기, 유물들 사이로 관람객이 지나갑니다.",
   "The ROM's Gallery of Korea, which the donation supports.": "이 기부가 지원하는 ROM 한국관.",
 
+  'All activities': '모든 활동',
 };
 
 export default ko;

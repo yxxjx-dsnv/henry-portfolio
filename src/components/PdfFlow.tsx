@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../i18n';
+import { useNearView } from '../hooks/useNearView';
 import { Expandable } from './Expandable';
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
@@ -104,14 +105,17 @@ export function PdfFlow({
   const [pages, setPages] = useState(0);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
+  // nothing is fetched until the reader is near the report
+  const near = useNearView(wrapRef);
   useEffect(() => {
+    if (!near) return;
     let dead = false;
     (async () => {
       try {
         const pdfjs = await import('pdfjs-dist');
         const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const task = pdfjs.getDocument({ url: src });
+        const task = pdfjs.getDocument({ url: src, disableAutoFetch: true, disableStream: true }); // only the pages drawn are fetched
         loadingRef.current = task;
         const doc = await task.promise;
         if (dead) return;
@@ -128,7 +132,7 @@ export function PdfFlow({
       loadingRef.current = null;
       docRef.current = null;
     };
-  }, [src]);
+  }, [src, near]);
 
   useEffect(() => {
     if (status !== 'ready' || pages === 0) return;

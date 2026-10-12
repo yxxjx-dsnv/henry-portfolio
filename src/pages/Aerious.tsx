@@ -68,12 +68,12 @@ export function Aerious() {
             onPointerEnter={() => document.body.classList.add('reading-focus')}
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
-            <p className="story-head">{t('The name')}</p>
+            <h2 className="story-head">{t('The name')}</h2>
             <p>
               {t('It comes from the Latin aer, air. Add -ious, "full of" or "like", and you get "like air". People cannot live without air, but nobody thinks "I should breathe now" before taking a breath. I want what I make to be like that: everyone uses it, naturally, without thinking much about it. The line I picked for it is "Like air, always close."')}
             </p>
             <br />
-            <p className="story-head">{t('The plan, so far')}</p>
+            <h2 className="story-head">{t('The plan, so far')}</h2>
             <p>
               {t('I first put the name and the plan into words in late August 2026. Ærious would start with AI tools that automate office work, some of its own and some built on contract for other companies. Later it would make programs and apps for everyday life, a supporter you need beside you. Part of why I made the brand is that I wanted to use my development experience more professionally.')}
             </p>
@@ -126,17 +126,17 @@ export function Aerious() {
                 {t('MONO is meant to watch resale and dropshipping markets, score each product for how much profit it can realistically make, and list and reprice the ones worth selling on a storefront by itself. The name means doing it in one step, close to one click.')}
               </p>
               <br />
-              <p className="story-head">{t('Why I started it')}</p>
+              <h3 className="story-head">{t('Why I started it')}</h3>
               <p>
                 {t('I started reselling limited-edition items in high school, mostly on KREAM and Bunjang, and kept at it for about two years. It ate a lot of time. Every listing was manual and every price was a guess, and what I learned about one product never carried over to the next. MONO is the tool I wanted back then: something that does the repetitive part so that anyone, including people who are not technical, can find and sell profitable products without doing all of it by hand.')}
               </p>
               <br />
-              <p className="story-head">{t('The Profit Score')}</p>
+              <h3 className="story-head">{t('The Profit Score')}</h3>
               <p>
                 {t('MONO is designed around a number I call the Profit Score. For a given product it weighs the sourcing cost, shipping, platform fees, live demand, and what competitors are charging, then puts all of that on a single 0 to 100 scale. Products above a set threshold, around 85, would be listed automatically at a price the system recommends, set a little under the competition so they actually sell. The point is to take a call resellers usually make on instinct and make it repeatable.')}
               </p>
               <br />
-              <p className="story-head">{t('Learning from people who had done it')}</p>
+              <h3 className="story-head">{t('Learning from people who had done it')}</h3>
               <p>
                 {tx('I did not want to build MONO from my own assumptions alone, so early on I talked to people who had built this kind of thing. The person I learned the most from was {name}, a senior of mine with real experience in AI development. He explained how these systems are actually put together, pushed on the parts of my plan that were thin, and gave me practical advice. Through him I also met a developer who had built an AI recommendation engine for pharmacists, and hearing how a working product like that was engineered showed me where automation runs into its limits.', {
                   name: (
@@ -147,7 +147,7 @@ export function Aerious() {
                 })}
               </p>
               <br />
-              <p className="story-head">{t('Taking it seriously')}</p>
+              <h3 className="story-head">{t('Taking it seriously')}</h3>
               <p>
                 {t("I also worked on the business side. I read up on Shopify's margins, dropshipping, demand prediction with tools like Google Trends, and how SaaS products make money, and I set up a Shopify store to test the listing flow end to end. In 2025 I applied to the Hana Social Venture University program, which backs socially useful startups. I passed the first round and completed the second interview.")}
               </p>
@@ -162,13 +162,13 @@ export function Aerious() {
                 />
                 <figcaption>{t("The Shopify store I set up to test MONO's listing flow.")}</figcaption>
               </figure>
-              <p className="story-head">{t('The deck I presented')}</p>
+              <h3 className="story-head">{t('The deck I presented')}</h3>
               <p>
                 {t('My capstone presentation was a pitch for MONO and the work behind it. The full deck is below, slide by slide.')}
               </p>
               <br />
               <PdfDeck src={`${MEDIA}/deck.pdf`} title={t('MONO capstone presentation')} captions={deckNotes} />
-              <p className="story-head">{t('Where MONO stands')}</p>
+              <h3 className="story-head">{t('Where MONO stands')}</h3>
               <p>
                 {t('MONO is an idea for now: a Profit Score engine, live market data, and a storefront that lists and reprices on its own. If Ærious has a first product, I want it to be MONO.')}
               </p>

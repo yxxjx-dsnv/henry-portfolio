@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import { LangProvider, initialLang, interpolate, translate, useLang } from '../i18n';
+import { LangProvider, initialLang, interpolate, loadKO, translate, useLang } from '../i18n';
 import { KO } from './ko';
 
 function Probe() {
@@ -19,7 +19,7 @@ beforeEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
-test('the reader starts in English, switches to Korean, and the choice is remembered', () => {
+test('the reader starts in English, switches to Korean, and the choice is remembered', async () => {
   render(
     <LangProvider>
       <Probe />
@@ -27,15 +27,21 @@ test('the reader starts in English, switches to Korean, and the choice is rememb
   );
   const b = screen.getByRole('button');
   expect(b).toHaveTextContent('South Korea');
-  act(() => b.click());
+  await act(async () => {
+    b.click();
+    await loadKO(); // the Korean is its own chunk
+  });
   expect(b).toHaveTextContent(KO['South Korea']);
   expect(document.documentElement.lang).toBe('ko');
   expect(localStorage.getItem('lang')).toBe('ko');
 });
 
-test('?lang=ko on the link opens the Korean site', () => {
-  window.history.replaceState({}, '', '/?lang=ko');
+test('?lang=ko on the link opens the Korean site, is remembered, and leaves the address', () => {
+  window.history.replaceState({}, '', '/projects?lang=ko#top');
   expect(initialLang()).toBe('ko');
+  expect(localStorage.getItem('lang')).toBe('ko');
+  expect(window.location.pathname + window.location.search + window.location.hash).toBe('/projects#top');
+  expect(initialLang()).toBe('ko'); // a reload: the remembered choice
 });
 
 test("a first-time visitor gets the device's own language", () => {

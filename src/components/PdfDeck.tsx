@@ -3,6 +3,7 @@ import { useLang } from '../i18n';
 import { Expandable } from './Expandable';
 import { drawPages } from './PdfFlow';
 import { useDragSwipe } from '../hooks/useDragSwipe';
+import { useNearView } from '../hooks/useNearView';
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
 type LoadingTask = ReturnType<(typeof import('pdfjs-dist'))['getDocument']>;
@@ -42,14 +43,18 @@ export function PdfDeck({
   const docRef = useRef<PDFDocument | null>(null);
   const loadingRef = useRef<LoadingTask | null>(null);
 
+  // nothing is fetched until the reader is near the deck (Campus Pulse's is 19 MB)
+  const figRef = useRef<HTMLElement>(null);
+  const near = useNearView(figRef);
   useEffect(() => {
+    if (!near) return;
     let dead = false;
     (async () => {
       try {
         const pdfjs = await import('pdfjs-dist');
         const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const task = pdfjs.getDocument({ url: src });
+        const task = pdfjs.getDocument({ url: src, disableAutoFetch: true, disableStream: true }); // only the slides drawn are fetched
         loadingRef.current = task;
         const doc = await task.promise;
         if (dead) return;
@@ -69,7 +74,7 @@ export function PdfDeck({
       loadingRef.current = null;
       docRef.current = null;
     };
-  }, [src]);
+  }, [src, near]);
 
   useEffect(() => {
     if (status !== 'ready' || pages === 0) return;
@@ -177,7 +182,7 @@ export function PdfDeck({
 
   return (
     <Expandable label={title} aspect={aspect} chrome={CHROME} holdToOpen>
-      <figure className="story-figure pdf-deck">
+      <figure className="story-figure pdf-deck" ref={figRef}>
         {status === 'loading' ? (
           <p className="pdf-status" role="status">
             {tx('loading {title}…', { title })}

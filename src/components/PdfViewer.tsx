@@ -1,4 +1,8 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
+import { useLang } from '../i18n';
+
+// t() for an attribute: fills {name} placeholders with plain values
+const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (m, k) => String(v[k] ?? m));
 
 type PDFDocument = import('pdfjs-dist').PDFDocumentProxy;
 type LoadingTask = ReturnType<(typeof import('pdfjs-dist'))['getDocument']>;
@@ -9,6 +13,7 @@ type RenderTask = ReturnType<import('pdfjs-dist').PDFPageProxy['render']>;
 // and bottom), a click on the left or right side of the page, a horizontal
 // swipe, or the arrow keys. Click the page number to jump anywhere.
 export function PdfViewer({ src, title }: { src: string; title: string }) {
+  const { t, tx } = useLang();
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageBox = useRef<HTMLDivElement>(null);
@@ -31,7 +36,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
         const pdfjs = await import('pdfjs-dist');
         const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const loadingTask = pdfjs.getDocument({ url: src });
+        const loadingTask = pdfjs.getDocument({ url: src, disableAutoFetch: true, disableStream: true }); // only the pages turned to are fetched
         loadingRef.current = loadingTask;
         const doc = await loadingTask.promise;
         if (dead) return;
@@ -151,11 +156,13 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
   if (status === 'error') {
     return (
       <p className="pdf-status">
-        The in-page reader couldn't open this document —{' '}
-        <a href={src} target="_blank" rel="noopener noreferrer">
-          open it in its own tab
-        </a>{' '}
-        instead.
+        {tx("The in-page reader couldn't open this document — {link} instead.", {
+          link: (
+            <a href={src} target="_blank" rel="noopener noreferrer">
+              {t('open it in its own tab')}
+            </a>
+          ),
+        })}
       </p>
     );
   }
@@ -165,14 +172,14 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
       <button
         type="button"
         className="pdf-arrow"
-        aria-label="Previous page"
+        aria-label={t('Previous page')}
         aria-disabled={atStart}
         onClick={() => !atStart && go(-1)}
       >
         &#8249;
       </button>
       <span className="pdf-count">
-        {'page '}
+        {t('page')}{' '}
         {editing === which ? (
           <input
             className="pdf-page-input"
@@ -180,7 +187,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
             inputMode="numeric"
             value={draft}
             autoFocus
-            aria-label={`Go to page (1 to ${pages})`}
+            aria-label={fill(t('Go to page (1 to {n})'), { n: pages })}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commitEdit}
             onKeyDown={(e) => {
@@ -192,7 +199,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
           <button
             type="button"
             className="pdf-page-current"
-            aria-label={`Page ${page} of ${pages} — click to jump to a page`}
+            aria-label={fill(t('Page {page} of {pages} — click to jump to a page'), { page, pages })}
             onClick={() => beginEdit(which)}
           >
             {page}
@@ -204,7 +211,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
       <button
         type="button"
         className="pdf-arrow"
-        aria-label="Next page"
+        aria-label={t('Next page')}
         aria-disabled={atEnd}
         onClick={() => !atEnd && go(1)}
       >
@@ -217,7 +224,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
     <div className="pdf-viewer" ref={wrapRef} onKeyDown={onKeyDown}>
       {status === 'loading' ? (
         <p className="pdf-status" role="status">
-          loading {title}…
+          {tx('loading {title}…', { title })}
         </p>
       ) : (
         <>
@@ -226,7 +233,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
             <canvas
               ref={canvasRef}
               onClick={onCanvasClick}
-              aria-label={`${title}, page ${page} of ${pages}. Click the left or right side to turn.`}
+              aria-label={fill(t('{title}, page {page} of {pages}. Click the left or right side to turn.'), { title, page, pages })}
             />
           </div>
           {toolbar('bottom')}

@@ -531,7 +531,9 @@ export async function createBadgeScene(
     const pts = Array.from({ length: 38 }, (_, n) => V(-1.275 + (n / 37) * 2.55, 1.55 + i * 0.032 + 0.002 * Math.sin(n * 0.81 + i), 0.056 + 0.002 * Math.sin(n * 0.69 + i * 2)));
     put(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 90, 0.01 + i * 8e-4, 8, false), seam);
   }
-  const bubble = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.015, transmission: 1, thickness: 0.008, ior: 1.1 });
+  // air caught in the seal: glints, not glass (transmission would render the whole scene a second
+  // time every frame, for bubbles a few millimetres across)
+  const bubble = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.05, transparent: true, opacity: 0.35 });
   for (let i = 0; i < 19; i++) {
     const x = Math.sin(i * 47.31) * 1.17;
     const y = 1.565 + (0.5 + 0.5 * Math.sin(i * 29.9)) * 0.083;
@@ -602,6 +604,7 @@ export async function createBadgeScene(
 
   function down(e: PointerEvent) {
     if (e.button !== 0) return;
+    wake();
     aim(e);
     const h = hit();
     if (!h) return;
@@ -623,6 +626,7 @@ export async function createBadgeScene(
   }
   function move(e: PointerEvent) {
     if (pointerId !== null && e.pointerId !== pointerId) return;
+    wake();
     if (demoFrom !== null) return; // the demonstration's hand, not the mouse, is holding it
     aim(e);
     ray.ray.intersectPlane(dragPlane, onPlane);
@@ -700,6 +704,7 @@ export async function createBadgeScene(
       camera.lookAt(0, 0.8, 0);
     }
     camera.updateProjectionMatrix();
+    wake();
   }
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
@@ -826,8 +831,18 @@ export async function createBadgeScene(
       handOn = false;
     }
     renderer.render(scene, camera);
+    // at rest (the physics asleep, no hand, no demonstration, the tilt settled) the picture can't
+    // change: stop drawing until something moves it (a pointer, the tilt, a resize, the demo)
+    const still = !dragging && demoFrom === null && Math.abs(tiltTarget - tilt) < 1e-4 && rig.card.isSleeping();
+    resting = still ? resting + 1 : 0;
+    if (resting > 30) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
   }
+  let resting = 0;
   function wake() {
+    resting = 0;
     last = 0;
     if (document.hidden || !visible) {
       cancelAnimationFrame(raf);
@@ -845,7 +860,7 @@ export async function createBadgeScene(
 
   // a small push so it is already swinging when it first appears
   if (!reduced.matches) rig.card.applyImpulseAtPoint({ x: 0.4, y: 0, z: 0.04 }, { x: 0, y: CARD_REST_Y - 0.7, z: 0 }, true);
-  raf = requestAnimationFrame(frame);
+  if (!raf) raf = requestAnimationFrame(frame); // (the first resize may already have started it: one loop only)
   onState('live');
 
   return {
@@ -854,12 +869,14 @@ export async function createBadgeScene(
     setTilt(rad: number) {
       // capped at 15°: the badge swings well over (~1.2) but stays on a phone screen
       tiltTarget = Math.max(-0.26, Math.min(0.26, rad));
+      wake();
     },
     demoPull() {
       if (dragging || reduced.matches || disposed) return false;
       // low on the card, a little right of centre, where a thumb would go
       grabLocal.set(0.35, -1.1, 0.05);
       demoFrom = performance.now();
+      wake();
       return true;
     },
     dispose() {

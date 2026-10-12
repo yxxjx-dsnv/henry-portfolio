@@ -4,6 +4,7 @@
 import type { Group, InstancedMesh, Material, Mesh, Object3D, Texture } from 'three';
 
 import { PITCH, LEVEL_H } from './asrsFleet';
+import { DRACO } from './dracoPath';
 
 type ThreeNS = typeof import('three');
 
@@ -29,7 +30,7 @@ async function load(): Promise<SystemAsset> {
     import('three/examples/jsm/loaders/DRACOLoader.js'),
   ]);
   const draco = new DRACOLoader();
-  draco.setDecoderPath('/draco/');
+  draco.setDecoderPath(DRACO);
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
   const gltf = await loader.loadAsync(GLB);

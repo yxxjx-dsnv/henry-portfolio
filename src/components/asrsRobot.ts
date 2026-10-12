@@ -9,6 +9,7 @@
 
 import type { Group, Material, Mesh, Object3D } from 'three';
 import dims from '../../tools/robot/dims.json';
+import { DRACO } from './dracoPath';
 
 type Axis = 'long' | 'short';
 type Dir = { x: number; z: number };
@@ -102,7 +103,7 @@ async function load(): Promise<RobotAsset> {
     import('three/examples/jsm/loaders/DRACOLoader.js'),
   ]);
   const draco = new DRACOLoader();
-  draco.setDecoderPath('/draco/');
+  draco.setDecoderPath(DRACO);
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
   const { scene } = await loader.loadAsync('/media/incheon-robotics/robot.glb');

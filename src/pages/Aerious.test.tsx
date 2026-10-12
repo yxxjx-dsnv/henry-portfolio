@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Aerious } from './Aerious';
 import App from '../App';
@@ -51,7 +51,7 @@ test('shows the Shopify store figure with alt text and reserved dimensions', () 
   expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
 });
 
-test('the old /projects/mono address lands on the MONO part of the ÆRIOUS page', () => {
+test('the old /projects/mono address lands on the MONO part of the ÆRIOUS page (once its chunk is in)', async () => {
   const offset = vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockImplementation(function (this: HTMLElement) {
     return this.id === 'mono' ? 1200 : 0;
   });
@@ -61,9 +61,9 @@ test('the old /projects/mono address lands on the MONO part of the ÆRIOUS page'
       <App />
     </MemoryRouter>,
   );
-  expect(screen.getByRole('heading', { level: 1, name: 'ÆRIOUS' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { level: 1, name: 'ÆRIOUS' })).toBeInTheDocument();
   expect(document.title).toBe('ÆRIOUS — Henry Kim');
-  expect(scroll).toHaveBeenLastCalledWith({ top: 1200, behavior: 'instant' });
+  await waitFor(() => expect(scroll).toHaveBeenLastCalledWith({ top: 1200, behavior: 'instant' }));
   offset.mockRestore();
   scroll.mockRestore();
 });

@@ -172,6 +172,7 @@ const ko: Record<string, string> = {
   "as submitted · Korean · 1 long page": "제출본 · 한국어 · 긴 한 페이지",
 
 
+  'Play': '재생',
 };
 
 export default ko;

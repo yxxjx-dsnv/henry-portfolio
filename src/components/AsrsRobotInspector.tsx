@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadRobotAsset, makeRobot } from './asrsRobot';
 import { useLang } from '../i18n';
+import { onScreen } from './onScreen';
 
 const MEDIA = '/media/incheon-robotics';
 
@@ -45,6 +46,8 @@ export function AsrsRobotInspector() {
         ]);
         const mount = mountRef.current;
         if (!mount || disposed) return;
+        const seen = onScreen(mount); // frames off screen or in a hidden tab are not drawn
+        cleanupExtra.push(seen.stop);
 
         const dark = () => document.body.classList.contains('dark-mode');
         const scene = new THREE.Scene();
@@ -153,6 +156,10 @@ export function AsrsRobotInspector() {
         let last = 0;
         const animate = (now: number) => {
           raf = requestAnimationFrame(animate);
+          if (!seen.on) {
+            last = 0; // and the first frame back starts afresh, with no leap
+            return;
+          }
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;
