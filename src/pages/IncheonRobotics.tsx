@@ -251,7 +251,7 @@ export function IncheonRobotics() {
       <Link to="/projects" className="story-back">
         &larr; All projects
       </Link>
-      <Hero title="Incheon ASRS" subtitle="Incheon Robotics — from August 10, 2026" />
+      <Hero title="Incheon ASRS" subtitle="Incheon Robotics — August to October 2026" />
       <section className="essay-section">
         <div className="text">
           <div className="story-meta">
@@ -276,7 +276,7 @@ export function IncheonRobotics() {
               width={1800}
               height={1158}
             />
-            <p>{t("On August 10, 2026 I started as an AI/Robotics Engineering Intern at Incheon Robotics, a warehouse-robotics company at the Incheon Global Campus in Songdo, with an R&D room in Mapo, Seoul. I work under the direct supervision of the CEO. This page is what the company builds, why the machine is shaped the way it is, and the piece of it I was hired to make.")}</p>
+            <p>{t("On August 10, 2026 I started as an AI/Robotics Engineering Intern at Incheon Robotics, a warehouse-robotics company at the Incheon Global Campus in Songdo, with an R&D room in Mapo, Seoul. I worked there until October 2026, under the direct supervision of the CEO. This page is what the company builds, why the machine is shaped the way it is, and the piece of it I was hired to make.")}</p>
             <br />
             <p className="story-head">The problem is not that they don't want it</p>
             <p>{t("Walk into a small third-party logistics warehouse in Korea and you will find fifteen people walking aisles all day, reading labels, putting things into cardboard boxes. Labour costs go up every year. Everyone in the building knows automation exists.")}</p>
@@ -464,7 +464,7 @@ export function IncheonRobotics() {
             </p>
             <p className="story-head">What I was hired to build</p>
             <p>
-              {tx('My assignment is the voice layer that takes that screen out of the loop. You say what you need out loud, the way you would to a colleague; the system works out what you meant, and the robots go and get it. Instead of three type-and-tap cycles, one sentence, {quote}, and three bins queue up at the front.', {
+              {tx('My assignment was the voice layer that takes that screen out of the loop. You say what you need out loud, the way you would to a colleague; the system works out what you meant, and the robots go and get it. Instead of three type-and-tap cycles, one sentence, {quote}, and three bins queue up at the front.', {
                 quote: <i>{t('"give me A, B and C"')}</i>,
               })}
             </p>
@@ -475,7 +475,7 @@ export function IncheonRobotics() {
             <p>{t("The targets: product lookup from twenty-seven seconds down to about eight, and retrieval from thirty-five down to around twenty. The kiosk is also meant to learn, moving what gets asked for often nearer the front so tomorrow's picks are already close.")}</p>
             <Stat value="27s → 8s" label={t("the lookup target, per request")} />
             <p className="story-head">And the hardware half</p>
-            <p>{t("The other half of the job is the robot build. The voice chain ends in a motor turning, and to know what the software can promise I need to have had a hand in the machine that has to keep the promise. So I'm in the build too, in the R&D room in Mapo, where the elevator and lift mechanisms get tested on a bench before they are trusted at height.")}</p>
+            <p>{t("The other half of the job was the robot build. The voice chain ends in a motor turning, and to know what the software can promise I needed to have had a hand in the machine that has to keep the promise. So I was in the build too, in the R&D room in Mapo, where the elevator and lift mechanisms get tested on a bench before they are trusted at height.")}</p>
             <br />
             <figure className="story-figure">
               <AutoVideo
@@ -511,8 +511,8 @@ export function IncheonRobotics() {
               />
               <figcaption>{t("The map editor: tiles, coordinates, stations, and which square the robot calls home.")}</figcaption>
             </figure>
-            <p className="story-head">The half of the job that isn't engineering</p>
-            <p>{t("Incheon Robotics is a foreign-founded company operating in Korea. Its market, its first customer, its trade shows, its regulators and its grant paperwork are all in Korean; much of its engineering conversation is not. I am fluent in both, so that is a job of its own: the company website, and the company's communication with everyone outside the building.")}</p>
+            <p className="story-head">The half of the job that wasn't engineering</p>
+            <p>{t("Incheon Robotics is a foreign-founded company operating in Korea. Its market, its first customer, its trade shows, its regulators and its grant paperwork are all in Korean; much of its engineering conversation is not. I am fluent in both, so that was a job of its own: the company website, and the company's communication with everyone outside the building.")}</p>
             <br />
             <p>{t("I did not expect to be glad about that part. But a warehouse robot is bought by a person who has to be convinced first, and thirty-six-second retrieval does not help if the explanation never lands.")}</p>
             <p className="story-head">Run the whole thing yourself</p>

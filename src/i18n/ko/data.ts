@@ -3,7 +3,7 @@
 const ko: Record<string, string> = {
 
   'My work as an AI/Robotics Engineering Intern at Incheon Robotics: implementing the AI/ML voice recognition that lets an operator control the whole grid-based ASRS without touching the screen, plus the robot build itself. The machine, the Deep-N fleet scheduling behind it, the Gwangju deployment, and an interactive 3D simulation of the system all live on its own page.':
-    'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 하는 일입니다. AI/ML 음성 인식을 구현하고 로봇 제작에도 참여합니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어하게 하는 기능입니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
+    'Incheon Robotics에서 AI/로보틱스 엔지니어링 인턴으로 한 일입니다. 운영자가 화면을 만지지 않고도 그리드 기반 ASRS 전체를 제어하게 하는 AI/ML 음성 인식을 구현했고, 로봇 제작에도 참여했습니다. 기계 자체와 그 뒤의 Deep-N 플릿 스케줄링, 광주 현장 도입, 시스템의 인터랙티브 3D 시뮬레이션은 별도 페이지에 있습니다.',
   'Built in one day at the IEEE × AWS "Hack the Student Life" hackathon (Amazon Toronto): a real-time dashboard showing how crowded each campus library is, floor by floor. My first hackathon. The full story, photos, and demo live on its own page.':
     'IEEE × AWS "Hack the Student Life" 해커톤(Amazon Toronto)에서 하루 만에 만든 대시보드입니다. 캠퍼스 도서관마다 층별 혼잡도를 실시간으로 보여 줍니다. 제 첫 해커톤이었습니다. 전체 이야기와 사진, 데모는 별도 페이지에 있습니다.',
   'Ærious is the startup I am building, named from the Latin aer, air: software you need the way you need air. The first attempt was MONO, a resale-analytics startup I started in 2025 and have put on hold. Its Profit Score, research and capstone deck are on the same page.':
@@ -19,16 +19,18 @@ const ko: Record<string, string> = {
 
   'Incheon Robotics builds ASRS (automated storage and retrieval systems) for warehouse logistics: a grid of bins, a fleet of low-power robots that each carry up to 30 kg, a modular elevator that scales the rack vertically, and a kiosk where an operator calls for a bin the way you would order from a vending machine. Its Deep-N AI retrieval, patented in Korea, reaches a bin stacked ten layers deep in about 36 seconds and cuts the floor space a warehouse needs by roughly 80%. The first full deployment, a logistics hub in Gwangju, went live in December 2025 and took the site from eighteen operators to six. The company is headquartered at the Incheon Global Campus in Songdo, with an R&D centre in Mapo, Seoul.':
     'Incheon Robotics는 물류 창고를 위한 자동창고 시스템(ASRS)을 만듭니다. 빈(bin)이 격자로 쌓인 랙, 각각 30 kg까지 나르는 저전력 로봇 플릿, 랙을 수직으로 확장하는 모듈형 엘리베이터, 운영자가 자판기에서 주문하듯 빈을 호출하는 키오스크로 이루어집니다. 국내 특허를 받은 Deep-N AI 출고 기술은 열 층 깊이에 쌓인 빈을 약 36초 만에 꺼내고 창고에 필요한 바닥 면적을 약 80% 줄입니다. 첫 번째 본격 도입 현장인 광주 물류 허브는 2025년 12월 가동을 시작해 운영 인력을 18명에서 6명으로 줄였습니다. 본사는 송도 인천글로벌캠퍼스에, 연구소는 서울 마포에 있습니다.',
-  'I joined on August 10, 2026 and report directly to the CEO. My main assignment is the voice layer on that kiosk: an operator speaks, an AI works out what they asked for, and a robot on the floor goes to get it. Alongside that I work on the robot build itself, the hardware.':
-    '저는 2026년 8월 10일 합류해 대표이사에게 직접 보고하며 일하고 있습니다. 주 업무는 그 키오스크의 음성 계층입니다. 운영자가 말하면 AI가 무엇을 요청했는지 파악하고 현장의 로봇이 그것을 가지러 갑니다. 이와 함께 로봇 제작, 즉 하드웨어 쪽 일도 맡고 있습니다.',
-  'The company is foreign-founded but operates in Korea, so the role has a second half: as a fluent Korean speaker I work on the company website and on its communication with partners and customers.':
-    '외국인이 창업해 한국에서 운영하는 회사라 이 역할에는 또 다른 절반이 있습니다. 한국어가 유창한 구성원으로서 회사 웹사이트와 파트너·고객을 향한 커뮤니케이션을 맡고 있습니다.',
+  'I started on September 28, 2026 as a Full Stack Developer Intern at Nu Eyne, as part of LIVEALL, through the EAP program. It is planned to run until December 18, 2026.':
+    '2026년 9월 28일부터 EAP 사업의 일환으로 Nu Eyne에서 LIVEALL 소속 Full Stack 개발자 인턴으로 일하고 있습니다. 2026년 12월 18일까지 근무할 예정입니다.',
+  'I joined on August 10, 2026 and was there until October 2026, reporting directly to the CEO. My main assignment was the voice layer on that kiosk: an operator speaks, an AI works out what they asked for, and a robot on the floor goes to get it. Alongside that I worked on the robot build itself, the hardware.':
+    '저는 2026년 8월 10일 합류해 2026년 10월까지 대표이사에게 직접 보고하며 일했습니다. 주 업무는 그 키오스크의 음성 계층이었습니다. 운영자가 말하면 AI가 무엇을 요청했는지 파악하고 현장의 로봇이 그것을 가지러 갑니다. 이와 함께 로봇 제작, 즉 하드웨어 쪽 일도 맡았습니다.',
+  'The company is foreign-founded but operates in Korea, so the role had a second half: as a fluent Korean speaker I worked on the company website and on its communication with partners and customers.':
+    '외국인이 창업해 한국에서 운영하는 회사라 맡은 일이 하나 더 있었습니다. 한국어가 유창한 만큼 회사 웹사이트와 파트너·고객과의 소통을 맡았습니다.',
   'Selected as one of 11 U of T Engineering students from 75+ applicants for a week inside an operating gold mine in Geraldton, Ontario, rotating through open-pit operations, the mill, geology, maintenance, and emergency response. The full story, with photographs, lives on its own page.':
     '온타리오주 제럴턴의 가동 중인 금광에서 일주일을 보냈습니다. 75명이 넘는 지원자 가운데 선발된 토론토 대학교 공학부 학생 11명 중 한 명이었습니다. 노천 채굴 작업, 선광장, 지질, 정비, 비상 대응 부서를 차례로 돌았습니다. 사진과 함께한 전체 이야기는 별도 페이지에 있습니다.',
-  "The University of Toronto Korean Engineering Students' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025 and became an executive in January 2026.":
-    '토론토 대학교 한인 공학 학생회(UTKESA)는 학업 지원, 커리어 개발, 네트워킹으로 한인 공학도들을 잇는 단체입니다. 2025년 9월 행사부 인턴으로 들어가 2026년 1월 임원이 되었습니다.',
-  "In the Event Department I help plan and run UTKESA's social and professional events, handling logistics and collaborations.":
-    '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영하며 물류와 협업을 맡고 있습니다.',
+  "The University of Toronto Korean Engineering Students' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025, became an executive in January 2026, and served until August 2026.":
+    '토론토 대학교 한인 공학 학생회(UTKESA)는 학업 지원, 커리어 개발, 네트워킹으로 한인 공학도들을 잇는 단체입니다. 2025년 9월 행사부 인턴으로 들어가 2026년 1월 임원이 되었고, 2026년 8월까지 활동했습니다.',
+  "In the Event Department I helped plan and run UTKESA's social and professional events, handling logistics and collaborations.":
+    '행사부에서 UTKESA의 친목·커리어 행사를 기획하고 운영하며 실무 준비와 협업을 맡았습니다.',
   "On the event team I supported UTKESA's Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum's Korean Gallery, Canada's only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The executive team raised the contribution over the year; it is documented on UTKESA's LinkedIn.":
     '행사팀에서 Korea Root Initiative와 함께한 UTKESA의 삼일절 기부를 도왔습니다. 로열 온타리오 박물관 한국관을 지키기 위한 기부였습니다. 캐나다 유일의 상설 한국관인데 전담 큐레이터가 없어 폐관 위기에 놓여 있었습니다. 임원진이 한 해 동안 모은 이 기부금은 UTKESA LinkedIn에 기록되어 있습니다.',
   'Designed an AI resale analytics platform meant to predict a product\'s resale profit and automate its Shopify listing, to take the guesswork out of sourcing and pricing. It has not launched and is on hold.':

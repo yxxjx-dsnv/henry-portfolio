@@ -18,6 +18,7 @@ function parsePoint(s: string, now: Date): Date | null {
 }
 
 export function durationLabel(range: string, now: Date = new Date(), lang: 'en' | 'ko' = 'en'): string | null {
+  if (/\(planned\)\s*$/i.test(range)) return null; // a planned end is not time served
   const parts = range.split(/\s[-–]\s/);
   if (parts.length !== 2) return null;
   const start = parsePoint(parts[0], now);

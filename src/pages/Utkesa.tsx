@@ -91,7 +91,7 @@ export function Utkesa() {
             onPointerEnter={() => document.body.classList.add('reading-focus')}
             onPointerLeave={() => document.body.classList.remove('reading-focus')}
           >
-            <p>{t("UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025 and became an executive in January 2026, helping plan and run the association's events. What I care about most from that time is a donation the association made to a museum campaign.")}</p>
+            <p>{t("UTKESA, the University of Toronto Korean Engineering Students' Association, connects Korean engineering students through academic support, professional development, and social events. I joined the Event Department as an intern in September 2025, became an executive in January 2026, and helped plan and run the association's events until August 2026. What I care about most from that time is a donation the association made to a museum campaign.")}</p>
             <br />
             <p className="story-head">The gallery at risk</p>
             <p>{t("The Royal Ontario Museum has Canada's only permanent Gallery of Korea. Without a dedicated curator it could have closed or been folded into a broader East Asian gallery, and the specific history it is there to tell would have blurred into that. The Korea Root Initiative started a campaign to fund a permanent curator, and UTKESA decided to support it.")}</p>

@@ -5,6 +5,8 @@ const NOW = new Date(2026, 6, 3); // Jul 2026
 test('month-to-month ranges', () => {
   expect(durationLabel('May 2024 - Jun 2025', NOW)).toBe('1 yr 2 mo');
   expect(durationLabel('Jan 2026 - Apr 2026', NOW)).toBe('4 mo');
+  // a role with only a planned end shows no length yet
+  expect(durationLabel('Sep 2026 - Dec 2026 (planned)', NOW)).toBeNull();
 });
 
 test('present ranges count up to now', () => {

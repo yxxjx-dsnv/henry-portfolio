@@ -30,8 +30,14 @@ export function Home() {
             </li>
             <br />
             <li>
+              {tx("Since September 2026 I've been a {role} at Nu Eyne, as part of LIVEALL, through the EAP program. It's planned to run until December 2026.", {
+                role: <u><b>{t('Full Stack Developer Intern')}</b></u>,
+              })}
+            </li>
+            <br />
+            <li>
               {tx(
-                "As of August 2026 I've joined {incheon} (주식회사 인천로보틱스) as an {role}. They build grid-based warehouse robots. My job is {job} that lets an operator control the whole system without touching the screen. I work on the robot build too. It all lives on {page}.",
+                "From August to October 2026 I was an {role} at {incheon} (주식회사 인천로보틱스). They build grid-based warehouse robots. My job was {job} that lets an operator control the whole system without touching the screen. I worked on the robot build too. It all lives on {page}.",
                 {
                   incheon: ext('https://incheonrobotics.com', 'Incheon Robotics'),
                   role: <u><b>{t('AI/Robotics Engineering Intern')}</b></u>,
@@ -69,13 +75,13 @@ export function Home() {
             </li>
             <br />
             <li>
-              {t('Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS LEO Club, and Co-President of Unity 4 Charity (U4C).')}
+              {tx('Until August 2026 I was an Executive member of the Event Dept. at {utkesa}.', {
+                utkesa: ext('https://www.instagram.com/utkesa_official/', 'UTKESA'),
+              })}
             </li>
             <br />
             <li>
-              {tx("Now I'm an Executive member of the Event Dept. at {utkesa}.", {
-                utkesa: ext('https://www.instagram.com/utkesa_official/', 'UTKESA'),
-              })}
+              {t('Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS LEO Club, and Co-President of Unity 4 Charity (U4C).')}
             </li>
             <br />
             <li>{t('I enjoy combining technology, design, and systems thinking to solve practical problems.')}</li>

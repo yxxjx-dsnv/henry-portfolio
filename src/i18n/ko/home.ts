@@ -17,8 +17,11 @@ const ko: Record<string, string> = {
   'AI/Robotics Engineering Intern': 'AI/로보틱스 엔지니어링 인턴',
   'its own page': '별도 페이지',
   'implementing AI/ML voice recognition system': 'AI/ML 음성 인식 시스템 구현',
-  "As of August 2026 I've joined {incheon} (주식회사 인천로보틱스) as an {role}. They build grid-based warehouse robots. My job is {job} that lets an operator control the whole system without touching the screen. I work on the robot build too. It all lives on {page}.":
-    '2026년 8월부터 {incheon}(주식회사 인천로보틱스)에 {role}으로 합류했습니다. 그리드 기반 창고 로봇을 만드는 회사입니다. 제가 맡은 일은 {job}입니다. 운영자가 화면을 만지지 않고도 시스템 전체를 제어하게 해 주는 기능입니다. 로봇 제작에도 함께 참여합니다. 자세한 내용은 {page}에 정리해 두었습니다.',
+  'Full Stack Developer Intern': 'Full Stack 개발자 인턴',
+  "Since September 2026 I've been a {role} at Nu Eyne, as part of LIVEALL, through the EAP program. It's planned to run until December 2026.":
+    '2026년 9월부터 EAP 사업의 일환으로 Nu Eyne에서 LIVEALL 소속 {role}으로 일하고 있습니다. 2026년 12월까지 근무할 예정입니다.',
+  "From August to October 2026 I was an {role} at {incheon} (주식회사 인천로보틱스). They build grid-based warehouse robots. My job was {job} that lets an operator control the whole system without touching the screen. I worked on the robot build too. It all lives on {page}.":
+    '2026년 8월부터 10월까지 {incheon}(주식회사 인천로보틱스)에서 {role}으로 일했습니다. 그리드 기반 창고 로봇을 만드는 회사입니다. 제가 맡은 일은 {job}이었습니다. 운영자가 화면을 만지지 않고도 시스템 전체를 제어하게 해 주는 기능입니다. 로봇 제작에도 함께 참여했습니다. 자세한 내용은 {page}에 정리해 두었습니다.',
   'AX engineer': 'AX 엔지니어',
   "Before that I spent about three months as a freelance {role} at Branphic Inc. I designed, built, deployed, and maintained 9+ internal automation tools with {claude}, {chatgpt}, and {codex}, which moved the company's day-to-day operations onto AI automation.":
     '그 전에는 Branphic Inc.에서 약 3개월간 프리랜서 {role}로 일했습니다. {claude}, {chatgpt}, {codex}로 사내 자동화 도구를 9개 이상 설계하고 만들고 배포하고 유지보수했고, 그 결과 회사의 일상 업무가 AI 자동화로 옮겨 갔습니다.',
@@ -27,7 +30,7 @@ const ko: Record<string, string> = {
     '{aerious}라는 이름으로 창업을 준비하고 있습니다. 첫 시도인 {mono}(수익성 있는 리셀 기회를 찾는 AI 도구)는 ({hold})입니다.',
   'Previously, I served as a Project Leader at WGSS Grad Council 2025, President of the WGSS LEO Club, and Co-President of Unity 4 Charity (U4C).':
     '이전에는 WGSS 졸업 위원회 2025 프로젝트 리더, WGSS LEO 클럽 회장, Unity 4 Charity(U4C) 공동 회장을 맡았습니다.',
-  "Now I'm an Executive member of the Event Dept. at {utkesa}.": '현재는 {utkesa} 행사부 임원으로 활동하고 있습니다.',
+  'Until August 2026 I was an Executive member of the Event Dept. at {utkesa}.': '2026년 8월까지 {utkesa} 행사부 임원으로 활동했습니다.',
   'I enjoy combining technology, design, and systems thinking to solve practical problems.':
     '기술과 디자인, 시스템적 사고를 결합해 실질적인 문제를 푸는 일을 즐깁니다.',
   "{b}: especially where automation, Artificial Intelligence(AI), and user experience meet. I like tools that make life simpler or make something new possible.":

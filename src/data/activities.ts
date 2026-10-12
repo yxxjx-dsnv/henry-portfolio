@@ -2,16 +2,24 @@ import type { Activity } from '../types';
 
 export const activities: Activity[] = [
   {
+    prefix: 'Full Stack Developer Intern at Nu Eyne', // no link: no official URL given yet
+    suffix: ' (LIVEALL, EAP program)',
+    date: 'Sep 2026 - Dec 2026 (planned)', // drop "(planned)" once it has ended
+    detail: [
+      'I started on September 28, 2026 as a Full Stack Developer Intern at Nu Eyne, as part of LIVEALL, through the EAP program. It is planned to run until December 18, 2026.',
+    ],
+  },
+  {
     prefix: 'AI/Robotics Engineering Intern at ',
     link: { label: 'Incheon Robotics', url: 'https://incheonrobotics.com' },
     suffix: ' (주식회사 인천로보틱스)',
-    date: 'Aug 2026 - present',
+    date: 'Aug 2026 - Oct 2026',
     slug: 'incheon-robotics',
     logo: '/Images/incheon-robotics.png',
     detail: [
       'Incheon Robotics builds ASRS (automated storage and retrieval systems) for warehouse logistics: a grid of bins, a fleet of low-power robots that each carry up to 30 kg, a modular elevator that scales the rack vertically, and a kiosk where an operator calls for a bin the way you would order from a vending machine. Its Deep-N AI retrieval, patented in Korea, reaches a bin stacked ten layers deep in about 36 seconds and cuts the floor space a warehouse needs by roughly 80%. The first full deployment, a logistics hub in Gwangju, went live in December 2025 and took the site from eighteen operators to six. The company is headquartered at the Incheon Global Campus in Songdo, with an R&D centre in Mapo, Seoul.',
-      'I joined on August 10, 2026 and report directly to the CEO. My main assignment is the voice layer on that kiosk: an operator speaks, an AI works out what they asked for, and a robot on the floor goes to get it. Alongside that I work on the robot build itself, the hardware.',
-      'The company is foreign-founded but operates in Korea, so the role has a second half: as a fluent Korean speaker I work on the company website and on its communication with partners and customers.',
+      'I joined on August 10, 2026 and was there until October 2026, reporting directly to the CEO. My main assignment was the voice layer on that kiosk: an operator speaks, an AI works out what they asked for, and a robot on the floor goes to get it. Alongside that I worked on the robot build itself, the hardware.',
+      'The company is foreign-founded but operates in Korea, so the role had a second half: as a fluent Korean speaker I worked on the company website and on its communication with partners and customers.',
     ],
   },
   {
@@ -27,11 +35,11 @@ export const activities: Activity[] = [
     prefix: 'Event Dept. Executive at ',
     link: { label: 'UTKESA', url: 'https://www.instagram.com/utkesa_official/' },
     suffix: ' (Korean Engineering Students\' Association)',
-    date: 'Sep 2025 - present',
+    date: 'Sep 2025 - Aug 2026',
     slug: 'utkesa',
     detail: [
-      'The University of Toronto Korean Engineering Students\' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025 and became an executive in January 2026.',
-      'In the Event Department I help plan and run UTKESA\'s social and professional events, handling logistics and collaborations.',
+      'The University of Toronto Korean Engineering Students\' Association connects Korean engineering students through academic support, professional development, and social networking. I joined the Event Department as an intern in September 2025, became an executive in January 2026, and served until August 2026.',
+      'In the Event Department I helped plan and run UTKESA\'s social and professional events, handling logistics and collaborations.',
       'On the event team I supported UTKESA\'s Samil-jeol donation with the Korea Root Initiative toward preserving the Royal Ontario Museum\'s Korean Gallery, Canada\'s only permanent Korean gallery, which faced possible closure for lack of a dedicated curator. The executive team raised the contribution over the year; it is documented on UTKESA\'s LinkedIn.',
     ],
   },

@@ -4,7 +4,7 @@ import type { Project } from '../types';
 export const projects: Project[] = [
   {
     name: 'Incheon ASRS — AI/ML Voice Recognition for Grid-Based Warehouse Robots',
-    date: 'Aug 2026 - present',
+    date: 'Aug 2026 - Oct 2026',
     stack: ['AI/ML', 'Voice Recognition', 'Robotics', 'Embedded', 'Fleet Control'],
     link: { label: 'Incheon Robotics', url: 'https://incheonrobotics.com' },
     slug: 'incheon-robotics',

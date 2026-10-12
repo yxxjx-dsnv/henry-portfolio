@@ -6,7 +6,7 @@
 export const CARD = {
   first: 'Henry',
   last: 'Kim',
-  currently: ['Electrical & Computer Engineering @ U of T', 'AI/Robotics Intern @ Incheon Robotics'],
+  currently: ['Electrical & Computer Engineering @ U of T', 'Full Stack Developer Intern @ Nu Eyne'],
   previously: [
     { label: 'Branphic', bg: '#111111' },
     { label: 'MONO', bg: '#e01b24' },
