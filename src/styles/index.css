@@ -2728,3 +2728,99 @@ body.dark-mode .asrs-dpad button:active { background: #2f7bff; }
 .carousel-track.is-dragging,
 .pdf-deck-track.is-dragging { scroll-snap-type: none; scroll-behavior: auto; }
 
+/* ---- the pendulum lab's panels (PendulumSetup, PendulumSweep, PendulumData, PendulumGraph) ---- */
+
+/* shared: the panels' number boxes and pickers */
+.pl-num, .pl-select {
+    font: inherit;
+    font-size: 12px;
+    color: #1c1c1c;
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 3px 6px;
+}
+.pl-num:disabled, .pl-select:disabled { opacity: 0.45; }
+body.dark-mode .pl-num, body.dark-mode .pl-select { color: #e6e6e6; background: #222222; border-color: #3d3d3d; }
+
+/* the bench knobs (PendulumSetup): four groups, two columns, one on phones */
+.pl-setup {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    min-width: 0;
+    margin: 0;
+    padding: 10px 12px;
+    border: 0;
+    border-top: 1px solid #e3e3e3;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+body.dark-mode .pl-setup { border-color: #333333; }
+.pl-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pl-group > legend { padding: 0; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.02em; }
+.pl-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+.pl-chips { flex-wrap: wrap; min-width: 0; }
+.pl-setup .asrs-btn { font-family: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; }
+.pl-key { flex: none; width: 3.6em; color: #8a8a8a; }
+.pl-unit { color: #8a8a8a; }
+.pl-val { flex: none; min-width: 4.5em; text-align: right; }
+.pl-row input[type='range'] { flex: 1 1 100px; min-width: 80px; margin: 0; accent-color: #2f7bff; cursor: pointer; }
+.pl-setup .pl-num { width: 6.5em; padding: 2px 6px; }
+.pl-setup input:disabled { opacity: 0.45; cursor: default; }
+.pl-reset { grid-column: 1 / -1; justify-self: end; }
+@media (max-width: 640px) { .pl-setup { grid-template-columns: minmax(0, 1fr); } }
+
+/* the sweep form (PendulumSweep) */
+.pl-sweep .pl-num { width: 5.5em; }
+.pl-sweep .trk-seg { flex-wrap: wrap; align-items: center; }
+@media (max-width: 640px) {
+    .pl-sweep .pl-num { width: 4.5em; }
+    .pl-select { max-width: 100%; }
+}
+
+/* the results table (PendulumData), in the frame table's look */
+.pl-data { min-width: 0; background: #ffffff; border-top: 1px solid #e3e3e3; font-variant-numeric: tabular-nums; }
+body.dark-mode .pl-data { background: #161616; border-color: #333333; }
+.pl-data-box { max-height: 162px; /* the header and about 8 rows */ overflow: auto; }
+.pl-data-box:focus-visible { outline: 2px solid #2f7bff; outline-offset: -2px; }
+.pl-data table { width: 100%; border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+.pl-data th { position: sticky; top: 0; z-index: 1; text-align: right; font-weight: 400; color: #8a8a8a; padding: 4px 6px 3px; background: #ffffff; border-bottom: 1px solid #e3e3e3; }
+body.dark-mode .pl-data th { background: #161616; border-color: #333333; }
+.pl-data td { text-align: right; padding: 0 6px; line-height: 1.5; border-bottom: 1px solid #f2f2f2; }
+body.dark-mode .pl-data td { border-color: #222222; }
+.pl-data tbody tr:last-child td { background: rgba(47, 123, 255, 0.1); color: #1f5fd0; }
+body.dark-mode .pl-data tbody tr:last-child td { color: #8ab4ff; }
+.pl-data .pl-data-how { text-align: left; }
+.pl-data .pl-data-why { text-align: left; color: #8a8a8a; font-style: italic; }
+body.dark-mode .pl-data .pl-data-why { color: #8f8f8f; }
+.pl-data-x { font: inherit; font-size: 13px; line-height: 1; padding: 0 6px; color: #8a8a8a; background: none; border: 0; cursor: pointer; }
+.pl-data-x:hover, .pl-data-x:focus-visible { color: var(--trk-accent, #d62b30); }
+.pl-data-foot { display: flex; gap: 4px; justify-content: flex-end; padding: 6px 8px; border-top: 1px solid #e3e3e3; }
+body.dark-mode .pl-data-foot { border-color: #333333; }
+.pl-data-foot .asrs-btn { font-family: inherit; padding: 2px 9px; font-size: 11.5px; border-radius: 999px; }
+
+/* the result graph (PendulumGraph): axis pickers and fit chips over the old chart's look */
+.pl-graph-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding: 8px 12px; border-top: 1px solid #e3e3e3; background: #fafafa; }
+body.dark-mode .pl-graph-bar { border-color: #333333; background: #1a1a1a; }
+.pl-graph-bar + .lab-chart { border-top: 0; }
+.pl-graph-bar .trk-seg { flex-wrap: wrap; }
+.pl-axis { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #6a6a6a; }
+body.dark-mode .pl-axis { color: #a8a8a8; }
+.pl-axis select { font: inherit; max-width: 11em; padding: 3px 8px; color: #1c1c1c; background: #ffffff; border: 1px solid #d0d0d0; border-radius: 999px; cursor: pointer; }
+.pl-axis select:hover { border-color: #8a8a8a; }
+body.dark-mode .pl-axis select { color: #e6e6e6; background: #222222; border-color: #3d3d3d; }
+body.dark-mode .pl-axis select:hover { border-color: #6a6a6a; }
+.pl-textbook { fill: none; stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.pl-report-line { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.5; }
+.pl-report-dot { fill: #fafafa; stroke: currentColor; stroke-width: 1.3; }
+body.dark-mode .pl-report-dot { fill: #161616; }
+.pl-key-dot { width: 8px; height: 8px; border-top: none; border-radius: 50%; background: #2f7bff; }
+.pl-key-hollow { width: 8px; height: 8px; border: 1.3px solid currentColor; border-radius: 50%; box-sizing: border-box; }
+.pl-graph .lab-legend { flex-wrap: wrap; }
+.pl-graph-note { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+/* under 16px, iOS Safari zooms the page when a field is focused, and stays zoomed */
+@media (pointer: coarse) {
+    .pl-num, .pl-select, .pl-axis select { font-size: 16px; }
+}

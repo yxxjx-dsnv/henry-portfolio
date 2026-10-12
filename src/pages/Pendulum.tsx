@@ -7,6 +7,7 @@ import { FigureCarousel, type CarouselSlide } from '../components/FigureCarousel
 import { DocShelf, type ShelfDoc } from '../components/DocShelf';
 import { PdfFlow } from '../components/PdfFlow';
 import { PendulumLab } from '../components/PendulumLab';
+import { Expandable, Photo } from '../components/Expandable';
 
 const MEDIA = '/media/pendulum';
 
@@ -110,7 +111,7 @@ type GraphProps = { src: string; alt: string; caption: string };
 function Graph({ src, alt, caption }: GraphProps) {
   return (
     <figure className="story-figure">
-      <img src={src} alt={alt} width={1800} height={1620} loading="lazy" />
+      <Photo src={src} alt={alt} width={1800} height={1620} loading="lazy" />
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -169,9 +170,11 @@ export function Pendulum() {
             </figure>
             <p>{t("Each swing was filmed at 60 frames per second on a phone. Periods were read to the millisecond in a video player, and the full decay was traced automatically, frame by frame, in Tracker. The pendulum ran for roughly thirteen minutes before it stopped; the analysis uses the first two hundred seconds of that, which was as much as the tracking software could hold.")}</p>
             <br />
-            <p>{t("Below is the rig as a digital twin, in a window laid out like the Tracker session that read the real video. Pull the ball back and let go: it swings to the report's damped model, the red marks, the plots and the frame table fill at thirty frames a second, and each release adds a point to the graph of whichever experiment is open, beside the report's own measurements. Or let the lab run the whole procedure by itself.")}</p>
+            <p>{t("Below is the rig as a digital twin, in a window laid out like the Tracker session that read the real video. It is a physics model calibrated to the report's measurements, and everything on the bench can be changed: pull the ball back and let go, run the report's four experiments again, or change the string, the bob or even gravity and measure what happens.")}</p>
             <br />
-            <PendulumLab />
+            <Expandable label="Pendulum lab" className="xp-lab">
+              <PendulumLab />
+            </Expandable>
             <p className="story-head">Where the small-angle story ends</p>
             <p>{t("The first experiment sweeps the release angle across ±1.4 radians and measures the period at each. Small-angle theory says the period should not depend on angle at all. The data say otherwise: a clear upward curve, symmetric about the bottom, fitted well by a quadratic in the angle. The fit puts the small-angle period at 0.936 ± 0.002 seconds, the asymmetry term at essentially zero, and the curvature term at a small but clearly positive 0.080 ± 0.002, the period growing with the square of the angle as the full theory predicts.")}</p>
             <br />

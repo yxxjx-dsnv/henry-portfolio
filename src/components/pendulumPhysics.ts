@@ -1,6 +1,6 @@
-// The pendulum twin: a damped pendulum integrated numerically, calibrated to the
-// constants the PHY180 report measured, plus the same fits the report's scripts
-// ran. Pure functions, so the lab can run every experiment in one go.
+// What the PHY180 report measured, the shared types and the scatter of a lab day, and the
+// fits the report's scripts ran (least squares, closed form). The twin itself is
+// pendulumModel.ts; the instruments that read it are pendulumInstruments.ts.
 
 // what the report measured (final-report.pdf §3)
 export const REPORT = {
@@ -18,10 +18,7 @@ export const REPORT = {
   lengths: [0.05, 0.1, 0.15, 0.2, 0.25, 0.3],
 };
 
-export type Run = { dt: number; theta: Float32Array; omega: Float32Array };
 export type Point = { x: number; y: number; dy?: number };
-
-export const FPS = 30; // the frame rate the report's decay video was tracked at
 
 export type Rng = () => number;
 
@@ -31,116 +28,10 @@ export function gauss(rng: Rng): number {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
 }
 
-/** A Tracker table: the bob at every frame, the pivot as the origin, y up (metres). */
-export type Track = { t: Float32Array; x: Float32Array; y: Float32Array; n: number };
-
-/** θ at time t, nearest step. */
-export function thetaAt(run: Run, t: number): number {
-  return run.theta[Math.max(0, Math.min(run.theta.length - 1, Math.round(t / run.dt)))];
-}
-
-/** Sample a run the way Tracker sampled the video: the bob's (x, y) at `fps`, up to `seconds`,
- *  with `noise` metres of the autotracker's sub-pixel jitter on every frame when an rng is given. */
-export function trackOf(run: Run, L: number, seconds: number, fps = FPS, noise = 0, rng?: Rng): Track {
-  const n = Math.min(Math.floor(seconds * fps) + 1, Math.floor((run.theta.length - 1) * run.dt * fps) + 1);
-  const t = new Float32Array(n);
-  const x = new Float32Array(n);
-  const y = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const th = thetaAt(run, i / fps);
-    t[i] = i / fps;
-    x[i] = L * Math.sin(th) + (rng ? noise * gauss(rng) : 0);
-    y[i] = -L * Math.cos(th) + (rng ? noise * gauss(rng) : 0);
-  }
-  return { t, x, y, n };
-}
-
-/** Mean period from the track's upward zero crossings of x, interpolated between frames —
- *  the report read periods to the millisecond the same way, off the video. */
-export function periodFromTrack(tr: Track): number {
-  const times: number[] = [];
-  for (let i = 1; i < tr.n; i++) {
-    const a = tr.x[i - 1];
-    const b = tr.x[i];
-    if (a < 0 && b >= 0) times.push(tr.t[i - 1] + (tr.t[i] - tr.t[i - 1]) * (a / (a - b)));
-  }
-  if (times.length < 2) return NaN;
-  return (times[times.length - 1] - times[0]) / (times.length - 1);
-}
-
-/** The amplitude envelope off the track: every positive peak of x as (t, θ), θ = atan2(x, −y). */
-export function envelopeFromTrack(tr: Track): Point[] {
-  const out: Point[] = [];
-  for (let i = 1; i < tr.n - 1; i++) {
-    const v = tr.x[i];
-    if (v > 0 && v >= tr.x[i - 1] && v > tr.x[i + 1]) out.push({ x: tr.t[i], y: Math.atan2(v, -tr.y[i]) });
-  }
-  return out;
-}
-
-/** θ'' = −(2π/T0)² sin θ − (2/τ) θ' — the report's model [1] with an exact restoring force.
- *  T0 is the small-angle period the twin is calibrated to (it fixes g/L); omega0 is any
- *  angular velocity the hand gave the bob on release. */
-export function simulate(T0: number, tau: number, theta0: number, tEnd: number, dt = 1 / 600, omega0 = 0): Run {
-  const w2 = (2 * Math.PI) / T0;
-  const k = w2 * w2;
-  const c = 2 / tau;
-  const n = Math.max(2, Math.round(tEnd / dt));
-  const theta = new Float32Array(n);
-  const omega = new Float32Array(n);
-  let th = theta0;
-  let om = omega0;
-  const f = (t: number, o: number) => -k * Math.sin(t) - c * o;
-  for (let i = 0; i < n; i++) {
-    theta[i] = th;
-    omega[i] = om;
-    const k1t = om;
-    const k1o = f(th, om);
-    const k2t = om + (dt / 2) * k1o;
-    const k2o = f(th + (dt / 2) * k1t, om + (dt / 2) * k1o);
-    const k3t = om + (dt / 2) * k2o;
-    const k3o = f(th + (dt / 2) * k2t, om + (dt / 2) * k2o);
-    const k4t = om + dt * k3o;
-    const k4o = f(th + dt * k3t, om + dt * k3o);
-    th += (dt / 6) * (k1t + 2 * k2t + 2 * k3t + k4t);
-    om += (dt / 6) * (k1o + 2 * k2o + 2 * k3o + k4o);
-  }
-  return { dt, theta, omega };
-}
-
-/** Mean period from successive upward zero crossings, interpolated. */
-export function periodOf(run: Run): number {
-  const times: number[] = [];
-  for (let i = 1; i < run.theta.length; i++) {
-    const a = run.theta[i - 1];
-    const b = run.theta[i];
-    if (a < 0 && b >= 0) times.push((i - 1 + a / (a - b)) * run.dt);
-  }
-  if (times.length < 2) return NaN;
-  return (times[times.length - 1] - times[0]) / (times.length - 1);
-}
-
-/** The amplitude envelope: every positive peak as [t, θ]. */
-export function peaks(run: Run): Array<[number, number]> {
-  const out: Array<[number, number]> = [];
-  for (let i = 1; i < run.theta.length - 1; i++) {
-    if (run.theta[i] > 0 && run.theta[i] >= run.theta[i - 1] && run.theta[i] > run.theta[i + 1])
-      out.push([i * run.dt, run.theta[i]]);
-  }
-  return out;
-}
-
 /** Exact large-angle period ratio T/T0 for a release at θ (series to θ⁶). */
 export function bigAngle(theta: number): number {
   const s = theta * theta;
   return 1 + s / 16 + (11 * s * s) / 3072 + (173 * s * s * s) / 737280;
-}
-
-/** The report's length law gives each length its calibration: T0 from k L^n (measured at
- *  0.52 rad, so the large-angle factor is taken back out) and τ from Q(L) = qa L + qb. */
-export function calibrate(L: number): { T0: number; tau: number } {
-  const T0 = (REPORT.k * L ** REPORT.n) / bigAngle(REPORT.theta0);
-  return { T0, tau: ((REPORT.qa * L + REPORT.qb) * T0) / Math.PI };
 }
 
 // ── the fits the report ran (least squares, closed form) ────────────────────

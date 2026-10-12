@@ -57,3 +57,8 @@ test('a fitting script opens in the IDE viewer with highlighted Python', async (
   const viewer = document.querySelector('.code-viewer')!;
   expect(viewer.querySelectorAll('.tk-kw').length).toBeGreaterThan(5);
 });
+
+test('the lab can be expanded out of the text', () => {
+  renderPage();
+  expect(screen.getByRole('button', { name: 'Expand Pendulum lab' })).toBeInTheDocument();
+});
