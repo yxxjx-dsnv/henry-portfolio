@@ -37,7 +37,7 @@ export const activities: Activity[] = [
   },
   {
     prefix: 'Founder & CEO at ',
-    link: { label: 'MONO' },
+    link: { label: 'MONO', url: 'https://aerious.co/mono' },
     suffix: ' (Startup)',
     date: 'May 2025 - On hold',
     detail: [

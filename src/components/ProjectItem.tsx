@@ -11,11 +11,19 @@ export function ProjectItem({ project }: { project: Project }) {
   const { t } = useLang();
   const { name, date, stack, link, detail, slug } = project;
   const meta = stack && stack.length > 0 ? `${date} · ${stack.join(', ')}` : date;
-  const { rowProps, detailId, pinned } = useDisclosureRow(!!detail && detail.length > 0);
+  const { rowProps, detailId, pinned, shut } = useDisclosureRow(!!detail && detail.length > 0);
   return (
-    <div className={`activity-item${pinned ? ' is-open' : ''}`} {...rowProps}>
+    <div className={`activity-item${pinned ? ' is-open' : ''}${shut ? ' is-shut' : ''}`} {...rowProps}>
       <p>
-        {slug ? <Link to={`/projects/${slug}`}>{name}</Link> : name}
+        {slug ? (
+          <Link to={`/projects/${slug}`}>{name}</Link>
+        ) : project.url ? (
+          <a href={project.url} target="_blank" rel="noopener noreferrer">
+            {name}
+          </a>
+        ) : (
+          name
+        )}
         {link && (
           <>
             {' — '}

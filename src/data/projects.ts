@@ -25,7 +25,7 @@ export const projects: Project[] = [
     name: 'MONO — Resale Analytics Platform',
     date: '2025',
     stack: ['AI', 'Automation', 'Shopify'],
-    slug: 'mono',
+    url: 'https://aerious.co/mono',
     detail: [
       'My startup, on hold for now: an AI resale-analytics platform that scores products for profit, then lists and reprices them on a storefront automatically. The vision, the Profit Score, and the research behind it live on its own page.',
     ],

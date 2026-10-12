@@ -63,7 +63,7 @@ export function Home() {
                     </u>
                   ),
                   mono: (
-                    <a target="_blank" rel="noopener noreferrer">
+                    <a href="https://aerious.co/mono" target="_blank" rel="noopener noreferrer">
                       MONO
                     </a>
                   ),

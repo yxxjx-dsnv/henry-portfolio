@@ -37,7 +37,7 @@ export const education: EducationGroup[] = [
       {
         program: 'TrackOne (Undeclared Engineering) - BASc + PEY Co-op',
         date: 'Jan 2026 - Apr 2026',
-        term: 'Winter 2025',
+        term: 'Winter 2026',
         detail: [
           'APS105 Computer Fundamentals',
           'APS112 Engineering Strategies & Practice II',
