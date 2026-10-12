@@ -86,7 +86,64 @@ test('down from the badge works the same way: a nudge springs back, a push goes'
 });
 
 
+test('ctrl+wheel and a trackpad pinch zoom the page; the band stays out of it', () => {
+  start(0);
+  for (let i = 0; i < 30; i++) {
+    const e = new WheelEvent('wheel', { deltaY: 25, ctrlKey: true, cancelable: true });
+    window.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(false);
+    vi.advanceTimersByTime(16);
+  }
+  settle();
+  expect(y).toBe(0);
+});
 
+/** `n` wheel events of `d` px over `el`; true when none was cancelled. */
+function wheelOver(el: Element, d: number, n: number) {
+  let free = true;
+  for (let i = 0; i < n; i++) {
+    const e = new WheelEvent('wheel', { deltaY: d, cancelable: true, bubbles: true });
+    el.dispatchEvent(e);
+    free &&= !e.defaultPrevented;
+    vi.advanceTimersByTime(16);
+  }
+  return free;
+}
+
+test('wheeling over the ⌘K palette on the cover scrolls its list, not the page behind', () => {
+  start(0);
+  document.body.innerHTML =
+    '<div class="cmdk" role="dialog"><input class="cmdk-input"><ul class="cmdk-list" style="overflow-y: auto"><li>Home</li></ul></div>';
+  const list = document.querySelector('ul')!;
+  Object.defineProperty(list, 'scrollHeight', { value: 725 });
+  Object.defineProperty(list, 'clientHeight', { value: 320 });
+  // the list has room to scroll: the wheel is the list's
+  expect(wheelOver(document.querySelector('li')!, 25, 1)).toBe(true);
+  // over the input (or past the end of the list) nothing should move: the page
+  // behind stays on the cover instead of scrolling natively
+  expect(wheelOver(document.querySelector('input')!, 25, 30)).toBe(false);
+  list.scrollTop = 405;
+  expect(wheelOver(document.querySelector('li')!, 25, 1)).toBe(false);
+  settle();
+  expect(y).toBe(0);
+  document.body.innerHTML = '';
+});
+
+test('a box that scrolls on its own keeps its wheel, even at the top of the site', () => {
+  start(EDGE);
+  document.body.innerHTML = '<div style="overflow-y: auto"><p>text</p></div>';
+  const box = document.querySelector('div')!;
+  Object.defineProperty(box, 'scrollHeight', { value: 725 });
+  Object.defineProperty(box, 'clientHeight', { value: 320 });
+  box.scrollTop = 200; // with room to scroll up, the wheel is the box's
+  expect(wheelOver(box.firstElementChild!, -25, 1)).toBe(true);
+  // at the box's own top, the same wheel must not carry the page up onto the cover
+  box.scrollTop = 0;
+  expect(wheelOver(box.firstElementChild!, -25, 30)).toBe(false);
+  settle();
+  expect(y).toBe(EDGE);
+  document.body.innerHTML = '';
+});
 
 test('[more] (and a slingshot release) glide to the site', () => {
   start(0);
@@ -115,14 +172,16 @@ test('scrolling back down while the cover peeks follows the hand, no dead zone',
   expect(y).toBe(EDGE);
 });
 
+/** A touch event with fingers at these clientYs. */
+function touch(type: string, ...ys: number[]) {
+  const e = new Event(type, { cancelable: true }) as Event & { touches: { clientY: number }[] };
+  Object.defineProperty(e, 'touches', { value: ys.map((clientY) => ({ clientY })) });
+  window.dispatchEvent(e);
+  return e;
+}
+
 /** A finger dragging from `from` to `to` (clientY) in 10px moves, then lifting. */
 function swipe(from: number, to: number) {
-  const touch = (type: string, clientY: number) => {
-    const e = new Event(type, { cancelable: true }) as Event & { touches: { clientY: number }[] };
-    Object.defineProperty(e, 'touches', { value: type === 'touchend' ? [] : [{ clientY }] });
-    window.dispatchEvent(e);
-    return e;
-  };
   touch('touchstart', from);
   const step = from < to ? 10 : -10;
   for (let c = from + step; step > 0 ? c <= to : c >= to; c += step) {
@@ -130,7 +189,7 @@ function swipe(from: number, to: number) {
     if (!e.defaultPrevented) y = Math.min(Math.max(0, y - step), 5000); // the browser scrolls
     vi.advanceTimersByTime(16);
   }
-  touch('touchend', to);
+  touch('touchend');
 }
 
 test('on a phone, a decent swipe down at the top of the site goes back to the badge', () => {
@@ -152,4 +211,19 @@ test('on a phone, a swipe up on the badge cover goes down to the site', () => {
   swipe(500, 380);
   settle();
   expect(y).toBe(EDGE);
+});
+
+test('on a phone, two fingers pinch-zoom the cover: the band never cancels them', () => {
+  start(0);
+  touch('touchstart', 500);
+  touch('touchstart', 500, 300);
+  for (let i = 1; i <= 10; i++) {
+    expect(touch('touchmove', 500 - i * 10, 300 + i * 10).defaultPrevented).toBe(false);
+    vi.advanceTimersByTime(16);
+  }
+  touch('touchend', 400); // one finger lifts; the other is still the pinch's
+  expect(touch('touchmove', 300).defaultPrevented).toBe(false);
+  touch('touchend');
+  settle();
+  expect(y).toBe(0);
 });

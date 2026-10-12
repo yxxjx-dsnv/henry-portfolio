@@ -264,6 +264,36 @@ test('a loaded robot routes round stored bins', () => {
   expect(around.length).toBeGreaterThan(through.length);
 });
 
+// The route test above only plans on an empty field. On the real floor other robots
+// fill the aisles, step aside, and set bins down on cradles a route was planned
+// through — so watch world space for ten busy minutes: a raised bin never comes
+// within a pitch of a stored one on its level (an aisle beside it is exactly a pitch).
+test('a loaded robot never drives its raised bin through a stored one', () => {
+  for (const s0 of [42, 7, 1234, 99]) {
+    let seed = s0;
+    const rnd = () => {
+      seed = (seed * 1103515245 + 12345) % 2147483648;
+      return seed / 2147483648;
+    };
+    const f = new Fleet({ ...OPTS, random: rnd });
+    let closest = Infinity; // a carried bin's nearest approach to a stored one on its level
+    for (let i = 0; i < 60 * 600; i++) {
+      f.step(1 / 60);
+      for (const r of f.robots) {
+        if (r.binId === null || f.bin(r.binId)?.cell !== null) continue; // not carrying
+        for (const b of f.bins) {
+          if (!b.cell) continue;
+          const p = cellPos(b.cell);
+          if (Math.abs(r.pos.y - p.y) > LEVEL_H / 2) continue; // another level
+          closest = Math.min(closest, Math.hypot(r.pos.x - p.x, r.pos.z - p.z));
+        }
+      }
+    }
+    expect(closest).toBeGreaterThan(PITCH - 1e-6);
+    expect(f.done).toBeGreaterThanOrEqual(30); // and the floor kept moving all along
+  }
+});
+
 test('a robot boards the carriage from the landing, never floats in the shaft', () => {
   const f = makeFleet();
   for (let i = 0; i < 60 * 240; i++) {

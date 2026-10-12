@@ -114,13 +114,21 @@ export function LostDot() {
           /* fine */
         }
         window.dispatchEvent(new Event('dot-rescued'));
+        if (reduced) draw(); // no loop to show it settling, filled
       }
     };
 
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('pointerdown', onDown);
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(size) : null;
+    // resizing a canvas clears it; with no animation loop running, draw it again
+    const ro =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            size();
+            if (reduced) draw();
+          })
+        : null;
     ro?.observe(wrap);
 
     if (reduced) {

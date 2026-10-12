@@ -35,6 +35,22 @@ type Mode = 'cover' | 'site' | 'free' | 'glide';
 export const stretch = (p: number, band = BAND) => (1 - 1 / ((p * 0.55) / band + 1)) * band;
 /** 0→1 with no jolt at either end (zero speed and zero acceleration). */
 const smoother = (s: number) => s * s * s * (s * (6 * s - 15) + 10);
+/** Over a dialog on top of the page (⌘K, a game) or a box that scrolls on its
+ *  own (⌘K's results, the phone's menu): that wheel or finger is theirs, not the page's. */
+function theirs(t: EventTarget | null): Element | null {
+  for (let el = t instanceof Element ? t : null; el && el !== document.body; el = el.parentElement) {
+    if (el.getAttribute('role') === 'dialog') return el;
+    const o = getComputedStyle(el).overflowY;
+    if ((o === 'auto' || o === 'scroll') && el.scrollHeight > el.clientHeight) return el;
+  }
+  return null;
+}
+
+/** Whether `box` itself can still scroll `dy` further (a dialog's frame cannot). */
+function roomIn(box: Element, dy: number) {
+  if (box.getAttribute('role') === 'dialog') return false;
+  return dy > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
+}
 
 export function attachCoverResistance(cover: Edge) {
   const edge = () => cover.offsetTop + cover.offsetHeight;
@@ -47,6 +63,7 @@ export function attachCoverResistance(cover: Edge) {
   let lastInput = -1e9;
   let touching = false;
   let touchY = 0;
+  let touchOff = false; // this touch is not the band's (see onTouchStart)
   let afterGlide = false; // swallow the tail of the gesture that caused a glide
   let ownY = NaN; // the last scroll position we set, to tell our scrolls from others
   let raf = 0;
@@ -168,19 +185,34 @@ export function attachCoverResistance(cover: Edge) {
   }
 
   function onWheel(ev: WheelEvent) {
+    // ctrl+wheel and a trackpad pinch are the browser zooming, not a scroll
+    if (ev.ctrlKey) return;
+    const dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? window.innerHeight : 1);
+    const box = theirs(ev.target);
+    if (box) {
+      // the overlay's own list scrolls; what it cannot take (its input, its
+      // frame, the end of its list) must not slide the page behind off the cover
+      if (dy && window.scrollY + dy < edge() && !roomIn(box, dy)) ev.preventDefault();
+      return;
+    }
     const t = now();
     const fresh = t - lastInput > GAP;
     lastInput = t;
-    const dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? window.innerHeight : 1);
     if (input(dy, fresh)) ev.preventDefault();
   }
   function onTouchStart(ev: TouchEvent) {
-    touching = true;
+    // a second finger makes it a pinch, the browser's to zoom; a finger on a
+    // dialog or a box that scrolls itself is theirs. Either way, the whole touch.
+    touchOff = ev.touches.length > 1 || !!theirs(ev.target);
+    touching = !touchOff;
+    if (touchOff) return;
     touchY = ev.touches[0]?.clientY ?? 0;
     lastInput = now();
     input(0, true);
   }
   function onTouchMove(ev: TouchEvent) {
+    if (ev.touches.length > 1) touchOff = true;
+    if (touchOff) return;
     const y = ev.touches[0]?.clientY ?? touchY;
     const dy = touchY - y; // finger up = page down
     touchY = y;
@@ -190,7 +222,7 @@ export function attachCoverResistance(cover: Edge) {
   function onTouchEnd() {
     touching = false;
     lastInput = now();
-    if ((mode === 'cover' || mode === 'site') && p >= (mode === 'cover' ? GIVE : GIVE_UP) * TOUCH_COMMIT) {
+    if (!touchOff && (mode === 'cover' || mode === 'site') && p >= (mode === 'cover' ? GIVE : GIVE_UP) * TOUCH_COMMIT) {
       startGlide(Number.isFinite(prevY) ? prevY : window.scrollY, mode === 'cover' ? edge() : 0, vel);
       p = 0;
       afterGlide = true;

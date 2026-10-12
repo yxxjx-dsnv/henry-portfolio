@@ -66,7 +66,7 @@ export function loadSystemAsset(): Promise<SystemAsset> {
   return asset;
 }
 
-/** The materials the parts share — X-ray ghosts these. */
+/** The materials the parts share — the sim's X-ray ghosts its own copies of these. */
 export function systemMaterials(sys: SystemAsset): Material[] {
   const out = new Set<Material>();
   const take = (o: Object3D) =>
@@ -176,8 +176,11 @@ export function makeKiosk(sys: SystemAsset): Object3D {
 
 /** The concrete floor: a big plane wearing the GLB's ground material, tiled at 2 m. */
 export function makeGround(THREE: ThreeNS, sys: SystemAsset, size: number): Mesh {
-  const mat = sys.parts.Ground.material as Material & { map?: Texture | null };
+  // a copy of the material and its texture: the tiling depends on the size, and the sim and
+  // the mechanism viewer lay floors of different sizes from the one cached asset
+  const mat = (sys.parts.Ground.material as Material).clone() as Material & { map?: Texture | null };
   if (mat.map) {
+    mat.map = mat.map.clone();
     mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping;
     mat.map.repeat.set(size / 2, size / 2);
     mat.map.needsUpdate = true;

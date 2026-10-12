@@ -200,9 +200,12 @@ export function BadgeCover() {
     if (!cover || !window.matchMedia?.('(pointer: coarse)').matches) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const onTilt = (e: DeviceOrientationEvent) => {
-      if (e.gamma == null || (screen.orientation?.angle ?? 0) !== 0) return;
-      // half the real roll: the full angle would throw the badge off the screen
-      sceneRef.current?.setTilt(((e.gamma * Math.PI) / 180) * 0.5);
+      if (e.gamma == null) return;
+      // half the real roll: the full angle would throw the badge off the screen.
+      // Turned sideways it hangs straight again, or the lean caught mid-turn
+      // (before the screen's angle flips) would stay.
+      const portrait = (screen.orientation?.angle ?? 0) === 0;
+      sceneRef.current?.setTilt(portrait ? ((e.gamma * Math.PI) / 180) * 0.5 : 0);
     };
     const listen = () => window.addEventListener('deviceorientation', onTilt);
     type Asks = { requestPermission?: () => Promise<'granted' | 'denied'> };

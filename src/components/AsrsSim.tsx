@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { Material, Mesh } from 'three';
 import {
   loadSystemAsset,
   makeRack,
@@ -265,8 +266,17 @@ export function AsrsSim() {
 
         // ── per-frame: advance the fleet, copy it onto the meshes ──
         const prevPos = fleet.robots.map((r) => ({ ...r.pos }));
-        // x-ray ghosts the warehouse itself, so the robots stay the subject
-        const envMats = systemMaterials(sys);
+        // x-ray ghosts the warehouse itself, so the robots stay the subject. The parts'
+        // materials belong to the cached asset, which the next mount and the mechanism
+        // viewer draw with too, so this mount ghosts copies of its own and leaves those be.
+        const own = new Map(systemMaterials(sys).map((m) => [m, m.clone()]));
+        const swap = (m: Material) => own.get(m) ?? m;
+        world.traverse((o) => {
+          const mesh = o as Mesh;
+          if (mesh.isMesh) mesh.material = Array.isArray(mesh.material) ? mesh.material.map(swap) : swap(mesh.material);
+        });
+        const envMats = [...own.values(), ground.material as Material]; // the floor is already a copy
+        cleanupExtra.push(() => envMats.forEach((m) => m.dispose()));
         let lastXray = false;
         const applyXray = (on: boolean) => {
           for (const m of envMats) {

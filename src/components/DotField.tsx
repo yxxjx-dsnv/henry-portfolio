@@ -566,7 +566,10 @@ export function DotField({ height = 132 }: { height?: number }) {
     };
 
     const resize = () => {
-      width = wrap.clientWidth;
+      // the column inside the wrap's side padding (clientWidth includes it, and
+      // the canvas ran past the text on desktop and off the screen on phones)
+      const cs = getComputedStyle(wrap);
+      width = Math.max(0, wrap.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0));
       const dpr = window.devicePixelRatio || 1;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -1013,11 +1016,16 @@ export function DotField({ height = 132 }: { height?: number }) {
         const beat = Math.floor((now - bandStart) / beatMs);
         if (beat !== bandBeat) {
           bandBeat = beat;
-          const b = ((beat % 4) + 4) % 4;
-          playDrum('hat');
-          if (b === 0 || b === 2) playDrum('kick');
-          else playDrum('snare');
-          playNote(BAND_BASS[((beat % BAND_BASS.length) + BAND_BASS.length) % BAND_BASS.length]);
+          // a context still waiting for a tap (Safari) would bank every beat and
+          // play them all at once when it wakes, so the band only plays into a
+          // running one and simply comes in on the next beat after the tap
+          if (wakeAudio()?.state === 'running') {
+            const b = ((beat % 4) + 4) % 4;
+            playDrum('hat');
+            if (b === 0 || b === 2) playDrum('kick');
+            else playDrum('snare');
+            playNote(BAND_BASS[((beat % BAND_BASS.length) + BAND_BASS.length) % BAND_BASS.length]);
+          }
         }
         const phase = ((now - bandStart) % beatMs) / beatMs;
         for (let x = 0; x < cols; x++) {
@@ -1231,6 +1239,7 @@ export function DotField({ height = 132 }: { height?: number }) {
     const onUp = () => {
       mouse.dragging = false;
       pianoKey = '';
+      if (mode === 'piano' || mode === 'band') wakeAudio(); // a tap's release is a gesture on iOS
     };
 
     // clicking "South Korea" anywhere on the page blooms the Seoul skyline here
@@ -1325,19 +1334,37 @@ export function DotField({ height = 132 }: { height?: number }) {
       mode = 'cat';
       forceWake();
     };
+    // Safari and iOS start an AudioContext suspended unless it is made or resumed
+    // inside a tap or key, and the band plays from the animation loop. So the egg's
+    // start (App fires it 200 ms after the tap or key, which WebKit still counts as
+    // that gesture) and every later tap or key wake it.
+    const wakeAudio = () => {
+      try {
+        if (!audio) {
+          const AC =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          audio = new AC();
+        }
+        if (audio.state === 'suspended') audio.resume().catch(() => {});
+      } catch {
+        /* no audio available */
+      }
+      return audio;
+    };
     const playNote = (freq: number) => {
       try {
-        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!audio) audio = new AC();
-        const t = audio.currentTime;
-        const osc = audio.createOscillator();
-        const g = audio.createGain();
+        const a = wakeAudio();
+        if (!a) return;
+        const t = a.currentTime;
+        const osc = a.createOscillator();
+        const g = a.createGain();
         osc.type = 'triangle';
         osc.frequency.value = freq;
         g.gain.setValueAtTime(0.0001, t);
         g.gain.exponentialRampToValueAtTime(0.2, t + 0.008);
         g.gain.exponentialRampToValueAtTime(0.0008, t + 0.6);
-        osc.connect(g).connect(audio.destination);
+        osc.connect(g).connect(a.destination);
         osc.start(t);
         osc.stop(t + 0.62);
       } catch {
@@ -1375,15 +1402,13 @@ export function DotField({ height = 132 }: { height?: number }) {
       blackLit = new Array(PIANO_BLACKS.length).fill(-Infinity);
       pianoKey = '';
       mode = 'piano';
+      wakeAudio();
       forceWake();
     };
     const playDrum = (kind: 'kick' | 'snare' | 'hat') => {
       try {
-        const AC =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!audio) audio = new AC();
-        const a = audio;
+        const a = wakeAudio();
+        if (!a) return;
         const t = a.currentTime;
         if (kind === 'kick') {
           const o = a.createOscillator();
@@ -1420,6 +1445,7 @@ export function DotField({ height = 132 }: { height?: number }) {
       bandStart = performance.now();
       bandBeat = -1;
       mode = 'band';
+      wakeAudio();
       forceWake();
     };
     window.addEventListener('henry:life', startLife);
@@ -1427,10 +1453,17 @@ export function DotField({ height = 132 }: { height?: number }) {
     window.addEventListener('henry:cat', startCat);
     window.addEventListener('henry:piano', startPiano);
     window.addEventListener('henry:band', startBand);
+    // the full-screen arcade takes over: the egg under it, and its sound, end
+    window.addEventListener('henry:tetris', endCurrentEgg);
+    window.addEventListener('henry:shmup', endCurrentEgg);
     const onGameKey = (e: KeyboardEvent) => {
-      // typing in the command palette (or any field) must not steer games or play notes
+      // typing in the command palette (or any field) must not steer games or play notes,
+      // ⌘/Ctrl/Alt combos stay the browser's, and an open arcade game owns the keys
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.body.classList.contains('arcade-open')) return;
+      if (mode === 'piano' || mode === 'band') wakeAudio();
       const key = e.key.toLowerCase();
       if (key === 'escape' && mode !== 'idle') {
         mode = 'idle';
@@ -1528,6 +1561,8 @@ export function DotField({ height = 132 }: { height?: number }) {
       window.removeEventListener('henry:cat', startCat);
       window.removeEventListener('henry:piano', startPiano);
       window.removeEventListener('henry:band', startBand);
+      window.removeEventListener('henry:tetris', endCurrentEgg);
+      window.removeEventListener('henry:shmup', endCurrentEgg);
       window.removeEventListener('keydown', onGameKey);
       audio?.close();
       canvas.removeEventListener('pointermove', onMove);

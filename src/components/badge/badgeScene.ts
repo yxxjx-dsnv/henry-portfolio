@@ -647,8 +647,10 @@ export async function createBadgeScene(
   }
   function up(e?: PointerEvent) {
     if (pointerId !== null && e && e.pointerId !== pointerId) return;
-    // let go with the badge pulled well down: it snaps back up, and you go down
-    if (dragging && pointerId !== null && rig.card.translation().y < CARD_REST_Y - SLING) onSling();
+    // let go with the badge pulled well down: it snaps back up, and you go down.
+    // Only a real release: a pinch starting (pointercancel) or a lost capture
+    // drops the badge but does not throw the page to the site.
+    if (e?.type === 'pointerup' && dragging && pointerId !== null && rig.card.translation().y < CARD_REST_Y - SLING) onSling();
     dragging = false;
     if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
     pointerId = null;

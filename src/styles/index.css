@@ -1693,13 +1693,20 @@ body.cat-laser .cursor-core { display: none !important; }
 /* full-screen arcade overlay (Tetris / 1943 shooter) */
 .arcade-overlay { position: fixed; inset: 0; z-index: 300; }
 .arcade-overlay canvas { display: block; width: 100%; height: 100%; }
+/* the dot cursor hides while a game is open (body.arcade-open below), so the native one
+   comes back, over the game and over the ⌘K palette above it; the html.has-cursor-dot
+   copy outranks html.has-cursor-dot * { cursor: none } */
 .arcade-overlay, .arcade-overlay * { cursor: default !important; }
+html.has-cursor-dot body.arcade-open,
+html.has-cursor-dot body.arcade-open * { cursor: auto !important; }
+html.has-cursor-dot body.arcade-open .cmdk-row { cursor: pointer !important; }
 .arcade-close {
     position: fixed; top: 16px; right: 16px; z-index: 301;
     font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px;
     border: 1px solid #8a8a8a; background: transparent; color: inherit; cursor: pointer !important;
 }
 .arcade-close:hover { border-color: currentColor; }
+html.has-cursor-dot .arcade-overlay .arcade-close { cursor: pointer !important; }
 .arcade-hint {
     position: fixed; bottom: 18px; left: 0; right: 0; z-index: 301; margin: 0;
     text-align: center; font-size: 13px; color: #8a8a8a; pointer-events: none;
@@ -1717,7 +1724,8 @@ body.arcade-open .cursor-dot, body.arcade-open .cursor-core { display: none !imp
     border-radius: 50%;
     background: transparent;
     pointer-events: none;
-    z-index: 3000;
+    /* above the ⌘K palette (4000/4001): the native cursor is hidden, so this IS the cursor */
+    z-index: 5000;
     opacity: 0;
     transition: opacity 0.25s ease, background-color var(--t), border-color var(--t),
         width var(--t), height var(--t);
@@ -1823,7 +1831,7 @@ html.has-cursor-dot::view-transition { cursor: none; }
     border-radius: 50%;
     background: #000000;
     pointer-events: none;
-    z-index: 3001;
+    z-index: 5001;
     opacity: 0;
     transition: opacity 0.25s ease;
     will-change: transform;
@@ -1868,7 +1876,7 @@ body.dark-mode .cmdk { background: #191919; border-color: #2e2e2e; box-shadow: 0
 }
 body.dark-mode .cmdk-input { border-bottom-color: #2a2a2a; }
 .cmdk-input::placeholder { color: #9a9a9a; font-style: italic; }
-.cmdk-list { list-style: none; max-height: 320px; overflow-y: auto; padding: 6px 0; }
+.cmdk-list { list-style: none; max-height: 320px; overflow-y: auto; padding: 6px 0; scroll-padding-block: 6px; }
 .cmdk-empty { padding: 14px 18px; font-size: 13.5px; font-style: italic; color: #787878; }
 .cmdk-row {
     display: flex;
@@ -2427,9 +2435,10 @@ body.dark-mode .badge-cover { background: #121212; color: #f1f1f1; }
     width: 100%;
     height: 100%;
     display: block;
-    /* the canvas keeps every touch: a finger can grab and pull the badge, and
-       scrolling off the cover is done by the band (coverResistance), not natively */
-    touch-action: none;
+    /* the canvas keeps every one-finger touch: a finger can grab and pull the
+       badge, and scrolling off the cover is done by the band (coverResistance),
+       not natively. Two fingers are the browser's, to zoom. */
+    touch-action: pinch-zoom;
     opacity: 0;
     transition: opacity 600ms ease;
 }

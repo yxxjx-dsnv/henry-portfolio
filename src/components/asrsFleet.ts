@@ -207,8 +207,12 @@ export class Fleet {
     return h !== undefined && h !== id;
   }
 
-  /** Squares a robot may step onto from c — never the shaft, which is only entered by boarding. */
-  private neighbours(c: Cell): Cell[] {
+  /**
+   * Squares robot `id` may step onto from c — never the shaft, which is only
+   * entered by boarding, and never under a stored bin while it carries one.
+   */
+  private neighbours(c: Cell, id: number): Cell[] {
+    const loaded = this.loaded(id);
     return ([
       [1, 0],
       [-1, 0],
@@ -216,7 +220,12 @@ export class Fleet {
       [0, -1],
     ] as const)
       .map(([dx, dz]) => [c[0] + dx, c[1] + dz, c[2]] as Cell)
-      .filter((n) => this.walkable(n) && !this.isShaft(n));
+      .filter(
+        (n) =>
+          this.walkable(n) &&
+          !this.isShaft(n) &&
+          !(loaded && this.bins.some((b) => b.cell && same(b.cell, n))),
+      );
   }
 
   /** True while this robot's bin is on its deck (a stored bin sits too low to pass under). */
@@ -233,16 +242,25 @@ export class Fleet {
    *
    * A loaded robot carries its bin lifted, far too tall to pass under a
    * stored bin, so stored squares are walls for it; every storage row borders
-   * an aisle, so a way round always exists. Should the layout ever leave none
-   * (a test's odd grid), the search runs again with them merely expensive.
+   * an aisle, so a way round always exists. A robot standing in that aisle is
+   * no reason to duck under a bin: the route then runs through it, and the
+   * loaded robot drives up and waits its turn there, where the stand-off rules
+   * in drive() can sort the two out. Only when the bare layout leaves no way at
+   * all (a test's odd grid) does the search run again with stored squares
+   * merely expensive.
    */
   private findPath(from: Cell, to: Cell, id: number): Cell[] | null {
     if (!this.loaded(id)) return this.search(from, to, id, null);
     const stored = new Set(this.bins.flatMap((b) => (b.cell ? [key(b.cell)] : [])));
-    return this.search(from, to, id, stored, Infinity) ?? this.search(from, to, id, stored, 10);
+    return (
+      this.search(from, to, id, stored, Infinity) ??
+      this.search(from, to, null, stored, Infinity) ??
+      this.search(from, to, id, stored, 10)
+    );
   }
 
-  private search(from: Cell, to: Cell, id: number, stored: Set<string> | null, UNDER_BIN = 0): Cell[] | null {
+  /** `id` null plans on the bare layout, as if no robot held any square. */
+  private search(from: Cell, to: Cell, id: number | null, stored: Set<string> | null, UNDER_BIN = 0): Cell[] | null {
     if (same(from, to)) return [];
     const lv = from[2];
     const TURN = 0.4;
@@ -275,7 +293,7 @@ export class Fleet {
         const [dx, dz] = DIRS[di];
         const nb: Cell = [cur.c[0] + dx, cur.c[1] + dz, lv];
         if (!this.walkable(nb) || (this.isShaft(nb) && !same(nb, to))) continue;
-        if (this.blockedBy(nb, id) && !same(nb, to)) continue;
+        if (id !== null && this.blockedBy(nb, id) && !same(nb, to)) continue;
         const under = stored?.has(key(nb)) && !same(nb, to) ? UNDER_BIN : 0;
         if (under === Infinity) continue;
         const g = cur.g + 1 + (cur.d !== -1 && cur.d !== di ? TURN : 0) + under;
@@ -302,6 +320,27 @@ export class Fleet {
 
   private dropClaimsBut(r: FleetRobot) {
     for (const [k, v] of this.held) if (v === r.id && k !== this.ckey(r.cell)) this.held.delete(k);
+  }
+
+  /**
+   * A free square to step aside onto — off the route of the robot it makes way
+   * for when there is one, or the step only moves the blockage along.
+   */
+  private stepAside(r: FleetRobot, other?: FleetRobot): Cell | undefined {
+    const free = this.neighbours(r.cell, r.id).filter((c) => !this.held.has(this.ckey(c)));
+    return free.find((c) => !other?.path.some((p) => same(p, c))) ?? free[0];
+  }
+
+  /**
+   * Who keeps a contested square. A loaded robot, first: stored bins wall it
+   * in, so it has far fewer ways round than an empty one. Then a robot leaving
+   * the landing over one heading for it — nobody gets on the carriage until
+   * the last rider is off the landing. Then the lower id.
+   */
+  private outranks(a: FleetRobot, b: FleetRobot): boolean {
+    if (this.loaded(a.id) !== this.loaded(b.id)) return this.loaded(a.id);
+    if ((a.phase === 'toLift') !== (b.phase === 'toLift')) return b.phase === 'toLift';
+    return a.id < b.id;
   }
 
   /** Distance until this robot must be at corner speed (or stopped). */
@@ -336,18 +375,14 @@ export class Fleet {
       r.blocked += dt;
       // Mutual block — I want the square a robot holds, and that robot is
       // itself stuck behind someone. Symmetric waiting can never resolve a
-      // swap or a rotation, so the rule is asymmetric and immediate: the
-      // higher id steps aside, the lower id keeps its claim and proceeds.
+      // swap or a rotation, so the rule is asymmetric and immediate: the one
+      // that outranks keeps its claim and proceeds, the other steps aside.
       const holderId = this.held.get(this.ckey(next));
       const other = holderId !== undefined ? this.robots[holderId] : undefined;
-      const otherStuck =
-        other &&
-        (other.path.length === 0 || this.blockedBy(other.path[0], other.id)) &&
-        other.phase !== 'present';
-      if (otherStuck && r.id > other.id) {
-        const aside = this.neighbours(r.cell).find(
-          (c) => !this.blockedBy(c, r.id) && !this.held.has(this.ckey(c)),
-        );
+      const halted = other && (other.path.length === 0 || this.blockedBy(other.path[0], other.id));
+      const otherStuck = halted && other.phase !== 'present';
+      if (otherStuck && this.outranks(other, r)) {
+        const aside = this.stepAside(r, other);
         if (aside) {
           this.dropClaimsBut(r);
           r.path = [aside];
@@ -357,11 +392,9 @@ export class Fleet {
       }
       if (r.blocked >= YIELD_AFTER) {
         // A stand-off: two robots each waiting on the square the other holds.
-        // Stepping aside onto any free neighbour breaks the symmetry, and the
+        // Stepping aside onto a free neighbour breaks the symmetry, and the
         // re-plan on the next tick picks the route up again.
-        const aside = this.neighbours(r.cell).find(
-          (c) => !this.blockedBy(c, r.id) && !this.held.has(this.ckey(c)),
-        );
+        const aside = this.stepAside(r, other);
         if (aside) {
           this.dropClaimsBut(r);
           r.path = [aside];
@@ -369,9 +402,12 @@ export class Fleet {
           return false;
         }
         r.blocked = 0;
-      } else if (r.blocked > REPLAN_AFTER && r.goal) {
+      } else if (r.blocked > REPLAN_AFTER && r.goal && halted) {
         // keep the clock running — if re-routing cannot help, the yield above
-        // is what eventually breaks the stand-off. When the stored goal is on
+        // is what eventually breaks the stand-off. Only re-route round a robot
+        // that has halted: one still moving (often stepping aside for this one)
+        // is about to clear the square, and leaving then just puts both on each
+        // other's new line, round and round. When the stored goal is on
         // another level, this leg's goal is the shaft: A* is single-level, so
         // feeding it the far cell would return null on every blocked tick.
         const legGoal: Cell = r.goal[2] !== r.cell[2] ? this.landing(r.cell[2]) : r.goal;
@@ -547,7 +583,7 @@ export class Fleet {
           if (this.elevFor !== r.id) {
             // someone else has the carriage and will need this landing to step off —
             // waiting here is the deadlock, so stand aside until the shaft is free
-            const aside = this.neighbours(r.cell).find((c) => !this.isShaft(c) && !this.held.has(this.ckey(c)));
+            const aside = this.neighbours(r.cell, r.id).find((c) => !this.isShaft(c) && !this.held.has(this.ckey(c)));
             if (aside) {
               this.dropClaimsBut(r);
               r.path = [aside];
@@ -677,6 +713,12 @@ export class Fleet {
             b.cell = [r.target[0], r.target[1], r.target[2]];
             b.carriedBy = null;
             r.binId = null;
+            // a loaded robot may have planned through this cradle while it stood
+            // empty: cut that route short here, and its arrival re-plans round the bin
+            for (const o of this.robots) {
+              const i = o.path.findIndex((c) => same(c, b.cell!));
+              if (i >= 0 && this.loaded(o.id)) o.path.length = i;
+            }
           }
           if (r.lift <= 0) r.phase = 'stow';
           break;

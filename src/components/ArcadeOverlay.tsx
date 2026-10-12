@@ -397,6 +397,13 @@ export function ArcadeOverlay() {
     raf = requestAnimationFrame(loop);
 
     const onKey = (e: KeyboardEvent) => {
+      // typing in the ⌘K palette over the game (its letters, its Esc) is not for the game,
+      // and ⌘/Ctrl/Alt combos stay the browser's
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // a key the palette already used (its Esc, arrows, Enter on a focused row)
+      if (e.defaultPrevented) return;
       const k = e.key.toLowerCase();
       if (k === 'escape') {
         if (phase !== 'out') {
@@ -433,9 +440,13 @@ export function ArcadeOverlay() {
         else if (k === 'enter' && sOver) shmupStart();
       }
     };
-    const onKeyUp = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
+    // macOS sends no keyup for a key let go while ⌘ is down, and none reach a
+    // window that has lost focus, so held keys are forgotten then
+    const onKeyUp = (e: KeyboardEvent) => (e.key === 'Meta' ? keys.clear() : keys.delete(e.key.toLowerCase()));
+    const onBlur = () => keys.clear();
     window.addEventListener('keydown', onKey);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
     window.addEventListener('resize', resize);
     document.body.classList.add('arcade-open');
 
@@ -443,6 +454,7 @@ export function ArcadeOverlay() {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
       window.removeEventListener('resize', resize);
       document.body.classList.remove('arcade-open');
     };
