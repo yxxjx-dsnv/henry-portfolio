@@ -406,6 +406,7 @@ export async function createBadgeScene(
   await RAPIER.init();
   let disposed = false;
   let raf = 0;
+  let resting = 0; // frames in a row with nothing moving (declared up here: the first resize() wakes)
   let visible = true;
   let last = 0;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -840,7 +841,6 @@ export async function createBadgeScene(
       raf = 0;
     }
   }
-  let resting = 0;
   function wake() {
     resting = 0;
     last = 0;
