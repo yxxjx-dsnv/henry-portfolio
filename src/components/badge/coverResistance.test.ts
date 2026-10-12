@@ -77,12 +77,12 @@ test('a long push up from the site gives way and glides to the badge', () => {
 test('going back up takes a harder push than coming down', () => {
   // a push that carries the badge down to the site…
   start(0);
-  stroke(25, 30);
+  stroke(25, 20);
   settle();
   expect(y).toBe(EDGE);
   // …only lets the cover peek when made back up from the site
   vi.advanceTimersByTime(300);
-  stroke(-25, 30);
+  stroke(-25, 20);
   settle();
   expect(y).toBe(EDGE);
 });

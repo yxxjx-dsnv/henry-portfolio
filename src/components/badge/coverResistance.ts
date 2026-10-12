@@ -10,10 +10,11 @@
 
 const BAND = 220; // px the stretch approaches but never reaches
 const GIVE = 380; // pressure (px of push) at which the band gives way, cover -> site
-// Back up from the site takes twice the push: reading the top of the site you
+// Back up from the site takes a little more push: reading the top of the site you
 // nudge up all the time, and that should only let the cover peek, not take you there.
-// Its band is longer, so all that pushing still visibly moves the page.
-const GIVE_UP = 760;
+// (Twice the push was too much: a firm trackpad swipe up didn't get back.) Its band
+// is longer, so the pushing visibly moves the page.
+const GIVE_UP = 460;
 const BAND_UP = 340;
 const CARRY = 0.25; // weight of a push that arrived already moving (a fling)
 const LEAK = 0.9; // s: pressure bleeds away even while you push, so it takes intent
