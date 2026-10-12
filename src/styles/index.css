@@ -2569,6 +2569,57 @@ body.dark-mode .xp.is-open img { filter: none; opacity: 1; }
 /* the studio's readout wraps short of the expand button instead of running under it (phones) */
 .xp .bridge-studio .asrs-hud { max-width: calc(100% - 58px); white-space: pre-wrap; }
 
+/* the mechanism viewer's drive pad, on touch screens: a Game Boy D-pad bottom-left, A and B
+   bottom-right, over the canvas (inside the mount, so it rides along into the expanded frame) */
+.asrs-pad {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none; /* the canvas between the two halves still orbits */
+}
+.asrs-dpad,
+.asrs-ab { pointer-events: auto; }
+.asrs-dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(3, 46px);
+}
+.asrs-dpad::after { content: ''; grid-area: 2 / 2; background: rgba(28, 28, 30, 0.72); } /* the hub */
+.asrs-dpad button,
+.asrs-ab button {
+    padding: 0;
+    border: 0;
+    color: #f1f1f1;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.asrs-dpad button { background: rgba(28, 28, 30, 0.72); font-size: 18px; line-height: 1; }
+.asrs-dpad-up { grid-area: 1 / 2; border-radius: 8px 8px 0 0; }
+.asrs-dpad-left { grid-area: 2 / 1; border-radius: 8px 0 0 8px; }
+.asrs-dpad-right { grid-area: 2 / 3; border-radius: 0 8px 8px 0; }
+.asrs-dpad-down { grid-area: 3 / 2; border-radius: 0 0 8px 8px; }
+.asrs-ab { display: flex; align-items: flex-end; gap: 12px; }
+.asrs-ab button {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: rgba(150, 32, 72, 0.88);
+    font: 700 17px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+.asrs-ab-a { margin-bottom: 26px; } /* A sits higher than B, as on the handheld */
+body.dark-mode .asrs-dpad button,
+body.dark-mode .asrs-dpad::after { background: rgba(90, 90, 96, 0.78); }
+.asrs-dpad button:active,
+.asrs-ab button:active,
+body.dark-mode .asrs-dpad button:active { background: #2f7bff; }
+
 /* expanded pendulum lab: the first screen is the Tracker window's rig, plots and controls;
    the result chart and its note scroll beneath */
 .xp-lab.is-open { container-type: size; }

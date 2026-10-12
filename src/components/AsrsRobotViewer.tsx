@@ -1,10 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { loadSystemAsset, makeRack, makeBin, makeGround, CRADLE_H, DECK_REST, TILE_T } from './asrsScene';
-import { loadRobotAsset, makeRobot, liftPose, clampFraction } from './asrsRobot';
-import { PITCH } from './asrsFleet';
+import { loadRobotAsset, makeRobot, liftPose, liftFraction, clampFraction } from './asrsRobot';
+import { PITCH, SPEED } from './asrsFleet';
+import { act, startDrive, stepDrive, toGrid, type Drive, type Screen } from './asrsDrive';
 import { useLang } from '../i18n';
 
 const CLAMP = clampFraction();
+// drive mode: WASD by key position (e.code), so a Korean IME or an AZERTY layout still drives
+const KEYS: Record<string, Screen> = { KeyW: 'up', KeyA: 'left', KeyS: 'down', KeyD: 'right' };
+const DPAD: Array<[Screen, string]> = [
+  ['up', '▴'],
+  ['left', '◂'],
+  ['right', '▸'],
+  ['down', '▾'],
+];
 // `?fast` runs the easing 12× — for screenshots from a throttled headless browser, not for people
 const TEMPO = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fast') ? 12 : 1;
 
@@ -105,10 +114,101 @@ export function AsrsRobotViewer() {
   const goalRef = useRef(0);
   const playRef = useRef(true);
   const xrayRef = useRef(false);
+  // drive it yourself: the loop owns the robot (dvRef) while this is on
+  const [drive, setDrive] = useState(false);
+  const [pose, setPose] = useState({ lift: 0, grip: 0 }); // the HUD's deck and tabs while driving
+  const [msg, setMsg] = useState<string | null>(null);
+  const [coarse] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches);
+  const driveRef = useRef(false);
+  const dvRef = useRef<Drive | null>(null);
+  const padRef = useRef<{ held: Screen[]; tap: Screen | null }>({ held: [], tap: null });
+  const msgRef = useRef<{ text: string | null; until: number }>({ text: null, until: 0 });
+  const onScreenRef = useRef(false);
+
+  // a refusal stays up while the key is held, and a couple of seconds after
+  const say = useCallback((text: string) => {
+    msgRef.current.until = performance.now() + 2200;
+    if (msgRef.current.text !== text) {
+      msgRef.current.text = text;
+      setMsg(text);
+    }
+  }, []);
+  const doAct = (what: 'grip' | 'lift') => {
+    const d = dvRef.current;
+    if (!d) return;
+    const why = act(d, what);
+    if (why) say(why);
+  };
+  const press = (d: Screen) => {
+    const p = padRef.current;
+    p.held = p.held.filter((h) => h !== d).concat(d);
+    p.tap = d; // a press shorter than a frame still moves it a cell
+  };
+  const release = (d: Screen) => {
+    padRef.current.held = padRef.current.held.filter((h) => h !== d);
+  };
+  const toggleDrive = () => {
+    // either way the cycle starts over: parked, the bin on cell A
+    setDrive(!drive);
+    setPlaying(drive);
+    setStage(0);
+    setGoal(0);
+    padRef.current = { held: [], tap: null };
+  };
 
   useEffect(() => {
     stageRef.current = stage;
   }, [stage]);
+  useEffect(() => {
+    driveRef.current = drive;
+  }, [drive]);
+
+  useEffect(() => {
+    const el = mountRef.current;
+    if (!active || !el || typeof IntersectionObserver !== 'function') return;
+    const io = new IntersectionObserver(([e]) => {
+      onScreenRef.current = e.isIntersecting;
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active]);
+
+  // the keys drive only while drive mode is on and the viewer is on screen
+  useEffect(() => {
+    if (!drive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !onScreenRef.current) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      const dir = KEYS[e.code];
+      if (dir) {
+        e.preventDefault();
+        if (!e.repeat) press(dir);
+      } else if ((e.code === 'KeyE' || e.code === 'KeyF') && !e.repeat) {
+        e.preventDefault();
+        doAct(e.code === 'KeyE' ? 'grip' : 'lift');
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      // macOS sends no keyup for a key let go while Cmd is down
+      if (e.key === 'Meta') padRef.current.held = [];
+      else if (KEYS[e.code]) release(KEYS[e.code]);
+    };
+    // no keyup reaches a window that has lost focus, so held keys are forgotten then
+    const onBlur = () => {
+      padRef.current.held = [];
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
+    };
+    // press/release/doAct only touch refs and state setters, so the first ones serve
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drive]);
   useEffect(() => {
     goalRef.current = goal;
   }, [goal]);
@@ -206,7 +306,7 @@ export function AsrsRobotViewer() {
         rim.position.set(-2, 1.4, -1.6);
         scene.add(rim);
 
-        // a 3 × 3 patch of the rack's deck, tiles at floor level, cradles at every cell —
+        // a 4 × 4 patch of the rack's deck, tiles at floor level, cradles at every cell —
         // the storage cell A (0,0) and, diagonally, the station cell B (1,1)
         const cells: Array<[number, number, number]> = [];
         for (let c = -1; c <= 2; c++) for (let r = -1; r <= 2; r++) cells.push([c, r, 0]);
@@ -255,6 +355,19 @@ export function AsrsRobotViewer() {
         // at Park (with slide mirrored so the machine stays where it is) and it drives
         // back for the bin the other way round — a delivery, then the return trip.
         const ATTACH_Y = CRADLE_H - 0.004;
+        // drive mode: the same 4 × 4 patch, at the fleet's cruise speed, by the same handoff
+        const rig = { lo: -1, hi: 2, speed: SPEED / PITCH, clamp: CLAMP, attach: liftFraction(ATTACH_Y - DECK_REST) };
+        let wasDriving = false;
+        let shown = { lift: 0, grip: 0 }; // what the HUD says, so it re-renders only on a change
+        // the orbit target moves, and the camera with it, so the visitor's angle and zoom stay theirs
+        const follow = (x: number, z: number, k: number) => {
+          const dx = (x - orbit.target.x) * k;
+          const dz = (z - orbit.target.z) * k;
+          orbit.target.x += dx;
+          orbit.target.z += dz;
+          camera.position.x += dx;
+          camera.position.z += dz;
+        };
         let slide = 0;
         let grip = 0;
         let lift = 0;
@@ -272,6 +385,53 @@ export function AsrsRobotViewer() {
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.1);
           last = now;
+
+          // in or out of drive mode, the cycle starts over: parked on B, the bin on A
+          if (driveRef.current !== wasDriving) {
+            wasDriving = driveRef.current;
+            slide = grip = lift = hold = 0;
+            carried = false;
+            binCell = legBin = 'A';
+            px = pz = PITCH;
+            dvRef.current = wasDriving ? startDrive(rig, [1, 1], [0, 0]) : null;
+            if (!wasDriving) follow(PITCH / 2, PITCH / 2, 1);
+            msgRef.current.text = null;
+            setMsg(null);
+          }
+          const dv = dvRef.current;
+          if (dv) {
+            const pad = padRef.current;
+            const key = pad.held[pad.held.length - 1] ?? pad.tap;
+            pad.tap = null;
+            const fx = orbit.target.x - camera.position.x;
+            const fz = orbit.target.z - camera.position.z;
+            const why = stepDrive(dv, key ? toGrid(key, fx, fz) : null, dt * TEMPO);
+            if (why) say(why);
+            else if (msgRef.current.text && now > msgRef.current.until) {
+              msgRef.current.text = null;
+              setMsg(null);
+            }
+            const x = dv.x * PITCH;
+            const z = dv.z * PITCH;
+            robot.group.position.set(x, 0, z);
+            robot.roll(x - px, z - pz);
+            px = x;
+            pz = z;
+            robot.setLift(dv.lift);
+            robot.setGrip(dv.grip);
+            const deckTop = DECK_REST + liftPose(dv.lift).rise;
+            if (dv.carried) bin.position.set(x, deckTop, z);
+            else bin.position.set(dv.bx * PITCH, CRADLE_H, dv.bz * PITCH);
+            robot.setXray(xrayRef.current);
+            if (dv.liftTo !== shown.lift || dv.gripTo !== shown.grip) {
+              shown = { lift: dv.liftTo, grip: dv.gripTo };
+              setPose(shown);
+            }
+            follow(x, z, Math.min(1, dt * 4));
+            orbit.update();
+            webgl.render(scene, camera);
+            return;
+          }
 
           const idx = stageRef.current;
           const s = STAGES[idx] ?? STAGES[0];
@@ -352,6 +512,8 @@ export function AsrsRobotViewer() {
   }, [active]);
 
   const s = STAGES[stage];
+  const deckTabs = (p: { lift: number; grip: number }) =>
+    `deck ${(p.lift * 100).toFixed(0).padStart(3)}%   tabs ${(p.grip * 100).toFixed(0).padStart(3)}%`;
 
   return (
     <figure className="story-figure model-viewer" id="robot-3d">
@@ -381,11 +543,46 @@ export function AsrsRobotViewer() {
             </span>
             {status === 'ready' && (
               <pre className="asrs-hud" aria-hidden="true">
-                {`STEP ${String(stage + 1).padStart(2)}/${STAGES.length}  ${s.name.toUpperCase()}\n`}
-                {`deck ${(s.lift * 100).toFixed(0).padStart(3)}%   tabs ${(s.grip * 100)
-                  .toFixed(0)
-                  .padStart(3)}%`}
+                {drive
+                  ? ['DRIVE', deckTabs(pose), msg ?? (coarse ? '' : 'WASD drive · E spread/grip · F lift')]
+                      .filter(Boolean)
+                      .join('\n')
+                  : `STEP ${String(stage + 1).padStart(2)}/${STAGES.length}  ${s.name.toUpperCase()}\n${deckTabs(s)}`}
               </pre>
+            )}
+            {status === 'ready' && drive && coarse && (
+              // a Game Boy pad over the canvas: hold a direction to keep going, A lifts, B grips
+              <div className="asrs-pad" onContextMenu={(e) => e.preventDefault()}>
+                <div className="asrs-dpad" role="group" aria-label="Drive">
+                  {DPAD.map(([d, glyph]) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className={`asrs-dpad-${d}`}
+                      aria-label={`Drive ${d}`}
+                      onPointerDown={(e) => {
+                        press(d);
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                      }}
+                      onPointerUp={() => release(d)}
+                      onPointerCancel={() => release(d)}
+                      onClick={(e) => {
+                        if (e.detail === 0) padRef.current.tap = d; // a screen reader's tap: one cell
+                      }}
+                    >
+                      {glyph}
+                    </button>
+                  ))}
+                </div>
+                <div className="asrs-ab">
+                  <button type="button" className="asrs-ab-b" aria-label="B: spread or grip" onClick={() => doAct('grip')}>
+                    B
+                  </button>
+                  <button type="button" className="asrs-ab-a" aria-label="A: lift or lower" onClick={() => doAct('lift')}>
+                    A
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           {status === 'ready' && (
@@ -395,8 +592,9 @@ export function AsrsRobotViewer() {
                   <button
                     key={st.name}
                     type="button"
-                    className={`asrs-step${i === stage ? ' asrs-step-on' : i === goal && !playing ? ' asrs-step-goal' : ''}`}
+                    className={`asrs-step${drive ? '' : i === stage ? ' asrs-step-on' : i === goal && !playing ? ' asrs-step-goal' : ''}`}
                     onClick={() => {
+                      setDrive(false); // a step leaves drive mode and walks there from the start
                       setPlaying(false);
                       setGoal(i);
                     }}
@@ -410,6 +608,7 @@ export function AsrsRobotViewer() {
                   type="button"
                   className="asrs-btn"
                   onClick={() => {
+                    setDrive(false); // play leaves drive mode, from the cycle's start
                     setGoal(stage);
                     setPlaying((p) => !p);
                   }}
@@ -422,6 +621,14 @@ export function AsrsRobotViewer() {
                   onClick={() => setXray((v) => !v)}
                 >
                   ⦿ X-ray
+                </button>
+                <button
+                  type="button"
+                  className={`asrs-btn${drive ? ' asrs-btn-on' : ''}`}
+                  aria-pressed={drive}
+                  onClick={toggleDrive}
+                >
+                  ✥ Drive
                 </button>
                 <span className="asrs-hint">drag to orbit · ctrl+drag to pan · scroll to zoom</span>
               </div>
