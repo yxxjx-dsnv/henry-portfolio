@@ -843,12 +843,17 @@ export async function createBadgeScene(
   }
   function wake() {
     resting = 0;
-    last = 0;
     if (document.hidden || !visible) {
       cancelAnimationFrame(raf);
       raf = 0;
       up();
-    } else if (!raf && !disposed) raf = requestAnimationFrame(frame);
+    } else if (!raf && !disposed) {
+      // only a loop that had stopped starts its clock afresh. (Resetting it on
+      // every wake froze the physics for the frame after each pointer move: a
+      // cursor or a drag over the badge made it stutter.)
+      last = 0;
+      raf = requestAnimationFrame(frame);
+    }
   }
   // nothing runs while the cover is scrolled away or the tab is hidden
   const io = new IntersectionObserver(([e]) => {
