@@ -144,12 +144,6 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
       <br />
       <ul className="social-list">
         <li>
-          <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer">
-            <i className="fa-brands fa-instagram" aria-hidden="true" />
-            Instagram
-          </a>
-        </li>
-        <li>
           <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer">
             <i className="fa-brands fa-linkedin-in" aria-hidden="true" />
             LinkedIn
@@ -159,6 +153,12 @@ export function Sidebar({ isDark, onToggleDark, open, onClose }: Props) {
           <a href={profile.social.github} target="_blank" rel="noopener noreferrer">
             <i className="fa-brands fa-github" aria-hidden="true" />
             GitHub
+          </a>
+        </li>
+        <li>
+          <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-instagram" aria-hidden="true" />
+            Instagram
           </a>
         </li>
         <li>
