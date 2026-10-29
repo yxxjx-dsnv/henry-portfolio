@@ -12,6 +12,7 @@ import { Projects } from './pages/Projects';
 import { Essays } from './pages/Essays';
 import { Writing } from './pages/Writing';
 import { WayOfLife } from './pages/WayOfLife';
+import { MoonAndBack } from './pages/MoonAndBack';
 import { ExtraCurricular } from './pages/ExtraCurricular';
 import { Education } from './pages/Education';
 import { NotFound } from './pages/NotFound';
@@ -55,6 +56,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/projects/aps105-labs': 'APS105 Coding Labs — Henry Kim',
   '/writing': 'Writing — Henry Kim',
   '/writing/a-way-of-life': 'A way of life — Henry Kim',
+  '/writing/to-the-moon-and-back': 'To the moon and back — Henry Kim',
   '/writing/learnings-from-past-three-years': 'Learnings from past three years — Henry Kim',
   '/extra-curricular': 'Extra-Curricular — Henry Kim',
   '/extra-curricular/greenstone-grind': 'The Greenstone Grind — Henry Kim',
@@ -367,6 +369,7 @@ export default function App() {
               <Route path="/projects/aps105-labs" element={<Aps105Labs />} />
               <Route path="/writing" element={<Writing />} />
               <Route path="/writing/a-way-of-life" element={<WayOfLife />} />
+              <Route path="/writing/to-the-moon-and-back" element={<MoonAndBack />} />
               <Route path="/writing/learnings-from-past-three-years" element={<Essays />} />
               {/* the essay's old address */}
               <Route path="/essays" element={<Navigate to="/writing/learnings-from-past-three-years" replace />} />
