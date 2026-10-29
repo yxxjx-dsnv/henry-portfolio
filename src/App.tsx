@@ -93,12 +93,16 @@ export default function App() {
         Math.max(x, window.innerWidth - x),
         Math.max(y, window.innerHeight - y),
       );
+      // The edge starts at a steady speed (an eased start read as a stall) and only
+      // eases off in its last stretch: at one speed all the way, the growing circle
+      // swept the lower page too fast. (An ease-in-out radius left the far corner
+      // changing last, in a slow tail.)
       try {
       document.documentElement.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
         {
-          duration: 550,
-          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          duration: 500,
+          easing: 'cubic-bezier(0.33, 0.33, 0.45, 1)',
           pseudoElement: '::view-transition-new(root)',
         },
       );
