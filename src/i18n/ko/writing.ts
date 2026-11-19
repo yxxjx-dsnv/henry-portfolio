@@ -1,5 +1,8 @@
 // Korean for the short pieces under Writing, line by line.
 const ko: Record<string, string> = {
+  // Hector and the Search for Happiness (the lessons themselves are in the page, one list per edition)
+  'Hector and the Search for Happiness': '꾸뻬씨의 행복여행',
+  Lesson: '배움',
   // To the moon and back
   '"I love you to the moon and back" means I love you as far as the moon and back again.':
     '"I love you to the moon and back"은 \'달을 왕복할 만큼 너를 사랑해\'라는 뜻입니다.',

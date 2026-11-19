@@ -26,8 +26,8 @@ test('renders the Writing list at /writing, newest first', () => {
   renderAt('/writing');
   expect(screen.getByRole('heading', { name: 'Writing' })).toBeInTheDocument();
   const links = screen.getAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/writing/'));
-  expect(links.map((a) => a.textContent)).toEqual(['To the moon and back', 'A way of life', 'Learnings from past three years']);
-  expect(screen.getByText('October 29, 2026')).toBeInTheDocument();
+  expect(links.map((a) => a.textContent)).toEqual(['Hector and the Search for Happiness', 'To the moon and back', 'A way of life', 'Learnings from past three years']);
+  expect(screen.getByText('November 18, 2026')).toBeInTheDocument();
 });
 
 test('each piece opens on its own page', () => {
