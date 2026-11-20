@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { useLang } from '../i18n';
 
-// handwriting, loaded only for this page: Caveat, and Nanum Pen Script for Hangul
-const HAND_FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Nanum+Pen+Script&display=swap';
+// handwriting, loaded only for this page: Caveat for English (Hangul's hand, The Face Shop
+// InkLipquid, is an @font-face in index.css that loads when this page first uses it)
+const HAND_FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap';
 // The book in each language's edition: the Korean one I read (오래된미래, 2004) and the
 // English (Penguin, 2010); covers from aladin.co.kr. No image of the English back cover is to be had, so its back
 // is a plain one with the title.
