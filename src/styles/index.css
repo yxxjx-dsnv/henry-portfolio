@@ -164,6 +164,26 @@ body.dark-mode .writing-list li { border-color: #333333; }
 /* a light-on-black picture (the Apollo chart) on the dark page: only what is lighter than
    the page shows, so its black is the page's own, exactly (a lossy image can't hold #121212) */
 body.dark-mode .wide-figure img { mix-blend-mode: lighten; }
+/* The butterfly under "A way of life" (Butterfly): a Blender render with a transparent
+   background, its frame wide enough (1.6x the butterfly's own) for the soft shadow to fade out
+   inside it. The poem is as wide as its longest line, and the butterfly's open wings span just
+   that: over the whole loop the opaque wings reach from 35.68% to 64.19% of the frame (measured
+   on the rendered frames), so the video is 1/0.2852 of the poem's width, pulled left by 35.68%
+   of itself; it doesn't count toward the poem's width (contain). Drawn up so the raised wings
+   come near the poem, taken back below so the end mark keeps its place. Mostly transparent, it reaches over the text and the sidebar, so
+   it lets the pointer through; the page clips it at the screen's edges (main). */
+.essay-section .text .section-body.poem:has(.butterfly) { width: fit-content; }
+.essay-section .text .section-body.poem .butterfly {
+  --w: calc(100% / 0.2852);
+  width: var(--w);
+  contain: inline-size;
+  aspect-ratio: 1728 / 1440;
+  margin: calc(var(--w) * -0.2) 0 calc(var(--w) * -0.156) calc(var(--w) * -0.3568);
+  pointer-events: none;
+}
+main:has(.butterfly) { overflow-x: clip; }
+.butterfly video,
+.butterfly img { display: block; width: 100%; height: 100%; }
 /* A piece in handwriting (Hector's lessons): Caveat, and The Face Shop InkLipquid for Hangul
    (free, served by noonnu; fetched only when this page sets Hangul in it). */
 @font-face {

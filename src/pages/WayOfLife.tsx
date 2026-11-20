@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { useLang } from '../i18n';
+import { Butterfly } from '../components/Butterfly';
 
 export function WayOfLife() {
   const { t } = useLang();
@@ -41,6 +42,8 @@ export function WayOfLife() {
               {t('you still have a beautiful garden.')}
             </p>
             <p>{t('So I will tend a beautiful garden of my own.')}</p>
+            {/* and one came */}
+            <Butterfly />
             <div className="end-mark" aria-hidden="true" />
           </div>
         </div>
