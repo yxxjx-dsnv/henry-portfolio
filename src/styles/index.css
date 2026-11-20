@@ -158,6 +158,12 @@ body.dark-mode .writing-list li { border-color: #333333; }
 /* A piece set as a poem: airier lines, a pause between stanzas. */
 .essay-section .text .section-body.poem p { font-size: 16px; line-height: 1.9; margin-bottom: 1.6em; }
 .essay-section .text .section-body.poem .end-mark { margin-top: 2.4em; }
+/* a picture as wide as the text, in colour, without a border: it zooms with the text */
+.wide-figure { margin: 2.6em 0 0; width: 100%; }
+.wide-figure img { display: block; width: 100%; height: auto; }
+/* a light-on-black picture (the Apollo chart) on the dark page: only what is lighter than
+   the page shows, so its black is the page's own, exactly (a lossy image can't hold #121212) */
+body.dark-mode .wide-figure img { mix-blend-mode: lighten; }
 /* A piece in handwriting (Hector's lessons): Caveat, Nanum Pen Script for Hangul. */
 .essay-section .text .section-body.hand ol { list-style: none; margin: 0; padding: 0; }
 .essay-section .text .section-body.hand li { font-family: 'Caveat', 'Nanum Pen Script', cursive; font-size: 24px; line-height: 1.3; }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Hero } from '../components/Hero';
 import { useLang } from '../i18n';
+import { Photo } from '../components/Expandable';
 
 export function MoonAndBack() {
   const { t } = useLang();
@@ -34,6 +35,16 @@ export function MoonAndBack() {
               )}
             </p>
             <p>{t('Ella, I love you to the moon and back.')}</p>
+            {/* the way there and back: NASA's Apollo lunar landing mission profile, large, in colour */}
+            <figure className="wide-figure">
+              <Photo
+                src="/media/moon/apollo-mission-profile.webp"
+                alt={t('The Apollo lunar landing mission profile: the flight from the Earth to the Moon and back, step by step.')}
+                width={7521}
+                height={2385}
+                decoding="async"
+              />
+            </figure>
             <div className="end-mark" aria-hidden="true" />
           </div>
         </div>

@@ -4,6 +4,8 @@ const ko: Record<string, string> = {
   'Hector and the Search for Happiness': '꾸뻬씨의 행복여행',
   Lesson: '배움',
   // To the moon and back
+  'The Apollo lunar landing mission profile: the flight from the Earth to the Moon and back, step by step.':
+    '아폴로 유인 달 착륙 임무 계획도: 지구에서 달까지 갔다가 돌아오는 비행을 단계별로 그린 그림.',
   '"I love you to the moon and back" means I love you as far as the moon and back again.':
     '"I love you to the moon and back"은 \'달을 왕복할 만큼 너를 사랑해\'라는 뜻입니다.',
   "They say the work a person's heart does in a lifetime is enough to drive a car from the Earth to the moon and back.":
@@ -15,7 +17,7 @@ const ko: Record<string, string> = {
   'I never want to let her go.': '더 이상은 그녀를 놓치고 싶지 않습니다.',
   'I want to spend my whole life with her: seeing the far side of the moon at its most beautiful hour, circling it slowly, looking back together on the journey we have made, and returning to the place where it all began.':
     '그녀와 함께 평생을 바쳐 가장 아름답고, 멋진 시간에 달 뒤편을 구경하고 천천히 달 궤도를 선회하며 서로 함께 지나온 여정을 바라보며 처음 시작했던 장소로 돌아가고 싶습니다.',
-  'Ella, I love you to the moon and back.': '예진아, I love you to the moon and back.',
+  'Ella, I love you to the moon and back.': '예진, I love you to the moon and back.',
   // A way of life
   "In German, they don't say,": '독일에서는',
   '"Spend your time wisely,"': '"시간을 현명하게 써라"라고 말하지 않습니다.',
